@@ -11,6 +11,7 @@
       --text: #1a1a1a;
       --accent: #2563eb;
       --gray: #666;
+      --light-gray: #e5e7eb;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -18,6 +19,7 @@
         --text: #f0f0f0;
         --gray: #aaa;
         --accent: #3b82f6;
+        --light-gray: #1f2937;
       }
     }
 
@@ -29,89 +31,79 @@
       line-height: 1.6;
     }
 
+    /* Navbar */
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .nav-links a.coming-soon {
+      color: var(--gray);
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .nav-links a.coming-soon::after {
+      content: " (coming soon)";
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
     .container {
       max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-
+    /* Rest of your previous styles (avatar, sections, etc.) */
+    header { text-align: center; margin-bottom: 60px; }
     .avatar {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid var(--accent);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      width: 180px; height: 180px; border-radius: 50%; object-fit: cover;
+      border: 4px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.15);
       margin-bottom: 24px;
     }
+    h1 { font-size: 2.8rem; margin: 0 0 12px 0; font-weight: 700; }
+    .tagline { font-size: 1.3rem; color: var(--gray); margin: 0; }
 
-    h1 {
-      font-size: 2.8rem;
-      margin: 0 0 12px 0;
-      font-weight: 700;
-    }
-
-    .tagline {
-      font-size: 1.3rem;
-      color: var(--gray);
-      margin: 0;
-    }
-
-    .links {
-      margin-top: 20px;
-    }
-
-    .links a {
-      color: var(--accent);
-      text-decoration: none;
-      margin: 0 12px;
-      font-weight: 500;
-    }
-
-    .links a:hover {
-      text-decoration: underline;
-    }
-
-    section {
-      margin-bottom: 60px;
-    }
-
+    section { margin-bottom: 60px; }
     h2 {
-      font-size: 1.8rem;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 8px;
-      display: inline-block;
-      margin-bottom: 24px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      margin-bottom: 20px;
-      padding-left: 4px;
-    }
-
-    .job-title {
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: var(--accent);
-    }
-
-    .company {
-      font-weight: 600;
-    }
-
-    .date {
-      color: var(--gray);
-      font-size: 0.95rem;
+      font-size: 1.8rem; border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px; display: inline-block; margin-bottom: 24px;
     }
 
     .project-grid {
@@ -127,32 +119,17 @@
       transition: transform 0.2s;
     }
 
-    .project-card:hover {
-      transform: translateY(-4px);
-    }
-
-    .project-card h3 {
-      margin: 0 0 8px 0;
-      font-size: 1.2rem;
-    }
-
-    .project-card a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .project-card a:hover {
-      text-decoration: underline;
-    }
+    .project-card:hover { transform: translateY(-4px); }
 
     footer {
       text-align: center;
-      padding: 40px 0;
+      padding: 60px 0 40px;
       color: var(--gray);
       font-size: 0.9rem;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
 
@@ -179,7 +156,7 @@
       
       <div class="links">
         <a href="https://github.com/alektebel" target="_blank">GitHub</a> • 
-        <a href="linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank">LinkedIn</a> • 
+        <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank">LinkedIn</a> • 
         <a href="dratencia@gmail.com">Email</a> • 
         <a href="https://twitter.com/didacum333" target="_blank">X</a>
       </div>
@@ -235,7 +212,7 @@
     </section>
 
     <footer>
-      © 2025 Your Name • Built with ♥ and deployed on GitHub Pages
+      © 2025 Diego • Deployed on GitHub Pages
     </footer>
   </div>
 </body>
