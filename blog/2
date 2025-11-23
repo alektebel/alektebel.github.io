@@ -199,10 +199,10 @@
       </article>
 
       <article class="post-card">
-        <h2><a href="/blog/proposal-for-consensus-algorithm.html">Consensus algorithm for data labeling</a></h2>
+        <h2><a href="/blog/proposal-for-consensus-algorithm.html">Proposal for a New Energy-Efficient Consensus Algorithm</a></h2>
         <div class="post-meta">November 2025 • Cryptography • Distributed Systems</div>
         <p class="post-excerpt">
-        Introducing a bayesian approach to determine the label of a data example based on the labels provided by multiple noisy annotators. In progress
+          Introducing “Proof-of-Useful-Computation”: a consensus mechanism that repurposes mining power for verifiable scientific computations while maintaining Byzantine fault tolerance and 51% attack resistance.
         </p>
       </article>
 
