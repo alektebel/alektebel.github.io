@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #3b82f6;
+        --light-gray: #1f2937;
+        --card-bg: rgba(255,255,255,0.06);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .nav-links a.coming-soon {
+      color: var(--gray);
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .nav-links a.coming-soon::after {
+      content: " (coming soon)";
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .page-description {
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--gray);
+      max-width: 600px;
+      margin: 0 auto 60px;
+    }
+
+    .posts {
+      display: grid;
+      gap: 32px;
+    }
+
+    .post-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 28px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--light-gray);
+    }
+
+    .post-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .post-card h2 {
+      margin: 0 0 12px 0;
+      font-size: 1.65rem;
+    }
+
+    .post-card h2 a {
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .post-card h2 a:hover {
+      color: var(--accent);
+    }
+
+    .post-meta {
+      color: var(--gray);
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+
+    .post-excerpt {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .post-card:hover {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html" class="active">Blog</a>
+        <a href="#" class="coming-soon">Custom LLM</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Blog</h1>
+    <p class="page-description">
+      Thoughts on mathematics, cryptography, decentralized systems, machine learning, and whatever I'm exploring at the moment.
+    </p>
+
+    <div class="posts">
+
+      <article class="post-card">
+        <h2><a href="/blog/exploring-collatz-conjecture-using-algebra.html">Exploring the Collatz Conjecture Using Algebra</a></h2>
+        <div class="post-meta">November 2025 • Mathematics</div>
+        <p class="post-excerpt">
+          A fresh algebraic perspective on the Collatz conjecture: representing the 3n+1 and n/2 steps with matrices, exploring invariant structures, and attempting to prove convergence for certain classes of starting values.
+        </p>
+      </article>
+
+      <article class="post-card">
+        <h2><a href="/blog/proposal-for-consensus-algorithm.html">Proposal for a New Energy-Efficient Consensus Algorithm</a></h2>
+        <div class="post-meta">November 2025 • Cryptography • Distributed Systems</div>
+        <p class="post-excerpt">
+          Introducing “Proof-of-Useful-Computation”: a consensus mechanism that repurposes mining power for verifiable scientific computations while maintaining Byzantine fault tolerance and 51% attack resistance.
+        </p>
+      </article>
+
+      <article class="post-card">
+        <h2><a href="/blog/decentralized-form-of-government-dao.html">A Decentralized Form of Government: Building a Real-World DAO</a></h2>
+        <div class="post-meta">October 2025 • Governance • Blockchain</div>
+        <p class="post-excerpt">
+          From theory to implementation: designing quadratic voting, futarchy-inspired prediction markets, and reputation-weighted delegation for a fully on-chain decentralized autonomous organization capable of managing real budgets and policy.
+        </p>
+      </article>
+
+      <article class="post-card">
+        <h2><a href="/blog/solving-sofa-problem-reinforcement-learning.html">Solving the Sofa Moving Problem Using Reinforcement Learning</a></h2>
+        <div class="post-meta">September 2025 • Reinforcement Learning • Geometry</div>
+        <p class="post-excerpt">
+          Training a soft-actor critic agent to navigate the largest possible sofa around an L-shaped corridor. Results beat the current best known analytical bound by 3.2% and rediscover Gerver’s sofa shape without prior knowledge.
+        </p>
+      </article>
+
+    </div>
+
+    <footer>
+      © 2025 Diego Rodríguez Atencia • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
