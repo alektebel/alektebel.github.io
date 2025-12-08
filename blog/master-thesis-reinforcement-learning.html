@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Master Thesis: Reinforcement Learning • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false});">
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+      --quote-bg: #f0f7ff;
+      --quote-border: #bfdbfe;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #3b82f6;
+        --light-gray: #1f2937;
+        --card-bg: rgba(255,255,255,0.06);
+        --quote-bg: #1e2a44;
+        --quote-border: #3b82f6;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .nav-links a.coming-soon {
+      color: var(--gray);
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .nav-links a.coming-soon::after {
+      content: " (coming soon)";
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .post-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .post-header h1 {
+      font-size: 2.8rem;
+      margin: 0 0 16px 0;
+      font-weight: 700;
+    }
+
+    .post-meta {
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    .content {
+      font-size: 1.1rem;
+    }
+
+    .content h2 {
+      font-size: 2rem;
+      margin-top: 48px;
+      margin-bottom: 20px;
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      margin-top: 36px;
+      margin-bottom: 16px;
+    }
+
+    .content p {
+      margin: 20px 0;
+    }
+
+    .content ul, .content ol {
+      margin: 20px 0;
+      padding-left: 28px;
+    }
+
+    .content li {
+      margin: 8px 0;
+    }
+
+    .content code {
+      background: var(--card-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95em;
+    }
+
+    .content blockquote {
+      background: var(--quote-bg);
+      border-left: 4px solid var(--quote-border);
+      padding: 16px 24px;
+      margin: 24px 0;
+      border-radius: 4px;
+    }
+
+    .video-container {
+      margin: 40px 0;
+      text-align: center;
+    }
+
+    .video-container video {
+      width: 100%;
+      max-width: 800px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .video-caption {
+      margin-top: 12px;
+      color: var(--gray);
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .post-header h1 {
+        font-size: 2rem;
+      }
+      .content {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="#" class="coming-soon">Custom LLM</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="post-header">
+      <h1>Master Thesis: Reinforcement Learning Applications</h1>
+      <div class="post-meta">October 2025 • Machine Learning • Reinforcement Learning</div>
+    </header>
+
+    <article class="content">
+      <p>
+        This is my master thesis on reinforcement learning, exploring advanced techniques and applications in various domains. 
+        The work demonstrates practical implementations of cutting-edge RL algorithms and their real-world applications.
+      </p>
+
+      <h2>Overview</h2>
+      <p>
+        The thesis covers fundamental and advanced topics in reinforcement learning, including policy gradient methods, 
+        actor-critic algorithms, and their applications to complex control problems. Through theoretical analysis and 
+        empirical experiments, this work contributes to the understanding of how RL agents learn optimal behaviors in 
+        challenging environments.
+      </p>
+
+      <h2>Key Contributions</h2>
+      <ul>
+        <li>Implementation of Soft Actor-Critic (SAC) algorithm for continuous control tasks</li>
+        <li>Analysis of exploration-exploitation trade-offs in different scenarios</li>
+        <li>Practical applications demonstrating the effectiveness of modern RL techniques</li>
+        <li>Comprehensive evaluation metrics and performance benchmarks</li>
+      </ul>
+
+      <h2>Demonstration</h2>
+      <p>
+        Below is a demonstration of a trained SAC agent successfully completing the task. The video shows 
+        the agent's learned behavior after 700 training episodes, showcasing smooth and efficient control strategies.
+      </p>
+
+      <div class="video-container">
+        <video controls>
+          <source src="/sac_model_700.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="video-caption">SAC Agent trained for 700 episodes</p>
+      </div>
+
+      <h2>Methodology</h2>
+      <p>
+        The research employs a rigorous experimental methodology, combining theoretical foundations with 
+        practical implementations. The Soft Actor-Critic algorithm was chosen for its ability to handle 
+        continuous action spaces and its sample efficiency compared to traditional policy gradient methods.
+      </p>
+
+      <h2>Results and Conclusions</h2>
+      <p>
+        The experimental results demonstrate the effectiveness of the implemented algorithms across various 
+        performance metrics. The trained agents successfully learned complex policies that generalize well 
+        to unseen scenarios, validating the theoretical principles underlying modern reinforcement learning.
+      </p>
+
+      <p>
+        This work opens up several avenues for future research, including the application of these techniques 
+        to more complex real-world problems and the exploration of hybrid approaches combining RL with other 
+        machine learning paradigms.
+      </p>
+
+      <h2>Download</h2>
+      <p>
+        The full thesis document is available for download and provides detailed explanations of the methodology, 
+        experiments, and results discussed above.
+      </p>
+
+    </article>
+
+    <footer>
+      © 2025 Diego Rodríguez Atencia • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
