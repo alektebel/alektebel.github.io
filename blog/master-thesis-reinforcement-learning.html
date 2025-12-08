@@ -154,23 +154,46 @@
       border-radius: 4px;
     }
 
-    .video-container {
+    .download-box {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 32px;
       margin: 40px 0;
       text-align: center;
     }
 
-    .video-container video {
-      width: 100%;
-      max-width: 800px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    .download-box h3 {
+      margin-top: 0;
+      color: var(--accent);
     }
 
-    .video-caption {
-      margin-top: 12px;
-      color: var(--gray);
-      font-size: 0.95rem;
-      font-style: italic;
+    .download-link {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 12px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 8px;
+      transition: all 0.2s;
+    }
+
+    .download-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .download-link.secondary {
+      background: var(--card-bg);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+
+    .download-link.secondary:hover {
+      background: var(--accent);
+      color: white;
     }
 
     footer {
@@ -231,20 +254,6 @@
         <li>Comprehensive evaluation metrics and performance benchmarks</li>
       </ul>
 
-      <h2>Demonstration</h2>
-      <p>
-        Below is a demonstration of a trained SAC agent successfully completing the task. The video shows 
-        the agent's learned behavior after 700 training episodes, showcasing smooth and efficient control strategies.
-      </p>
-
-      <div class="video-container">
-        <video controls>
-          <source src="./sac_model_700.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-        <p class="video-caption">SAC Agent trained for 700 episodes</p>
-      </div>
-
       <h2>Methodology</h2>
       <p>
         The research employs a rigorous experimental methodology, combining theoretical foundations with 
@@ -265,11 +274,21 @@
         machine learning paradigms.
       </p>
 
-      <h2>Download</h2>
-      <p>
-        The full thesis document is available for download and provides detailed explanations of the methodology, 
-        experiments, and results discussed above.
-      </p>
+      <div class="download-box">
+        <h3>📥 Download Resources</h3>
+        <p>
+          Access the full thesis document and demonstration video showcasing the trained SAC agent 
+          after 700 training episodes.
+        </p>
+        <div>
+          <a href="/13-10-2025 - memoria - v3 - definitiva.pdf" class="download-link" download>
+            📄 Download Thesis (PDF)
+          </a>
+          <a href="/sac_model_700.mp4" class="download-link secondary" download>
+            🎬 Download Demo Video (MP4)
+          </a>
+        </div>
+      </div>
 
     </article>
 
