@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KAN Implementation Using Taylor Polynomials • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false});">
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+      --quote-bg: #f0f7ff;
+      --quote-border: #bfdbfe;
+      --code-bg: #f5f5f5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #3b82f6;
+        --light-gray: #1f2937;
+        --card-bg: rgba(255,255,255,0.06);
+        --quote-bg: #1e2a44;
+        --quote-border: #3b82f6;
+        --code-bg: #1a1a1a;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .nav-links a.coming-soon {
+      color: var(--gray);
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .nav-links a.coming-soon::after {
+      content: " (coming soon)";
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .post-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .post-header h1 {
+      font-size: 2.5rem;
+      margin: 0 0 16px 0;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .post-meta {
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    .content {
+      font-size: 1.1rem;
+    }
+
+    .content h2 {
+      font-size: 2rem;
+      margin-top: 48px;
+      margin-bottom: 20px;
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      margin-top: 36px;
+      margin-bottom: 16px;
+    }
+
+    .content p {
+      margin: 20px 0;
+    }
+
+    .content ul, .content ol {
+      margin: 20px 0;
+      padding-left: 28px;
+    }
+
+    .content li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    .content code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95em;
+      font-family: 'Courier New', monospace;
+    }
+
+    .content pre {
+      background: var(--code-bg);
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 24px 0;
+      border: 1px solid var(--light-gray);
+    }
+
+    .content pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    .content blockquote {
+      background: var(--quote-bg);
+      border-left: 4px solid var(--quote-border);
+      padding: 16px 24px;
+      margin: 24px 0;
+      border-radius: 4px;
+    }
+
+    .katex-display {
+      margin: 32px 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .advantages-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 32px 0;
+      border: 1px solid var(--light-gray);
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .post-header h1 {
+        font-size: 2rem;
+      }
+      .content {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="#" class="coming-soon">Custom LLM</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="post-header">
+      <h1>Kolmogorov-Arnold Networks: Implementation Using Taylor Polynomials</h1>
+      <div class="post-meta">January 2025 • Deep Learning • PyTorch</div>
+    </header>
+
+    <article class="content">
+      <p>
+        Just as Multi-Layer Perceptrons (MLPs) are based on the universal approximation theorem, 
+        in April 2024 a groundbreaking paper was published introducing a new architecture called KAN 
+        (Kolmogorov-Arnold Networks), inspired by and based on the Kolmogorov-Arnold representation theorem.
+      </p>
+
+      <h2>Theoretical Foundation</h2>
+      
+      <p>These two fundamental theorems can be compared as follows:</p>
+
+      <ul>
+        <li><strong>Universal Approximation Theorem:</strong> States that any function between compact sets 
+        can be approximated by a neural network with a finite number of neurons.</li>
+        
+        <li><strong>Kolmogorov-Arnold Theorem:</strong> States that any continuous multivariate function 
+        can be approximated as a finite composition of continuous univariate functions and the binary 
+        operation of addition. Specifically:</li>
+      </ul>
+
+      $$f(x) = f(x_1, x_2, \ldots, x_n) = \sum_{q=0}^{2n} \Phi_q \left(\sum_{p=1}^n \phi_{q, p}(x_p)\right)$$
+
+      <p>Where:</p>
+      
+      $$\phi_{q, p}: [0, 1] \longrightarrow \mathbb{R} \text{ and } \Phi_q: \mathbb{R} \longrightarrow \mathbb{R}$$
+
+      <p>
+        In concrete terms, the implementation of this paradigm uses splines or other function approximators 
+        instead of the theoretical $\phi$ and $\Phi$ functions.
+      </p>
+
+      <h2>Key Advantages Over MLPs</h2>
+
+      <div class="advantages-box">
+        <ul>
+          <li><strong>Parameter Efficiency:</strong> Requires fewer parameters to achieve the same results compared to MLPs</li>
+          <li><strong>Interpretability:</strong> Highly interpretable results, unlike black-box MLPs</li>
+          <li><strong>Extractable Formulas:</strong> Possible to extract practically concise formulas with non-linear elements. 
+          MLPs have too many terms for this to be practical</li>
+        </ul>
+      </div>
+
+      <h3>Parameter Count Comparison</h3>
+
+      <p>Consider the following setup:</p>
+      <ul>
+        <li>$L$ = depth of both networks</li>
+        <li>$N$ = number of weights per neuron</li>
+        <li>$G$ = number of grid points dividing the interval $[0, 1]$</li>
+      </ul>
+
+      <p>Assuming two networks (MLP and KAN) with $L$ layers and equal width in each layer: $n_0 = n_1 = \ldots = n_L = N$</p>
+
+      <ul>
+        <li>An MLP has a total of $O(N^2L)$ parameters</li>
+        <li>A KAN has a total of $O(N^2LG)$ parameters (when using B-splines, since each entry in the function 
+        matrix has $G$ weights, one per grid element)</li>
+      </ul>
+
+      <h2>Technical Implementation</h2>
+
+      <p>
+        In an MLP, we have several layers, and in each layer we have an associated weight matrix that 
+        encodes the relationships between layer $L$ and layer $L-1$ values, after applying the 
+        corresponding activation function:
+      </p>
+
+      $$a^{(L)} = \sigma(W_{n_L, n_{L-1}} a^{(L-1)})$$
+
+      <p>
+        In comparison, we can define a KAN layer as a matrix of one-dimensional functions:
+      </p>
+
+      $$\Phi = \{\phi_{q, p}\}, \quad p = 1, 2, \ldots, n_{in}, \quad q = 1, 2, \ldots, n_{out}$$
+
+      <p>
+        Where these functions have trainable parameters (splines). The inner functions form a KAN layer 
+        of dimension $(n_{in}, n_{out}) = (n, 2n+1)$ while the outer functions form a layer of dimension 
+        $(n_{in}, n_{out}) = (2n+1, 1)$.
+      </p>
+
+      <p>Between layers $l$ and $l+1$, there exist $n_l \times n_{l+1}$ functions.</p>
+
+      <h3>Matrix Form</h3>
+
+      <p>The matrix form can be written as:</p>
+
+      $$
+      x_{l+1} =
+      \begin{pmatrix}
+      \phi_{l,1,1}(\cdot) & \phi_{l,1,2}(\cdot) & \cdots & \phi_{l,1,n_l}(\cdot) \\
+      \phi_{l,2,1}(\cdot) & \phi_{l,2,2}(\cdot) & \cdots & \phi_{l,2,n_l}(\cdot) \\
+      \vdots & \vdots & \ddots & \vdots \\
+      \phi_{l,n_{l+1},1}(\cdot) & \phi_{l,n_{l+1},2}(\cdot) & \cdots & \phi_{l,n_{l+1},n_l}(\cdot)
+      \end{pmatrix}
+      x_l
+      $$
+
+      <p>Which is equivalent to:</p>
+
+      $$x_{l+1} = \Phi_l x_{l}$$
+
+      <p>where $\Phi_l$ is the function matrix corresponding to layer $l$.</p>
+
+      <p>A general KAN is the composition of $L$ such layers. For a vector $x_0 \in \mathbb{R}^{n_0}$, 
+      the output of a KAN is:</p>
+
+      $$
+      \text{KAN}(x) = (\Phi_{L-1} \circ \Phi_{L-2} \circ \cdots \circ \Phi_1 \circ \Phi_0)x
+      $$
+
+      <h2>Approximation Theorem</h2>
+
+      <p><strong>Theorem (Approximation Theory):</strong></p>
+
+      <p>
+        Let $x = (x_1, x_2, \dots, x_n)$. Suppose that $f(x)$ admits a representation
+      </p>
+
+      $$
+      f = (\Phi_{L-1} \circ \Phi_{L-2} \circ \cdots \circ \Phi_1 \circ \Phi_0)x
+      $$
+
+      <p>
+        where each $\Phi_{l,i,j}$ is $(k+1)$-times continuously differentiable. Then there exists a 
+        constant $C$ dependent on $f$ and its representation, and there exist $k$ B-spline functions 
+        $\Phi_{l,i,j}^G$ such that for each $0 \leq m \leq k$, we have the bound:
+      </p>
+
+      $$
+      \|f - (\Phi_{L-1}^G \circ \Phi_{L-2}^G \circ \cdots \circ \Phi_1^G \circ \Phi_0^G)x\|_{C^m} \leq C G^{-k-1+m}
+      $$
+
+      <p>Where the norm is defined as:</p>
+
+      $$\|g\|_{C^m} = \max_{|\beta| \leq m} \sup_{x \in [0, 1]^n} |D^{\beta} g(x)|$$
+
+      <p>
+        <strong>Conclusion:</strong> We can approximate the representative function of $f$ by modifying 
+        the grid (the finer the grid, the better the approximation).
+      </p>
+
+      <h2>Implementation with Taylor Polynomials</h2>
+
+      <p>
+        Instead of using a grid to estimate splines with B-splines, we'll approximate the splines using 
+        Taylor expansions. This theorem has an analogous implication when we better approximate the 
+        splines separately.
+      </p>
+
+      <h3>KAN Layer Definition</h3>
+
+      <p>
+        As can be observed in the paper, each layer consists of a matrix of functions, where the 
+        "matrix multiplication" is defined as the substitution of values in each function. Each $\phi$ 
+        is defined as follows:
+      </p>
+
+      <p>
+        A base function $b(x)$ is included such that the function $\phi(x)$ is the sum of this and 
+        the spline, and the implementation is finalized by multiplying by learnable weights. This way, 
+        contributions can be centralized in specific layers:
+      </p>
+
+      $$
+      \phi(x) = w_b b(x) + w_s \text{spline}(x)
+      $$
+
+      <p>Where the base function is:</p>
+
+      $$
+      b(x) = \text{silu}(x) = \frac{x}{1 + e^{-x}}
+      $$
+
+      <h3>PyTorch Implementation</h3>
+
+      <p>Here's the implementation of a KAN layer using Taylor polynomial expansion:</p>
+
+      <pre><code>import torch
+from torch import nn
+
+def activacion_base(x):
+    return x * torch.sigmoid(x)
+
+class capaKAN_taylor(nn.Module):
+    def __init__(self, input_dim, output_dim, grado_taylor):
+        super(capaKAN_taylor, self).__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        
+        # Initialize parameters close to 0 to prevent large errors
+        self.pesos_funcion = nn.Parameter(
+            0.001 * torch.randn(output_dim, input_dim), 
+            requires_grad=True
+        )
+        self.pesos_base = nn.Parameter(
+            0.001 * torch.randn(output_dim, input_dim), 
+            requires_grad=True
+        )
+        self.pesos_taylor = nn.Parameter(
+            torch.randn(output_dim, grado_taylor, input_dim) * 0.001, 
+            requires_grad=True
+        )
+        self.grado_taylor = grado_taylor
+
+    def forward(self, x):
+        if len(x.shape) == 1:
+            x = x.unsqueeze(1)
+        
+        # Compute Taylor polynomial terms
+        exponents = torch.concat(
+            [x.unsqueeze(-1)**j for j in range(self.grado_taylor)], 
+            axis=-1
+        )
+        taylor_terms = torch.einsum('njg,igj->inj', exponents, self.pesos_taylor)
+        base = activacion_base(x).unsqueeze(0)
+        
+        # Combine base function and Taylor terms
+        base_function_adding = base + taylor_terms
+        self.transformed = torch.einsum(
+            'ij,inj->ni', 
+            self.pesos_funcion, 
+            base_function_adding
+        )
+        return self.transformed</code></pre>
+
+      <h3>Complete KAN Network</h3>
+
+      <pre><code>class KAN(nn.Module):
+    def __init__(self, lista_estructura, grado_taylor):
+        super(KAN, self).__init__()
+        self.layers = nn.ModuleList([])
+        for i in range(len(lista_estructura)-1):
+            self.layers.append(
+                capaKAN_taylor(
+                    lista_estructura[i], 
+                    lista_estructura[i+1], 
+                    grado_taylor
+                )
+            )
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer.forward(x)
+        return x</code></pre>
+
+      <h2>Experimental Results</h2>
+
+      <p>
+        The KAN was trained on a toy dataset to approximate the function $z = x^2 + y^2$. The network 
+        structure was $[2, 4, 4, 1]$ with Taylor polynomial degree 10, trained for 200 epochs using 
+        the Adam optimizer with cosine annealing learning rate schedule.
+      </p>
+
+      <p>
+        The results demonstrated successful function approximation with mean squared error consistently 
+        decreasing throughout training. The gradient norms for each layer confirmed convergence to a 
+        local minimum.
+      </p>
+
+      <h2>Applications and Future Directions</h2>
+
+      <p>
+        This type of structure is extremely useful for discovering formulas in physical experiments, 
+        as it's sufficient to examine the trained splines to understand how the final function is 
+        constructed from the parameters. Additionally, this type of estimator is highly interpretable—it's 
+        only necessary to follow the spline evaluations to understand how each variable affects the final result.
+      </p>
+
+      <p>Key application areas include:</p>
+      <ul>
+        <li><strong>Physics:</strong> Discovering functional relationships in experimental data</li>
+        <li><strong>Scientific Computing:</strong> Interpretable function approximation</li>
+        <li><strong>Symbolic Regression:</strong> Extracting mathematical formulas from data</li>
+        <li><strong>Domain Science:</strong> Understanding complex multivariate relationships</li>
+      </ul>
+
+      <h2>Conclusion</h2>
+
+      <p>
+        Kolmogorov-Arnold Networks represent a paradigm shift in neural network architectures, offering 
+        superior interpretability and parameter efficiency compared to traditional MLPs. The implementation 
+        using Taylor polynomial expansions provides a practical and flexible approach to function approximation 
+        while maintaining the theoretical guarantees of the Kolmogorov-Arnold representation theorem.
+      </p>
+
+      <p>
+        The code and experiments demonstrate that KANs can successfully learn complex multivariate functions 
+        with fewer parameters and greater transparency than conventional deep learning approaches.
+      </p>
+
+    </article>
+
+    <footer>
+      © 2025 Diego Rodríguez Atencia • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
