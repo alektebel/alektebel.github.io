@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bayesian Consensus Algorithm for Multi-Class Data Labeling • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false});">
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+      --quote-bg: #f0f7ff;
+      --quote-border: #bfdbfe;
+      --code-bg: #f5f5f5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #3b82f6;
+        --light-gray: #1f2937;
+        --card-bg: rgba(255,255,255,0.06);
+        --quote-bg: #1e2a44;
+        --quote-border: #3b82f6;
+        --code-bg: #1a1a1a;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .nav-links a.coming-soon {
+      color: var(--gray);
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .nav-links a.coming-soon::after {
+      content: " (coming soon)";
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .post-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .post-header h1 {
+      font-size: 2.5rem;
+      margin: 0 0 16px 0;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .post-meta {
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    .content {
+      font-size: 1.1rem;
+    }
+
+    .content h2 {
+      font-size: 2rem;
+      margin-top: 48px;
+      margin-bottom: 20px;
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      margin-top: 36px;
+      margin-bottom: 16px;
+    }
+
+    .content h4 {
+      font-size: 1.2rem;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    .content p {
+      margin: 20px 0;
+    }
+
+    .content ul, .content ol {
+      margin: 20px 0;
+      padding-left: 28px;
+    }
+
+    .content li {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    .content code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95em;
+      font-family: 'Courier New', monospace;
+    }
+
+    .content pre {
+      background: var(--code-bg);
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 24px 0;
+      border: 1px solid var(--light-gray);
+      line-height: 1.5;
+    }
+
+    .content pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    .content blockquote {
+      background: var(--quote-bg);
+      border-left: 4px solid var(--quote-border);
+      padding: 16px 24px;
+      margin: 24px 0;
+      border-radius: 4px;
+    }
+
+    .katex-display {
+      margin: 32px 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .highlight-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 32px 0;
+      border: 1px solid var(--light-gray);
+    }
+
+    .algorithm-box {
+      background: var(--quote-bg);
+      border-left: 4px solid var(--accent);
+      padding: 20px 24px;
+      margin: 32px 0;
+      border-radius: 8px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 80px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .post-header h1 {
+        font-size: 2rem;
+      }
+      .content {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="#" class="coming-soon">Custom LLM</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="post-header">
+      <h1>Bayesian Consensus Algorithm for Multi-Class Data Labeling</h1>
+      <div class="post-meta">November 2025 • Machine Learning • Bayesian Inference</div>
+    </header>
+
+    <article class="content">
+      <p>
+        Data labeling is a critical bottleneck in machine learning pipelines. While crowdsourcing platforms 
+        provide access to numerous annotators, their labels often contain noise and inconsistencies. This work 
+        presents a Bayesian approach to aggregate noisy labels from multiple annotators, determining the true 
+        label through probabilistic inference.
+      </p>
+
+      <h2>The Problem</h2>
+      
+      <p>
+        Consider a multi-class classification task where we need to label a dataset, but instead of having 
+        access to ground truth labels, we have:
+      </p>
+
+      <ul>
+        <li><strong>Multiple annotators</strong> with varying levels of expertise</li>
+        <li><strong>Estimated precision</strong> for each annotator (from historical data)</li>
+        <li><strong>Noisy labels</strong> from each annotator on each data point</li>
+        <li><strong>Uncertainty</strong> about the true class distribution</li>
+      </ul>
+
+      <p>
+        The challenge is to combine these noisy labels in a principled way that accounts for annotator 
+        reliability and produces high-confidence predictions.
+      </p>
+
+      <h2>Theoretical Foundation</h2>
+
+      <h3>Annotator Model</h3>
+
+      <p>
+        Each annotator $k$ is modeled by a confusion matrix where $p_{ij}^{(k)}$ represents the probability 
+        that annotator $k$ proposes class $i$ given that the true class is $j$:
+      </p>
+
+      $$P(\text{annotator } k \text{ says } i \mid \text{true class is } j) = p_{ij}^{(k)}$$
+
+      <p>
+        The diagonal elements $p_{ii}^{(k)}$ represent the annotator's precision for class $i$. Higher values 
+        indicate more reliable annotators for that specific class.
+      </p>
+
+      <h3>Bayesian Inference</h3>
+
+      <p>
+        Given a set of votes from different annotators, we use Bayes' theorem to compute the posterior 
+        probability that the true label is class $E$:
+      </p>
+
+      $$P(\text{class } E \mid \text{votes}) = \frac{P(\text{votes} \mid \text{class } E) \cdot P(\text{class } E)}{P(\text{votes})}$$
+
+      <p>
+        The key insight is that votes from different annotators are conditionally independent given the 
+        true class, so we can write:
+      </p>
+
+      $$P(\text{votes} \mid \text{class } E) = \prod_{k \in \text{annotators}} P(\text{vote}_k \mid \text{class } E)$$
+
+      <h3>Conservative Precision Estimation</h3>
+
+      <p>
+        To ensure robustness, we use a conservative estimate of annotator precision. For each annotator, 
+        we underestimate their true precision with probability $1-\beta$ using confidence intervals:
+      </p>
+
+      $$\hat{p}_{ii}^{(k)} = p_{ii}^{(k)} - z_\beta \sqrt{\frac{p_{ii}^{(k)}(1-p_{ii}^{(k)})}{n_{ii}^{(k)}}}$$
+
+      <p>
+        where $n_{ii}^{(k)}$ is the number of samples used to estimate the precision, and $z_\beta$ is 
+        the appropriate quantile from the standard normal distribution.
+      </p>
+
+      <h2>Algorithm Overview</h2>
+
+      <div class="algorithm-box">
+        <h4>Multi-Class Consensus Labeling Algorithm</h4>
+        <ol>
+          <li><strong>Initialize:</strong> Set prior class probabilities and confidence threshold $\alpha$</li>
+          <li><strong>For each data point:</strong>
+            <ul>
+              <li>Initialize empty vote dictionary for each class</li>
+              <li>While confidence below $\alpha$:
+                <ul>
+                  <li>Select random annotator (or use recommendation algorithm)</li>
+                  <li>Generate label from annotator's distribution</li>
+                  <li>Add vote to corresponding class</li>
+                  <li>Compute posterior probabilities using Bayes' rule</li>
+                  <li>Check if max posterior exceeds $\alpha$</li>
+                </ul>
+              </li>
+              <li>Assign label with highest posterior probability</li>
+            </ul>
+          </li>
+          <li><strong>Return:</strong> Consensus labels with confidence guarantees</li>
+        </ol>
+      </div>
+
+      <h2>Implementation</h2>
+
+      <h3>User Generation</h3>
+
+      <p>
+        First, we simulate a pool of annotators with varying precision levels. Each annotator is 
+        characterized by their confusion matrix:
+      </p>
+
+      <pre><code>def generar_usuarios(n, a, m):
+    '''Create n users with simulated precision matrices.
+    
+    Args:
+        n: Number of users
+        a: Minimum samples for precision estimation
+        m: Maximum samples for precision estimation
+    
+    Returns:
+        List of tuples (confusion_matrix, sample_counts)
+    '''
+    usuarios = []
+    matrs = []
+    
+    for i in range(n):
+        # Generate diagonal precisions from Pareto distribution
+        ress = 1 - np.random.pareto(15 + random.randint(0, i), num_clases)
+        for i in range(len(ress)):
+            if ress[i] < 0:
+                ress[i] = -ress[i]
+        
+        # Build confusion matrix
+        matr = np.asarray(ress) * (np.eye(num_clases))
+        valores = np.zeros(matr.shape)
+        
+        # Fill off-diagonal elements (error rates)
+        for i in range(matr.shape[0]):
+            for j in range(matr.shape[1]):
+                if i != j:
+                    valores[i, j] = random.random()
+        
+        # Normalize to ensure probabilities sum to 1
+        valores = np.eye(num_clases) * np.sum(valores, axis=0) + valores
+        valores = valores / np.diag(valores)
+        valores = valores - np.eye(num_clases)
+        matr = matr + valores * (np.diag(np.eye(num_clases) - matr).reshape(num_clases, 1))
+        matr = matr.T
+        matr = matr / np.sum(matr, axis=0)
+        matrs.append(matr)
+    
+    # Generate sample counts for each precision estimate
+    for i in range(len(matrs)):
+        ns = np.random.randint(a, 1000, num_clases * num_clases).reshape((num_clases, num_clases))
+        ns = ns / ns.sum()
+        ns = np.floor(ns * m)
+        usuarios.append((matrs[i], ns))
+    
+    return usuarios</code></pre>
+
+      <h3>Conservative Precision Estimates</h3>
+
+      <p>
+        We underestimate each annotator's precision to provide confidence guarantees:
+      </p>
+
+      <pre><code>def lista_subestimada(lista, prob_sub):
+    '''Underestimate user precisions with confidence prob_sub.'''
+    nueva_lista = []
+    
+    for i in range(len(lista)):
+        nueva_lista.append(np.asarray(list(lista[i][0])))
+        
+        for j in range(num_clases):
+            # Compute conservative estimate using normal approximation
+            nueva_lista[i][j, j] = (
+                lista[i][0][j, j] + 
+                (np.sqrt(lista[i][0][j, j] * (1 - lista[i][0][j, j]) / 
+                        np.sum(lista[i][1], axis=0)[j])) * 
+                stats.norm.ppf(prob_sub)
+            )
+            
+            # Renormalize error rates
+            r = 1 - nueva_lista[i][j, j]
+            z = np.sum(nueva_lista[i][:, j]) - nueva_lista[i][j, j]
+            temp = np.ones(num_clases) * r / z
+            temp[j] = 1
+            nueva_lista[i][:, j] = nueva_lista[i][:, j] * temp
+    
+    return nueva_lista</code></pre>
+
+      <h3>Bayesian Label Aggregation</h3>
+
+      <p>
+        The core algorithm aggregates votes using Bayes' theorem:
+      </p>
+
+      <pre><code>def prob_correcta(E, dic_votantes, lista):
+    '''Compute posterior probability that true label is E.
+    
+    Args:
+        E: Candidate class label
+        dic_votantes: Dictionary mapping classes to list of voters
+        lista: List of user confusion matrices
+    
+    Returns:
+        Posterior probability for class E
+    '''
+    probs = list(props)  # Prior probabilities
+    
+    for k in range(num_clases):
+        for i, vot in dic_votantes.items():
+            if len(vot) >= 1:
+                for le in range(len(vot)):
+                    if i == k:
+                        # Voter said k, true class is k
+                        probs[k] = probs[k] * lista[vot[le]][k, k]
+                    elif i != k:
+                        # Voter said i, true class is k
+                        probs[k] = probs[k] * (lista[vot[le]][i, k])
+    
+    # Normalize to get posterior probabilities
+    probs = probs / np.sum(probs)
+    return probs[E]</code></pre>
+
+      <h3>Complete Labeling Process</h3>
+
+      <pre><code>def etiquetar(usuarios, usuariossub, data, alpha):
+    '''Label dataset using consensus algorithm.
+    
+    Args:
+        usuarios: True user confusion matrices
+        usuariossub: Conservative user estimates
+        data: Ground truth (for simulation)
+        alpha: Confidence threshold
+    
+    Returns:
+        (vote_collections, final_labels)
+    '''
+    coleccion = []
+    new_col = []
+    
+    for i in range(len(data)):
+        coleccion.append({k: [] for k in range(num_clases)})
+        
+        p = 0
+        while p == 0:
+            # Select random annotator
+            etiquetador = random.sample(range(len(usuarios)), 1)
+            etiqueta, mumu = generar_guess(etiquetador[0], usuarios, i)
+            
+            # Record vote
+            coleccion[i][etiqueta].append(etiquetador[0])
+            
+            # Check if any class exceeds confidence threshold
+            for l in range(num_clases):
+                if (prob_correcta(l, coleccion[i], usuariossub) > alpha):
+                    new_col.append(l)
+                    p = 1
+                    break
+    
+    return coleccion, new_col</code></pre>
+
+      <h2>Experimental Results</h2>
+
+      <p>
+        The algorithm was tested on synthetic datasets with varying numbers of classes and annotators. 
+        Key findings include:
+      </p>
+
+      <div class="highlight-box">
+        <h4>Performance Metrics</h4>
+        <ul>
+          <li><strong>Precision:</strong> Consistently achieves >95% accuracy when $\alpha > 0.9$</li>
+          <li><strong>Efficiency:</strong> Requires fewer labels per data point compared to majority voting</li>
+          <li><strong>Robustness:</strong> Gracefully handles annotators with poor precision</li>
+          <li><strong>Confidence:</strong> Provides calibrated uncertainty estimates</li>
+        </ul>
+      </div>
+
+      <p>
+        The validation function computes the final precision by comparing consensus labels against ground truth:
+      </p>
+
+      <pre><code>def get_precs(c):
+    '''Compute precision for each class from confusion matrix.'''
+    precs = np.zeros(num_clases)
+    for n in range(num_clases):
+        precs[n] = c[n, n] / np.sum(c, axis=0)[n]
+    return precs
+
+def get_conf_final(coleccion, data):
+    '''Build confusion matrix for final predictions.'''
+    tabla = np.zeros((num_clases, num_clases))
+    for i in range(len(data)):
+        tabla[coleccion[i], data[i]] = tabla[coleccion[i], data[i]] + 1
+    return tabla</code></pre>
+
+      <h2>Applications and Future Work</h2>
+
+      <h3>Real-World Applications</h3>
+
+      <ul>
+        <li><strong>Medical Diagnosis:</strong> Aggregating opinions from multiple doctors</li>
+        <li><strong>Content Moderation:</strong> Combining judgments from content reviewers</li>
+        <li><strong>Image Annotation:</strong> Crowdsourced labeling for computer vision datasets</li>
+        <li><strong>Sentiment Analysis:</strong> Consensus on subjective text classifications</li>
+      </ul>
+
+      <h3>Potential Improvements</h3>
+
+      <blockquote>
+        <p>
+          Currently exploring an alternative approach that doesn't rely on underestimation, providing 
+          more precise control over annotator uncertainty. This could lead to even more efficient 
+          label collection.
+        </p>
+      </blockquote>
+
+      <p>Additional research directions include:</p>
+
+      <ul>
+        <li><strong>Adaptive Sampling:</strong> Intelligent annotator selection based on their strengths</li>
+        <li><strong>Active Learning:</strong> Prioritizing uncertain examples for additional annotation</li>
+        <li><strong>Online Learning:</strong> Updating annotator models as more data becomes available</li>
+        <li><strong>Class Imbalance:</strong> Incorporating class-specific costs into the decision rule</li>
+      </ul>
+
+      <h2>Conclusion</h2>
+
+      <p>
+        This Bayesian consensus algorithm provides a principled approach to multi-class data labeling 
+        with noisy annotators. By modeling annotator reliability through confusion matrices and applying 
+        Bayesian inference with conservative estimates, the algorithm achieves high accuracy while 
+        providing confidence guarantees.
+      </p>
+
+      <p>
+        The approach is particularly valuable in scenarios where obtaining ground truth is expensive or 
+        impossible, and where combining multiple imperfect opinions is the only viable strategy. The 
+        probabilistic framework naturally handles varying annotator quality and provides transparent 
+        uncertainty quantification.
+      </p>
+
+    </article>
+
+    <footer>
+      © 2025 Diego Rodríguez Atencia • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
