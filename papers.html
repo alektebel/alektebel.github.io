@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Papers Reading List • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #3b82f6;
+        --light-gray: #1f2937;
+        --card-bg: rgba(255,255,255,0.06);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Navbar */
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Hero Section */
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--gray);
+      margin: 12px 0;
+    }
+
+    .repo-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: transform 0.2s;
+    }
+
+    .repo-link:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 60px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+
+    /* Paper Cards */
+    .paper-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .paper-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .paper-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .paper-checkbox {
+      min-width: 20px;
+      height: 20px;
+      border: 2px solid var(--gray);
+      border-radius: 4px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .paper-content {
+      flex: 1;
+    }
+
+    .paper-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+    }
+
+    .paper-title a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .paper-title a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .paper-title .priority {
+      color: #f59e0b;
+      font-weight: 700;
+    }
+
+    .paper-description {
+      color: var(--gray);
+      margin: 0 0 8px 0;
+      font-size: 0.95rem;
+    }
+
+    .paper-year {
+      font-size: 0.85rem;
+      color: var(--gray);
+      font-style: italic;
+    }
+
+    /* Resource Cards */
+    .resource-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .resource-item {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+      transition: transform 0.2s;
+    }
+
+    .resource-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .resource-item a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .resource-item a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer Note */
+    .footer-note {
+      background: var(--card-bg);
+      border-left: 4px solid var(--accent);
+      padding: 20px;
+      margin: 40px 0;
+      border-radius: 8px;
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      .nav-links a { margin-left: 1rem; font-size: 0.9rem; }
+      .paper-card { padding: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="/papers.html">Papers</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <header>
+      <h1>AI Papers Reading List</h1>
+      <p class="subtitle">
+        A comprehensive collection of foundational AI and LLM papers
+      </p>
+      <p class="subtitle">
+        Based on the <a href="https://github.com/henrythe9th/AI-Crash-Course" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none;">AI Crash Course by Henry Shi</a>
+      </p>
+      <a href="https://github.com/henrythe9th/AI-Crash-Course" target="_blank" rel="noopener" class="repo-link">
+        View Original Repository →
+      </a>
+    </header>
+
+    <!-- Start Here -->
+    <section>
+      <h2>🎯 Start Here</h2>
+      <div class="resource-list">
+        <div class="resource-item">
+          <a href="https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi" target="_blank" rel="noopener">
+            Neural Network → LLM Series (3Blue1Brown)
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Survey Papers -->
+    <section>
+      <h2>📚 Survey Papers</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2402.06196v2" target="_blank" rel="noopener">LLM Survey</a>
+            </div>
+            <div class="paper-description">Comprehensive overview of large language models</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2308.11432" target="_blank" rel="noopener">Agent Survey</a>
+            </div>
+            <div class="paper-description">Survey of LLM-based agents</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2406.06608" target="_blank" rel="noopener">Prompt Engineering Survey</a>
+            </div>
+            <div class="paper-description">Comprehensive guide to prompt engineering techniques</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Foundational Modelling -->
+    <section>
+      <h2>🏗️ Foundational Modelling</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1706.03762" target="_blank" rel="noopener">Attention Is All You Need <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">The original transformer architecture paper</div>
+            <div class="paper-year">2017</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2001.08361" target="_blank" rel="noopener">Scaling Laws for Neural Language Models</a>
+            </div>
+            <div class="paper-description">Understanding how model performance scales with size</div>
+            <div class="paper-year">2020</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2005.14165" target="_blank" rel="noopener">GPT-3 <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Language models are few-shot learners</div>
+            <div class="paper-year">2020</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/abs/2106.09685" target="_blank" rel="noopener">LoRA: Low-Rank Adaptation of Large Language Models</a>
+            </div>
+            <div class="paper-description">Efficient fine-tuning technique using low-rank decomposition</div>
+            <div class="paper-year">2021</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2203.15556" target="_blank" rel="noopener">Training Compute-Optimal Large Language Models</a>
+            </div>
+            <div class="paper-description">Chinchilla paper on optimal model and data scaling</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2203.02155" target="_blank" rel="noopener">Training Language Models to Follow Instructions with Human Feedback <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">InstructGPT: RLHF for instruction following</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2305.18290" target="_blank" rel="noopener">Direct Preference Optimization</a>
+            </div>
+            <div class="paper-description">Simpler alternative to RLHF for alignment</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge</a>
+            </div>
+            <div class="paper-description">Using LLMs to evaluate other LLMs</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2401.04088" target="_blank" rel="noopener">Mixtral of Experts</a>
+            </div>
+            <div class="paper-description">Sparse mixture of experts architecture</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Planning/Reasoning -->
+    <section>
+      <h2>🧠 Planning & Reasoning</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1712.01815" target="_blank" rel="noopener">Mastering Chess and Shogi by Self-Play (AlphaZero)</a>
+            </div>
+            <div class="paper-description">General game-playing through self-play reinforcement learning</div>
+            <div class="paper-year">2017</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1911.08265" target="_blank" rel="noopener">Mastering Atari, Go, Chess and Shogi (MuZero) <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Learning without knowing the rules</div>
+            <div class="paper-year">2019</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2201.11903" target="_blank" rel="noopener">Chain-of-Thought Prompting <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Eliciting reasoning in large language models</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2210.03629" target="_blank" rel="noopener">ReAct: Synergizing Reasoning and Acting</a>
+            </div>
+            <div class="paper-description">Combining reasoning traces with task-specific actions</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2305.10601" target="_blank" rel="noopener">Tree of Thoughts</a>
+            </div>
+            <div class="paper-description">Deliberate problem solving with language models</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2308.09687" target="_blank" rel="noopener">Graph of Thoughts</a>
+            </div>
+            <div class="paper-description">Advanced reasoning with graph structures</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2305.20050" target="_blank" rel="noopener">Let's Verify Step by Step</a>
+            </div>
+            <div class="paper-description">Outcome vs. process supervision for reasoning</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2405.04388" target="_blank" rel="noopener">Meta Chain-of-Thought</a>
+            </div>
+            <div class="paper-description">Learning to improve reasoning chains</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2412.04604" target="_blank" rel="noopener">ARC Prize <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Progress towards general intelligence through reasoning</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2501.12948v1" target="_blank" rel="noopener">DeepSeek-R1 <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Incentivizing reasoning capability in LLMs</div>
+            <div class="paper-year">2025</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Applications -->
+    <section>
+      <h2>🚀 Applications</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2302.04761" target="_blank" rel="noopener">Toolformer</a>
+            </div>
+            <div class="paper-description">Language models can teach themselves to use tools</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2303.08774" target="_blank" rel="noopener">GPT-4 Technical Report</a>
+            </div>
+            <div class="paper-description">Multimodal large-scale language model</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2407.21783" target="_blank" rel="noopener">The Llama 3 Herd of Models <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Open source multilingual language models</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2403.05530" target="_blank" rel="noopener">Gemini 1.5</a>
+            </div>
+            <div class="paper-description">Long-context understanding and reasoning</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://github.com/deepseek-ai/DeepSeek-V3/blob/main/DeepSeek_V3.pdf" target="_blank" rel="noopener">DeepSeek-V3</a>
+            </div>
+            <div class="paper-description">Cost-efficient mixture of experts model</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2405.15793" target="_blank" rel="noopener">SWE-Agent</a>
+            </div>
+            <div class="paper-description">Agent-computer interface for automated software engineering</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2407.16741" target="_blank" rel="noopener">OpenHands</a>
+            </div>
+            <div class="paper-description">Open platform for software development agents</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benchmarks -->
+    <section>
+      <h2>📊 Benchmarks</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2206.04615" target="_blank" rel="noopener">Beyond the Imitation Game (BIG-Bench)</a>
+            </div>
+            <div class="paper-description">Diverse evaluation tasks for language models</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2310.06770" target="_blank" rel="noopener">SWE-bench</a>
+            </div>
+            <div class="paper-description">Evaluating language models on real-world software issues</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2403.04132" target="_blank" rel="noopener">Chatbot Arena</a>
+            </div>
+            <div class="paper-description">Crowdsourced benchmarking platform for LLMs</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Videos/Lectures -->
+    <section>
+      <h2>🎥 Videos & Lectures</h2>
+      <div class="resource-list">
+        <div class="resource-item">
+          <a href="https://www.youtube.com/@3blue1brown" target="_blank" rel="noopener">3Blue1Brown</a> - Visual mathematics and deep learning explanations
+        </div>
+        <div class="resource-item">
+          <a href="https://www.amazon.com/Build-Large-Language-Model-Scratch/dp/1633437167" target="_blank" rel="noopener">Build a Large Language Model From Scratch</a> - Comprehensive book guide
+        </div>
+        <div class="resource-item">
+          <a href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank" rel="noopener">Andrej Karpathy: Neural Networks: Zero to Hero</a> - Hands-on tutorial series
+        </div>
+        <div class="resource-item">
+          <a href="https://www.youtube.com/@YannicKilcher" target="_blank" rel="noopener">Yannic Kilcher</a> - Paper reviews and ML news
+        </div>
+        <div class="resource-item">
+          <a href="https://www.youtube.com/watch?v=eaAonE58sLU" target="_blank" rel="noopener">Noam Brown on Planning</a> - Expert insights on AI planning
+        </div>
+        <div class="resource-item">
+          <a href="https://www.youtube.com/watch?v=9vM4p9NN0Ts" target="_blank" rel="noopener">Stanford CS324: Advances in Foundation Models</a> - Building LLMs course
+        </div>
+        <div class="resource-item">
+          <a href="https://arxiv.org/pdf/2501.09223" target="_blank" rel="noopener">Foundations of LLMs</a> - Comprehensive tutorial paper
+        </div>
+        <div class="resource-item">
+          <a href="https://www.latent.space/p/not-old" target="_blank" rel="noopener">Why You're Not Too Old to Get Into AI</a> - Motivational perspective
+        </div>
+      </div>
+    </section>
+
+    <!-- Helpful Websites -->
+    <section>
+      <h2>🌐 Helpful Websites</h2>
+      <div class="resource-list">
+        <div class="resource-item">
+          <a href="https://github.com/adam-maj/deep-learning?tab=readme-ov-file" target="_blank" rel="noopener">History of Deep Learning</a> - Timeline and key developments
+        </div>
+        <div class="resource-item">
+          <a href="https://fullstackdeeplearning.com/" target="_blank" rel="noopener">Full Stack Deep Learning</a> - Production ML resources
+        </div>
+        <div class="resource-item">
+          <a href="https://www.promptingguide.ai/" target="_blank" rel="noopener">Prompting Guide</a> - Comprehensive prompt engineering guide
+        </div>
+        <div class="resource-item">
+          <a href="https://a16z.com/ai-canon/" target="_blank" rel="noopener">a16z AI Cannon</a> - Curated list of AI resources
+        </div>
+        <div class="resource-item">
+          <a href="https://www.latent.space/p/2025-papers" target="_blank" rel="noopener">2025 AI Engineer Reading List</a> - Latest papers and trends
+        </div>
+        <div class="resource-item">
+          <a href="https://nrehiew.github.io/blog/2024/" target="_blank" rel="noopener">State of Generative Models 2024</a> - Year in review
+        </div>
+      </div>
+    </section>
+
+    <!-- Others (non LLMs) -->
+    <section>
+      <h2>🎨 Beyond LLMs</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2010.11929" target="_blank" rel="noopener">Vision Transformer (ViT)</a>
+            </div>
+            <div class="paper-description">An image is worth 16x16 words - Transformers for image classification</div>
+            <div class="paper-year">2021</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2112.10752" target="_blank" rel="noopener">High-Resolution Image Synthesis with Latent Diffusion</a>
+            </div>
+            <div class="paper-description">Stable Diffusion - Efficient image generation in latent space</div>
+            <div class="paper-year">2021</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Easy Papers for Beginners -->
+    <section>
+      <h2>🌟 Easy Papers for Beginners</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2201.11903" target="_blank" rel="noopener">Chain-of-Thought Prompting</a>
+            </div>
+            <div class="paper-description">Great introduction to reasoning in LLMs</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2303.17651" target="_blank" rel="noopener">SELF-REFINE</a>
+            </div>
+            <div class="paper-description">Iterative refinement with self-feedback</div>
+            <div class="paper-year">2023</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Note -->
+    <div class="footer-note">
+      📝 As I read and implement these papers, I will update these webpages with notes and implementations.
+    </div>
+
+    <footer>
+      © 2025 Diego • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
