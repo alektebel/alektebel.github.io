@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pattern Recognition • Exercises • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=VT323&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+      --crack-primary: #ff0000;
+      --crack-secondary: #00ff00;
+      --crack-shadow: rgba(255, 0, 0, 0.3);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0a0a0a;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #00ff41;
+        --light-gray: #1f2937;
+        --card-bg: rgba(0, 255, 65, 0.05);
+        --crack-primary: #00ff41;
+        --crack-secondary: #ff0055;
+        --crack-shadow: rgba(0, 255, 65, 0.4);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Glitch effect background */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 65, 0.02) 2px,
+          rgba(0, 255, 65, 0.02) 4px
+        );
+      pointer-events: none;
+      z-index: 1;
+      animation: scanlines 8s linear infinite;
+    }
+
+    @keyframes scanlines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(20px); }
+    }
+
+    /* Navbar */
+    nav {
+      background: var(--bg);
+      border-bottom: 2px solid var(--accent);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+      box-shadow: 0 2px 10px var(--crack-shadow);
+      transform: skewY(-0.5deg);
+    }
+
+    .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+      transform: skewY(0.5deg);
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--crack-shadow);
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Hero Section with glitch effect */
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+      position: relative;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      animation: glitch 3s infinite;
+    }
+
+    @keyframes glitch {
+      0%, 90%, 100% { transform: translate(0); }
+      92% { transform: translate(-2px, 2px); }
+      94% { transform: translate(2px, -2px); }
+      96% { transform: translate(-2px, -2px); }
+    }
+
+    h1::before,
+    h1::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    h1::before {
+      animation: glitch-1 2.5s infinite;
+      color: var(--crack-primary);
+      z-index: -1;
+    }
+
+    h1::after {
+      animation: glitch-2 3s infinite;
+      color: var(--crack-secondary);
+      z-index: -2;
+    }
+
+    @keyframes glitch-1 {
+      0%, 100% { transform: translate(0); opacity: 0; }
+      5% { transform: translate(-2px, 2px); opacity: 0.7; }
+      10% { transform: translate(0); opacity: 0; }
+    }
+
+    @keyframes glitch-2 {
+      0%, 100% { transform: translate(0); opacity: 0; }
+      5% { transform: translate(2px, -2px); opacity: 0.7; }
+      10% { transform: translate(0); opacity: 0; }
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--gray);
+      margin: 12px 0;
+      font-family: 'VT323', monospace;
+      letter-spacing: 2px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s;
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+    }
+
+    .back-link:hover {
+      text-shadow: 0 0 10px var(--crack-shadow);
+      transform: translateX(-5px);
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 60px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 8px;
+      display: inline-block;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      transform: skewX(-2deg);
+    }
+
+    h2::after {
+      content: "";
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--crack-secondary);
+      animation: underline-glitch 4s infinite;
+    }
+
+    @keyframes underline-glitch {
+      0%, 95%, 100% { width: 100%; opacity: 0; }
+      96% { width: 90%; opacity: 1; }
+      97% { width: 110%; opacity: 1; }
+    }
+
+    /* Chapter Cards */
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .chapter-card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: 0;
+      padding: 28px;
+      position: relative;
+      transform: skewX(-0.5deg);
+      box-shadow: 5px 5px 0 var(--crack-shadow);
+    }
+
+    .chapter-card::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border: 1px dashed var(--accent);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .chapter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chapter-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .chapter-number {
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+      color: var(--crack-primary);
+      padding: 4px 12px;
+      border: 1px solid var(--crack-primary);
+      background: var(--bg);
+    }
+
+    .exercise-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .exercise-item {
+      background: rgba(0, 0, 0, 0.02);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      position: relative;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .exercise-item {
+        background: rgba(255, 255, 255, 0.02);
+      }
+    }
+
+    .exercise-number {
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .exercise-solution {
+      background: var(--bg);
+      border: 1px dashed var(--light-gray);
+      padding: 16px;
+      margin-top: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      color: var(--gray);
+      font-style: italic;
+    }
+
+    .exercise-solution code {
+      font-family: 'Fira Code', monospace;
+      background: rgba(0, 0, 0, 0.05);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .exercise-solution code {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.8rem; letter-spacing: 2px; }
+      h2 { font-size: 1.4rem; }
+      .nav-links a { margin-left: 1rem; font-size: 0.9rem; }
+      .chapter-card { padding: 20px; }
+      .chapter-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="/papers.html">Papers</a>
+        <a href="/almanack.html">Almanack</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <header>
+      <h1 data-text="PATTERN RECOGNITION">PATTERN RECOGNITION</h1>
+      <p class="subtitle">
+        &gt; CHAPTER_EXERCISES.tex
+      </p>
+      <a href="/almanack.html" class="back-link">← BACK TO ALMANACK</a>
+    </header>
+
+    <!-- Chapters -->
+    <div class="chapter-list">
+      <!-- Chapter 1 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Introduction</h2>
+          <div class="chapter-number">CH_01</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 1.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 1.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 1.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 2 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Probability Distributions</h2>
+          <div class="chapter-number">CH_02</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 2.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 2.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 2.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 3 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Linear Models for Regression</h2>
+          <div class="chapter-number">CH_03</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 3.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 3.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 3.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 4 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Linear Models for Classification</h2>
+          <div class="chapter-number">CH_04</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 4.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 4.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 4.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 5 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Neural Networks</h2>
+          <div class="chapter-number">CH_05</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 5.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 5.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 5.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 6 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Kernel Methods</h2>
+          <div class="chapter-number">CH_06</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 6.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 6.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 6.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 7 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Sparse Kernel Machines</h2>
+          <div class="chapter-number">CH_07</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 7.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 7.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 7.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 8 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Graphical Models</h2>
+          <div class="chapter-number">CH_08</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 8.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 8.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 8.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 9 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Mixture Models and EM</h2>
+          <div class="chapter-number">CH_09</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 9.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 9.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 9.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 10 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Approximate Inference</h2>
+          <div class="chapter-number">CH_10</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 10.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 10.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 10.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 11 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Sampling Methods</h2>
+          <div class="chapter-number">CH_11</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 11.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 11.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 11.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 12 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Continuous Latent Variables</h2>
+          <div class="chapter-number">CH_12</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 12.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 12.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 12.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 13 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Sequential Data</h2>
+          <div class="chapter-number">CH_13</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 13.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 13.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 13.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 14 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Combining Models</h2>
+          <div class="chapter-number">CH_14</div>
+        </div>
+        <div class="exercise-list">
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 14.1</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 14.2</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+          <div class="exercise-item">
+            <div class="exercise-number">Exercise 14.3</div>
+            <div class="exercise-solution">
+              % LaTeX solution will be added here
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      © 2025 Diego • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
