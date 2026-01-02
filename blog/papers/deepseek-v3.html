@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DeepSeek-V3 • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --accent: #2563eb;
+      --gray: #666;
+      --light-gray: #e5e7eb;
+      --card-bg: rgba(0,0,0,0.04);
+      --todo-bg: #fef3c7;
+      --todo-border: #fbbf24;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --text: #f0f0f0;
+        --gray: #aaa;
+        --accent: #3b82f6;
+        --light-gray: #1f2937;
+        --card-bg: rgba(255,255,255,0.06);
+        --todo-bg: #422006;
+        --todo-border: #f59e0b;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--light-gray);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .nav-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+
+    .nav-links a {
+      margin-left: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      opacity: 0.9;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .nav-links a.coming-soon {
+      color: var(--gray);
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .nav-links a.coming-soon::after {
+      content: " (coming soon)";
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin: 0 0 16px 0;
+      font-weight: 700;
+    }
+
+    .paper-meta {
+      color: var(--gray);
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .todo-banner {
+      background: var(--todo-bg);
+      border-left: 4px solid var(--todo-border);
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .paper-link {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: transform 0.2s;
+      margin: 20px 0;
+    }
+
+    .paper-link:hover {
+      transform: translateY(-2px);
+    }
+
+    .content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .content h2 {
+      margin-top: 40px;
+      font-size: 1.8rem;
+    }
+
+    .content ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .content ul li {
+      padding: 8px 0;
+    }
+
+    .content ul li a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .content ul li a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 0 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="/papers.html">Papers</a>
+        <a href="#" class="coming-soon">Custom LLM</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <h1>DeepSeek-V3</h1>
+      <div class="paper-meta">
+        DeepSeek-AI • 2024 • Applications
+      </div>
+      <a href="https://github.com/deepseek-ai/DeepSeek-V3/blob/main/DeepSeek_V3.pdf" target="_blank" rel="noopener" class="paper-link">
+        📄 Read Paper
+      </a>
+    </header>
+
+    <div class="todo-banner">
+      #TODO: This paper is yet to be read and implemented. Notes and implementation will be added after reading.
+    </div>
+
+    <div class="content">
+      <h2>Overview</h2>
+      <p>
+        Cost-efficient mixture of experts model
+      </p>
+
+      <h2>Why This Matters</h2>
+      <p>
+        This paper represents an important contribution to the field and is worth studying to understand the evolution of modern AI systems.
+      </p>
+
+      <h2>Related Papers</h2>
+      <ul>
+        <li><a href="/blog/papers/mixtral.html">Mixtral of Experts</a></li>
+      </ul>
+    </div>
+
+    <footer>
+      © 2025 Diego • <a href="/papers.html">Back to Papers</a>
+    </footer>
+  </div>
+</body>
+</html>
