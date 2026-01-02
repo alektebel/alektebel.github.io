@@ -247,6 +247,63 @@
       .nav-links a { margin-left: 1rem; font-size: 0.9rem; }
       .paper-card { padding: 16px; }
     }
+
+    /* Graph View Styles */
+    .view-toggle {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .toggle-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 0 10px;
+      background: var(--card-bg);
+      border: 2px solid var(--light-gray);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .toggle-button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .toggle-button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    #network-container {
+      width: 100%;
+      height: 600px;
+      border: 1px solid var(--light-gray);
+      border-radius: 12px;
+      background: var(--card-bg);
+      display: none;
+    }
+
+    #network-container.active {
+      display: block;
+    }
+
+    #list-view {
+      display: block;
+    }
+
+    #list-view.hidden {
+      display: none;
+    }
+
+    .graph-info {
+      text-align: center;
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-top: 16px;
+    }
   </style>
 </head>
 
@@ -258,6 +315,7 @@
         <a href="/">Home</a>
         <a href="/blog/blog.html">Blog</a>
         <a href="/papers.html">Papers</a>
+        <a href="#" class="coming-soon">Custom LLM</a>
       </div>
     </div>
   </nav>
@@ -276,6 +334,21 @@
         View Original Repository →
       </a>
     </header>
+
+    <!-- View Toggle -->
+    <div class="view-toggle">
+      <button class="toggle-button active" onclick="switchView('list')">📋 List View</button>
+      <button class="toggle-button" onclick="switchView('graph')">🕸️ Graph View</button>
+    </div>
+
+    <!-- Graph Container -->
+    <div id="network-container"></div>
+    <div class="graph-info" id="graph-info" style="display: none;">
+      Click and drag to explore • Zoom with scroll • Click nodes to view details
+    </div>
+
+    <!-- List View -->
+    <div id="list-view">
 
     <!-- Start Here -->
     <section>
@@ -759,9 +832,266 @@
       📝 As I read and implement these papers, I will update these webpages with notes and implementations.
     </div>
 
+    </div> <!-- End of list-view -->
+
     <footer>
       © 2025 Diego • Deployed on GitHub Pages
     </footer>
   </div>
+
+  <script>
+    // View switching functionality
+    function switchView(view) {
+      const listView = document.getElementById('list-view');
+      const graphView = document.getElementById('network-container');
+      const graphInfo = document.getElementById('graph-info');
+      const buttons = document.querySelectorAll('.toggle-button');
+      
+      if (view === 'list') {
+        listView.classList.remove('hidden');
+        graphView.classList.remove('active');
+        graphInfo.style.display = 'none';
+        buttons[0].classList.add('active');
+        buttons[1].classList.remove('active');
+      } else {
+        listView.classList.add('hidden');
+        graphView.classList.add('active');
+        graphInfo.style.display = 'block';
+        buttons[0].classList.remove('active');
+        buttons[1].classList.add('active');
+        if (!window.networkInitialized) {
+          initNetwork();
+          window.networkInitialized = true;
+        }
+      }
+    }
+
+    // Simple force-directed graph implementation
+    function initNetwork() {
+      const container = document.getElementById('network-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      // Create SVG
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      container.innerHTML = '';
+      container.appendChild(svg);
+
+      // Define paper nodes with positions and groups
+      const papers = [
+        { id: 1, name: 'LLM Survey', group: 'survey', x: 200, y: 100, url: '/blog/papers/llm-survey.html' },
+        { id: 2, name: 'Agent Survey', group: 'survey', x: 300, y: 150, url: '/blog/papers/agent-survey.html' },
+        { id: 3, name: 'Prompt Eng\nSurvey', group: 'survey', x: 250, y: 200, url: '/blog/papers/prompt-engineering-survey.html' },
+        
+        { id: 4, name: 'Attention Is All\nYou Need', group: 'foundational', x: 400, y: 150, url: '/blog/papers/attention-is-all-you-need.html' },
+        { id: 5, name: 'Scaling Laws', group: 'foundational', x: 450, y: 100, url: '/blog/papers/scaling-laws.html' },
+        { id: 6, name: 'GPT-3', group: 'foundational', x: 500, y: 180, url: '/blog/papers/gpt3.html' },
+        { id: 7, name: 'LoRA', group: 'foundational', x: 550, y: 130, url: '/blog/papers/lora.html' },
+        { id: 8, name: 'Chinchilla', group: 'foundational', x: 520, y: 80, url: '/blog/papers/chinchilla.html' },
+        { id: 9, name: 'InstructGPT', group: 'foundational', x: 600, y: 150, url: '/blog/papers/instructgpt.html' },
+        { id: 10, name: 'DPO', group: 'foundational', x: 650, y: 180, url: '/blog/papers/dpo.html' },
+        { id: 11, name: 'LLM-as-Judge', group: 'foundational', x: 620, y: 220, url: '/blog/papers/llm-as-judge.html' },
+        { id: 12, name: 'Mixtral', group: 'foundational', x: 580, y: 60, url: '/blog/papers/mixtral.html' },
+        
+        { id: 13, name: 'AlphaZero', group: 'reasoning', x: 150, y: 300, url: '/blog/papers/alphazero.html' },
+        { id: 14, name: 'MuZero', group: 'reasoning', x: 200, y: 350, url: '/blog/papers/muzero.html' },
+        { id: 15, name: 'Chain-of-\nThought', group: 'reasoning', x: 300, y: 320, url: '/blog/papers/chain-of-thought.html' },
+        { id: 16, name: 'ReAct', group: 'reasoning', x: 380, y: 350, url: '/blog/papers/react.html' },
+        { id: 17, name: 'Tree of\nThoughts', group: 'reasoning', x: 320, y: 400, url: '/blog/papers/tree-of-thoughts.html' },
+        { id: 18, name: 'Graph of\nThoughts', group: 'reasoning', x: 400, y: 420, url: '/blog/papers/graph-of-thoughts.html' },
+        { id: 19, name: "Let's Verify", group: 'reasoning', x: 250, y: 380, url: '/blog/papers/lets-verify.html' },
+        { id: 20, name: 'Meta CoT', group: 'reasoning', x: 360, y: 460, url: '/blog/papers/meta-cot.html' },
+        { id: 21, name: 'ARC Prize', group: 'reasoning', x: 440, y: 480, url: '/blog/papers/arc-prize.html' },
+        { id: 22, name: 'DeepSeek-R1', group: 'reasoning', x: 520, y: 450, url: '/blog/papers/deepseek-r1.html' },
+        
+        { id: 23, name: 'Toolformer', group: 'applications', x: 450, y: 280, url: '/blog/papers/toolformer.html' },
+        { id: 24, name: 'GPT-4', group: 'applications', x: 550, y: 250, url: '/blog/papers/gpt4.html' },
+        { id: 25, name: 'Llama 3', group: 'applications', x: 620, y: 300, url: '/blog/papers/llama3.html' },
+        { id: 26, name: 'Gemini 1.5', group: 'applications', x: 650, y: 250, url: '/blog/papers/gemini15.html' },
+        { id: 27, name: 'DeepSeek-V3', group: 'applications', x: 600, y: 350, url: '/blog/papers/deepseek-v3.html' },
+        { id: 28, name: 'SWE-Agent', group: 'applications', x: 500, y: 350, url: '/blog/papers/swe-agent.html' },
+        { id: 29, name: 'OpenHands', group: 'applications', x: 550, y: 390, url: '/blog/papers/openhands.html' },
+        
+        { id: 30, name: 'BIG-Bench', group: 'benchmarks', x: 680, y: 400, url: '/blog/papers/big-bench.html' },
+        { id: 31, name: 'SWE-bench', group: 'benchmarks', x: 650, y: 450, url: '/blog/papers/swe-bench.html' },
+        { id: 32, name: 'Chatbot Arena', group: 'benchmarks', x: 700, y: 350, url: '/blog/papers/chatbot-arena.html' },
+        
+        { id: 33, name: 'Vision\nTransformer', group: 'beyond', x: 700, y: 180, url: '/blog/papers/vision-transformer.html' },
+        { id: 34, name: 'Stable\nDiffusion', group: 'beyond', x: 750, y: 230, url: '/blog/papers/stable-diffusion.html' },
+        
+        { id: 35, name: 'SELF-REFINE', group: 'beginners', x: 350, y: 250, url: '/blog/papers/self-refine.html' }
+      ];
+
+      // Define edges
+      const edges = [
+        [1, 4], [1, 6], [1, 9], [1, 15],
+        [2, 16], [2, 23], [2, 28],
+        [3, 15], [3, 16], [3, 35],
+        [4, 6], [4, 33],
+        [5, 6], [5, 8],
+        [6, 9], [6, 24],
+        [7, 9], [7, 25],
+        [8, 12],
+        [9, 10], [9, 11],
+        [10, 22],
+        [13, 14],
+        [14, 15],
+        [15, 16], [15, 17], [15, 35], [15, 19],
+        [16, 23], [16, 28],
+        [17, 18], [17, 20],
+        [20, 21], [21, 22],
+        [24, 25], [24, 26], [24, 33],
+        [12, 27],
+        [28, 29], [28, 31],
+        [30, 31], [31, 32],
+        [11, 32],
+        [33, 34]
+      ];
+
+      // Color mapping for groups
+      const colors = {
+        survey: '#fbbf24',
+        foundational: '#60a5fa',
+        reasoning: '#a78bfa',
+        applications: '#34d399',
+        benchmarks: '#f87171',
+        beyond: '#fb923c',
+        beginners: '#a3e635'
+      };
+
+      // Draw edges first
+      const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      svg.appendChild(edgeGroup);
+      
+      edges.forEach(([from, to]) => {
+        const node1 = papers.find(n => n.id === from);
+        const node2 = papers.find(n => n.id === to);
+        if (node1 && node2) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', node1.x);
+          line.setAttribute('y1', node1.y);
+          line.setAttribute('x2', node2.x);
+          line.setAttribute('y2', node2.y);
+          line.setAttribute('stroke', '#999');
+          line.setAttribute('stroke-width', '2');
+          line.setAttribute('opacity', '0.3');
+          edgeGroup.appendChild(line);
+        }
+      });
+
+      // Draw nodes
+      papers.forEach(paper => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('cursor', 'pointer');
+        g.style.transition = 'all 0.2s';
+        
+        // Node circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', paper.x);
+        circle.setAttribute('cy', paper.y);
+        circle.setAttribute('r', '30');
+        circle.setAttribute('fill', colors[paper.group] || '#999');
+        circle.setAttribute('stroke', '#fff');
+        circle.setAttribute('stroke-width', '2');
+        g.appendChild(circle);
+        
+        // Label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', paper.x);
+        text.setAttribute('y', paper.y);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('font-size', '10');
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('fill', '#000');
+        text.setAttribute('pointer-events', 'none');
+        
+        const lines = paper.name.split('\n');
+        if (lines.length > 1) {
+          lines.forEach((line, i) => {
+            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan.textContent = line;
+            tspan.setAttribute('x', paper.x);
+            tspan.setAttribute('dy', i === 0 ? -6 : 12);
+            text.appendChild(tspan);
+          });
+        } else {
+          text.textContent = paper.name;
+        }
+        g.appendChild(text);
+        
+        // Click handler
+        g.addEventListener('click', () => {
+          window.location.href = paper.url;
+        });
+        
+        // Hover effect
+        g.addEventListener('mouseenter', () => {
+          circle.setAttribute('r', '35');
+          circle.setAttribute('stroke-width', '3');
+        });
+        g.addEventListener('mouseleave', () => {
+          circle.setAttribute('r', '30');
+          circle.setAttribute('stroke-width', '2');
+        });
+        
+        svg.appendChild(g);
+      });
+
+      // Add pan and zoom functionality
+      let isPanning = false;
+      let startX, startY;
+      let viewBox = { x: 0, y: 0, width: width, height: height };
+      svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+
+      svg.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'svg' || e.target.tagName === 'line') {
+          isPanning = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          svg.style.cursor = 'grabbing';
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+          const dx = (e.clientX - startX) * viewBox.width / width;
+          const dy = (e.clientY - startY) * viewBox.height / height;
+          viewBox.x -= dx;
+          viewBox.y -= dy;
+          svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+          startX = e.clientX;
+          startY = e.clientY;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isPanning = false;
+        svg.style.cursor = 'default';
+      });
+
+      // Zoom with mouse wheel
+      svg.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const scaleFactor = e.deltaY > 0 ? 1.1 : 0.9;
+        const mouseX = e.offsetX;
+        const mouseY = e.offsetY;
+        
+        const worldX = viewBox.x + mouseX * viewBox.width / width;
+        const worldY = viewBox.y + mouseY * viewBox.height / height;
+        
+        viewBox.width *= scaleFactor;
+        viewBox.height *= scaleFactor;
+        
+        viewBox.x = worldX - mouseX * viewBox.width / width;
+        viewBox.y = worldY - mouseY * viewBox.height / height;
+        
+        svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+      });
+    }  </script>
 </body>
 </html>
