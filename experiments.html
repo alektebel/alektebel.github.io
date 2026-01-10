@@ -1,13 +1,65 @@
 <!DOCTYPE html>
-<html>
-  <head>Experiments</head>
-  <body>Some experiments
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Experiments • Diego Rodríguez Atencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Source Code Pro', 'Courier New', monospace;
+      background: #000000;
+      color: #00ff00;
+      line-height: 1.6;
+      padding: 40px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #00ff00;
+      border-bottom: 2px solid #00ff00;
+      padding-bottom: 10px;
+    }
+    p {
+      color: #00aa00;
+      font-size: 1.1rem;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin: 15px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    li:before {
+      content: ">";
+      position: absolute;
+      left: 0;
+      color: #00ff00;
+    }
+    a {
+      color: #00ff00;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    a:hover {
+      border-bottom-color: #00ff00;
+    }
+  </style>
+</head>
+<body>
+  <h1>Experiments</h1>
+  <p>Some experiments</p>
   <ul>
-<li>Neural network from scratch in C</li>
-<li><a href = "./weird_imp_nn.html">Weird implementations of neural networks</a></li>
-<li>Consensus algorithm</li>
-<li>Convolutional network from scratch in C</li>
-<li>Bottle experiment</li>
+    <li>Neural network from scratch in C</li>
+    <li><a href="./weird_imp_nn.html">Weird implementations of neural networks</a></li>
+    <li>Consensus algorithm</li>
+    <li>Convolutional network from scratch in C</li>
+    <li>Bottle experiment</li>
   </ul>
 </body>
 </html>

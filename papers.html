@@ -4,30 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AI Papers Reading List • Diego Rodríguez Atencia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fafafa;
-      --text: #1a1a1a;
-      --accent: #2563eb;
-      --gray: #666;
-      --light-gray: #e5e7eb;
-      --card-bg: rgba(0,0,0,0.04);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f0f0f;
-        --text: #f0f0f0;
-        --gray: #aaa;
-        --accent: #3b82f6;
-        --light-gray: #1f2937;
-        --card-bg: rgba(255,255,255,0.06);
-      }
+      --bg: #000000;
+      --text: #00ff00;
+      --accent: #00ff00;
+      --gray: #00aa00;
+      --light-gray: #003300;
+      --card-bg: rgba(0,255,0,0.05);
     }
 
     body {
       margin: 0;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: 'Source Code Pro', 'Courier New', monospace;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -102,16 +92,19 @@
       display: inline-block;
       margin-top: 20px;
       padding: 10px 20px;
-      background: var(--accent);
-      color: white;
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--accent);
       text-decoration: none;
       border-radius: 8px;
       font-weight: 500;
-      transition: transform 0.2s;
+      transition: all 0.2s;
     }
 
     .repo-link:hover {
       transform: translateY(-2px);
+      background: var(--accent);
+      color: var(--bg);
     }
 
     /* Sections */
@@ -136,9 +129,10 @@
 
     .paper-card {
       background: var(--card-bg);
+      border: 1px solid var(--light-gray);
       border-radius: 12px;
       padding: 20px;
-      transition: transform 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
       display: flex;
       gap: 16px;
       align-items: flex-start;
@@ -146,6 +140,7 @@
 
     .paper-card:hover {
       transform: translateY(-2px);
+      border-color: var(--accent);
     }
 
     .paper-checkbox {
@@ -179,7 +174,7 @@
     }
 
     .paper-title .priority {
-      color: #f59e0b;
+      color: #ffff00;
       font-weight: 700;
     }
 
@@ -204,13 +199,15 @@
 
     .resource-item {
       background: var(--card-bg);
+      border: 1px solid var(--light-gray);
       border-radius: 8px;
       padding: 16px;
-      transition: transform 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
     }
 
     .resource-item:hover {
       transform: translateY(-2px);
+      border-color: var(--accent);
     }
 
     .resource-item a {
@@ -258,22 +255,24 @@
       display: inline-block;
       padding: 10px 20px;
       margin: 0 10px;
-      background: var(--card-bg);
+      background: transparent;
       border: 2px solid var(--light-gray);
+      color: var(--text);
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
       font-weight: 500;
+      font-family: 'Source Code Pro', monospace;
     }
 
     .toggle-button:hover {
       border-color: var(--accent);
-      color: var(--accent);
+      background: rgba(0,255,0,0.1);
     }
 
     .toggle-button.active {
       background: var(--accent);
-      color: white;
+      color: var(--bg);
       border-color: var(--accent);
     }
 
@@ -795,6 +794,313 @@
             </div>
             <div class="paper-description">Stable Diffusion - Efficient image generation in latent space</div>
             <div class="paper-year">2021</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ilya Sutskever's Top 30 Papers -->
+    <section>
+      <h2>🎯 Ilya Sutskever's Top 30 Papers</h2>
+      <div class="paper-list">
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://scottaaronson.blog/?p=762" target="_blank" rel="noopener">The First Law of Complexodynamics</a>
+            </div>
+            <div class="paper-description">Scott Aaronson's insights on complexity theory</div>
+            <div class="paper-year">2011</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://karpathy.github.io/2015/05/21/rnn-effectiveness/" target="_blank" rel="noopener">The Unreasonable Effectiveness of Recurrent Neural Networks</a>
+            </div>
+            <div class="paper-description">Andrej Karpathy's exploration of RNN capabilities</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/" target="_blank" rel="noopener">Understanding LSTM Networks</a>
+            </div>
+            <div class="paper-description">Christopher Olah's visual guide to LSTMs</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1409.2329" target="_blank" rel="noopener">Recurrent Neural Network Regularization</a>
+            </div>
+            <div class="paper-description">Wojciech Zaremba et al. on improving RNN training</div>
+            <div class="paper-year">2014</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://www.cs.toronto.edu/~hinton/absps/colt93.pdf" target="_blank" rel="noopener">Keeping Neural Networks Simple by Minimizing the Description Length of the Weights</a>
+            </div>
+            <div class="paper-description">Geoffrey Hinton & Drew van Camp on MDL principle</div>
+            <div class="paper-year">1993</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1506.03134" target="_blank" rel="noopener">Pointer Networks</a>
+            </div>
+            <div class="paper-description">Oriol Vinyals et al. on attention-based architectures</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://papers.nips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf" target="_blank" rel="noopener">ImageNet Classification with Deep Convolutional Neural Networks <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">AlexNet: The breakthrough in deep learning (Alex Krizhevsky et al.)</div>
+            <div class="paper-year">2012</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1511.06391" target="_blank" rel="noopener">Order Matters: Sequence to Sequence for Sets</a>
+            </div>
+            <div class="paper-description">Oriol Vinyals et al. on set-to-sequence problems</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1811.06965" target="_blank" rel="noopener">GPipe: Easy Scaling with Micro-Batch Pipeline Parallelism</a>
+            </div>
+            <div class="paper-description">Yanping Huang et al. on efficient training of large models</div>
+            <div class="paper-year">2018</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1512.03385" target="_blank" rel="noopener">Deep Residual Learning for Image Recognition <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">ResNet: Revolutionary skip connections (Kaiming He et al.)</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1511.07122" target="_blank" rel="noopener">Multi-Scale Context Aggregation by Dilated Convolutions</a>
+            </div>
+            <div class="paper-description">Fisher Yu & Vladlen Koltun on dilated convolutions</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1704.01212" target="_blank" rel="noopener">Neural Message Passing for Quantum Chemistry</a>
+            </div>
+            <div class="paper-description">Justin Gilmer et al. on graph neural networks</div>
+            <div class="paper-year">2017</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1706.03762" target="_blank" rel="noopener">Attention Is All You Need <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">The foundational transformer architecture</div>
+            <div class="paper-year">2017</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1409.0473" target="_blank" rel="noopener">Neural Machine Translation by Jointly Learning to Align and Translate</a>
+            </div>
+            <div class="paper-description">Bahdanau et al. introducing attention mechanism</div>
+            <div class="paper-year">2014</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1603.05027" target="_blank" rel="noopener">Identity Mappings in Deep Residual Networks</a>
+            </div>
+            <div class="paper-description">Kaiming He et al. improving ResNet design</div>
+            <div class="paper-year">2016</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1706.01427" target="_blank" rel="noopener">A Simple Neural Network Module for Relational Reasoning</a>
+            </div>
+            <div class="paper-description">Adam Santoro et al. on relation networks</div>
+            <div class="paper-year">2017</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1611.02731" target="_blank" rel="noopener">Variational Lossy Autoencoder</a>
+            </div>
+            <div class="paper-description">Xi Chen et al. on VAEs with powerful decoders</div>
+            <div class="paper-year">2016</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1806.01822" target="_blank" rel="noopener">Relational Recurrent Neural Networks</a>
+            </div>
+            <div class="paper-description">Adam Santoro et al. on memory and relational reasoning</div>
+            <div class="paper-year">2018</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1405.6903" target="_blank" rel="noopener">Quantifying the Rise and Fall of Complexity in Closed Systems: The Coffee Automaton</a>
+            </div>
+            <div class="paper-description">Scott Aaronson et al. on entropy and complexity</div>
+            <div class="paper-year">2014</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1410.5401" target="_blank" rel="noopener">Neural Turing Machines <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Alex Graves et al. on differentiable memory</div>
+            <div class="paper-year">2014</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/1512.02595" target="_blank" rel="noopener">Deep Speech 2: End-to-End Speech Recognition in English and Mandarin</a>
+            </div>
+            <div class="paper-description">Dario Amodei et al. on speech recognition</div>
+            <div class="paper-year">2015</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2001.08361" target="_blank" rel="noopener">Scaling Laws for Neural Language Models <span class="priority">*</span></a>
+            </div>
+            <div class="paper-description">Jared Kaplan et al. on model scaling</div>
+            <div class="paper-year">2020</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://homepages.cwi.nl/~pdg/ftp/mdlintro.pdf" target="_blank" rel="noopener">A Tutorial Introduction to the Minimum Description Length Principle</a>
+            </div>
+            <div class="paper-description">Peter Grünwald on MDL theory</div>
+            <div class="paper-year">2004</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://www.vetta.org/documents/Machine_Super_Intelligence.pdf" target="_blank" rel="noopener">Machine Super Intelligence</a>
+            </div>
+            <div class="paper-description">Shane Legg's thesis on AGI</div>
+            <div class="paper-year">2008</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://www.springer.com/gp/book/9780387948812" target="_blank" rel="noopener">Kolmogorov Complexity and Algorithmic Randomness</a>
+            </div>
+            <div class="paper-description">Shen, Uspensky, Vereshchagin on algorithmic information theory</div>
+            <div class="paper-year">2017</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="http://cs231n.stanford.edu/" target="_blank" rel="noopener">CS231n: Convolutional Neural Networks for Visual Recognition</a>
+            </div>
+            <div class="paper-description">Stanford's famous computer vision course</div>
+            <div class="paper-year">Ongoing</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2404.19737" target="_blank" rel="noopener">Better & Faster Large Language Models via Multi-token Prediction</a>
+            </div>
+            <div class="paper-description">Meta research on improving LLM training</div>
+            <div class="paper-year">2024</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2004.04906" target="_blank" rel="noopener">Dense Passage Retrieval for Open-Domain Question Answering</a>
+            </div>
+            <div class="paper-description">RAG approach for knowledge-intensive tasks</div>
+            <div class="paper-year">2020</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2212.10496" target="_blank" rel="noopener">Precise Zero-Shot Dense Retrieval Without Relevance Labels</a>
+            </div>
+            <div class="paper-description">HyDE: Hypothetical Document Embeddings</div>
+            <div class="paper-year">2022</div>
+          </div>
+        </div>
+        <div class="paper-card">
+          <div class="paper-checkbox" role="checkbox" aria-checked="false" aria-label="Mark as read"></div>
+          <div class="paper-content">
+            <div class="paper-title">
+              <a href="https://arxiv.org/pdf/2310.14820" target="_blank" rel="noopener">ALCUNA: Large Language Models Meet New Knowledge</a>
+            </div>
+            <div class="paper-description">Evaluating LLMs on knowledge updates</div>
+            <div class="paper-year">2023</div>
           </div>
         </div>
       </div>

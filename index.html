@@ -4,28 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Diego Rodríguez Atencia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fafafa;
-      --text: #1a1a1a;
-      --accent: #2563eb;
-      --gray: #666;
-      --light-gray: #e5e7eb;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f0f0f;
-        --text: #f0f0f0;
-        --gray: #aaa;
-        --accent: #3b82f6;
-        --light-gray: #1f2937;
-      }
+      --bg: #000000;
+      --text: #00ff00;
+      --accent: #00ff00;
+      --gray: #00aa00;
+      --light-gray: #003300;
     }
 
     body {
       margin: 0;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: 'Source Code Pro', 'Courier New', monospace;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -113,13 +104,17 @@
     }
 
     .project-card {
-      background: rgba(0,0,0,0.04);
+      background: rgba(0,255,0,0.05);
+      border: 1px solid var(--light-gray);
       border-radius: 12px;
       padding: 20px;
-      transition: transform 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
     }
 
-    .project-card:hover { transform: translateY(-4px); }
+    .project-card:hover { 
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
 
     footer {
       text-align: center;
