@@ -4,131 +4,311 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Diego Rodríguez Atencia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #000000;
-      --text: #00ff00;
-      --accent: #00ff00;
-      --gray: #00aa00;
-      --light-gray: #003300;
+      --bg: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --text: #1a1a1a;
+      --text-secondary: #6b7280;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --border: #e5e7eb;
+      --card-bg: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     body {
-      margin: 0;
-      font-family: 'Source Code Pro', 'Courier New', monospace;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* Navbar */
     nav {
-      background: var(--bg);
-      border-bottom: 1px solid var(--light-gray);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: saturate(180%) blur(10px);
     }
 
     .nav-container {
-      max-width: 800px;
+      max-width: 1000px;
       margin: 0 auto;
-      padding: 0 20px;
+      padding: 0 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 70px;
+      height: 64px;
     }
 
-    .logo {
-      font-weight: 700;
-      font-size: 1.3rem;
-      color: var(--accent);
-      text-decoration: none;
+    .nav-links {
+      display: flex;
+      gap: 32px;
     }
 
     .nav-links a {
-      margin-left: 2rem;
       text-decoration: none;
       color: var(--text);
       font-weight: 500;
-      opacity: 0.9;
-      transition: all 0.2s;
-    }
-
-    .nav-links a:hover {
-      opacity: 1;
-      color: var(--accent);
-    }
-
-    .nav-links a.coming-soon {
-      color: var(--gray);
-      cursor: not-allowed;
+      font-size: 0.95rem;
+      transition: color 0.2s;
       position: relative;
     }
 
-    .nav-links a.coming-soon::after {
-      content: " (coming soon)";
-      font-size: 0.8rem;
-      opacity: 0.7;
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
     }
 
     .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 80px;
+      padding: 40px 0;
+    }
+
+    .avatar {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--bg-secondary);
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px var(--shadow);
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .tagline {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-weight: 400;
+    }
+
+    .links {
+      margin-top: 24px;
+    }
+
+    .links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .links a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 80px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 32px;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    /* About */
+    .about-text {
+      font-size: 1.125rem;
+      line-height: 1.8;
+      color: var(--text);
       max-width: 800px;
       margin: 0 auto;
-      padding: 40px 20px;
+      text-align: center;
     }
 
-    /* Rest of your previous styles (avatar, sections, etc.) */
-    header { text-align: center; margin-bottom: 60px; }
-    .avatar {
-      width: 180px; height: 180px; border-radius: 50%; object-fit: cover;
-      border: 4px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      margin-bottom: 24px;
-    }
-    h1 { font-size: 2.8rem; margin: 0 0 12px 0; font-weight: 700; }
-    .tagline { font-size: 1.3rem; color: var(--gray); margin: 0; }
-
-    section { margin-bottom: 60px; }
-    h2 {
-      font-size: 1.8rem; border-bottom: 2px solid var(--accent);
-      padding-bottom: 8px; display: inline-block; margin-bottom: 24px;
+    .about-text a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
     }
 
+    .about-text a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    /* Experience */
+    .experience-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .experience-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .experience-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+
+    .job-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .company {
+      font-size: 1rem;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .date {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .experience-item p {
+      color: var(--text);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    /* Projects */
     .project-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
     }
 
     .project-card {
-      background: rgba(0,255,0,0.05);
-      border: 1px solid var(--light-gray);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 20px;
-      transition: transform 0.2s, border-color 0.2s;
+      padding: 28px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px var(--shadow);
     }
 
-    .project-card:hover { 
+    .project-card:hover {
       transform: translateY(-4px);
+      box-shadow: 0 8px 24px var(--shadow);
       border-color: var(--accent);
     }
 
+    .project-card h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .project-card h3 a {
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .project-card h3 a:hover {
+      color: var(--accent);
+    }
+
+    .project-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* Footer */
     footer {
       text-align: center;
       padding: 60px 0 40px;
-      color: var(--gray);
+      color: var(--text-secondary);
       font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 80px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.25rem;
+      }
+
+      .tagline {
+        font-size: 1.1rem;
+      }
+
+      .nav-links {
+        gap: 20px;
+      }
+
+      .nav-links a {
+        font-size: 0.9rem;
+      }
+
+      section {
+        margin-bottom: 60px;
+      }
+
+      .experience-item,
+      .project-card {
+        padding: 24px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-
-<!-- Navigation Bar -->
+  <!-- Navigation Bar -->
   <nav>
     <div class="nav-container">
       <div class="nav-links">
@@ -141,50 +321,45 @@
   </nav>
 
   <div class="container">
-
-
     <!-- Hero Section -->
     <header>
-        <img src="/prof_pic.jpeg" alt="Diego" class="avatar">
-      <h1>Diego</h1>
+      <img src="/prof_pic.jpeg" alt="Diego Rodríguez Atencia" class="avatar">
+      <h1>Diego Rodríguez Atencia</h1>
       <p class="tagline">Mathematician · Data Engineer · Builder</p>
       
       <div class="links">
         <a href="https://github.com/alektebel" target="_blank" rel="noopener">GitHub</a> • 
         <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" rel="noopener">LinkedIn</a> • 
-        <a href="dratencia@gmail.com">Email</a> • 
+        <a href="mailto:dratencia@gmail.com">Email</a> • 
         <a href="https://twitter.com/didacum333" target="_blank" rel="noopener">X</a>
       </div>
     </header>
 
     <!-- About -->
     <section>
-      <p style="font-size:1.15rem; text-align:center; max-width:700px; margin:0 auto;">
-      I'm Diego — mathematician, data engineer, and builder. I spend most of my time working on ML systems and financial data pipelines by day, and hacking on open-source projects (neural nets in C, KANs, RL) by night. I also built <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>. Outside of that: hiking, rock climbing, chess, and sci-fi novels.
+      <p class="about-text">
+        I'm Diego — mathematician, data engineer, and builder. I spend most of my time working on ML systems and financial data pipelines by day, and hacking on open-source projects (neural nets in C, KANs, RL) by night. I also built <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>. Outside of that: hiking, rock climbing, chess, and sci-fi novels.
       </p>
     </section>
 
     <!-- Experience -->
     <section>
       <h2>Experience</h2>
-      <ul>
-        <li>
+      <ul class="experience-list">
+        <li class="experience-item">
           <div class="job-title">Senior Data Analyst</div>
           <div class="company">PriceWaterHouseCoopers</div>
           <div class="date">2023 – Present</div>
           <p>
-          3.5 ROI in billable hours
-          Migration of Loss Given Default database from SAS to Oracle from a bank in the top 5 financial entities of Spain.
-          Automation of FINREP/COREP compliance with stress testing scenarios (VBA).
-          Supervised development of field trace tool for database, using Python.
+            Achieved 3.5x ROI in billable hours through automation and efficiency improvements. Led migration of Loss Given Default database from SAS to Oracle for a top 5 Spanish financial institution. Automated FINREP/COREP compliance with stress testing scenarios using VBA. Supervised development of field trace tool for database management using Python.
           </p>
         </li>
-        <li>
+        <li class="experience-item">
           <div class="job-title">Data Engineer</div>
-          <div class="company">Álamo consulting</div>
+          <div class="company">Álamo Consulting</div>
           <div class="date">2022 – 2023</div>
           <p>
-            Personal data report for Bank of Spain of external financial entity (FINREP/COREP/SIRBE)
+            Managed personal data reports for Bank of Spain, handling FINREP/COREP/SIRBE compliance for external financial entities.
           </p>
         </li>
       </ul>
@@ -196,21 +371,21 @@
       <div class="project-grid">
         <div class="project-card">
           <h3><a href="https://github.com/alektebel/deep_learning_in_c" target="_blank" rel="noopener">Neural Network in C</a></h3>
-          <p>Neural network from scratch in C</p>
+          <p>Built a neural network from scratch in C to understand backpropagation and gradient descent at the lowest level.</p>
         </div>
         <div class="project-card">
-          <h3><a href="https://github.com/alektebel/kan_implementation" target="_blank" rel="noopener">KAN implementation in pytorch</a></h3>
-          <p>KAN implementation using pytorch and the Taylor expansion instead of B-splines</p>
+          <h3><a href="https://github.com/alektebel/kan_implementation" target="_blank" rel="noopener">KAN Implementation</a></h3>
+          <p>PyTorch implementation of Kolmogorov-Arnold Networks using Taylor expansion instead of B-splines.</p>
         </div>
         <div class="project-card">
           <h3><a href="https://github.com/alektebel/litetorch" target="_blank" rel="noopener">litetorch</a></h3>
-          <p>Implementation of PyTorch + reinforcement learning algorithms for educational purposes</p>
+          <p>Educational reimplementation of PyTorch with reinforcement learning algorithms for learning purposes.</p>
         </div>
       </div>
     </section>
 
     <footer>
-      © 2025 Diego • Deployed on GitHub Pages
+      © 2025 Diego Rodríguez Atencia • Deployed on GitHub Pages
     </footer>
   </div>
 </body>
