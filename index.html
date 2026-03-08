@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Diego Rodríguez Atencia</title>
+  <title>Diego Rodríguez Atencia - Escape Room</title>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -12,7 +12,12 @@
       --accent: #00ff00;
       --gray: #00aa00;
       --light-gray: #003300;
+      --red: #ff0000;
+      --yellow: #ffff00;
+      --blue: #0099ff;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -20,6 +25,37 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Mode Toggle Button */
+    .mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--accent);
+      color: var(--bg);
+      border: 3px solid var(--accent);
+      padding: 12px 24px;
+      font-family: 'Source Code Pro', monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0,255,0,0.5);
+      animation: pulse 2s infinite;
+    }
+
+    .mode-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0,255,0,0.8);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0,255,0,0.5); }
+      50% { box-shadow: 0 0 30px rgba(0,255,0,0.8); }
     }
 
     /* Navbar */
@@ -81,7 +117,7 @@
       padding: 40px 20px;
     }
 
-    /* Rest of your previous styles (avatar, sections, etc.) */
+    /* Traditional View Styles */
     header { text-align: center; margin-bottom: 60px; }
     .avatar {
       width: 180px; height: 180px; border-radius: 50%; object-fit: cover;
@@ -122,96 +158,673 @@
       color: var(--gray);
       font-size: 0.9rem;
     }
+
+    /* Escape Room Styles */
+    .escape-room {
+      min-height: 100vh;
+      padding: 20px;
+      background: linear-gradient(135deg, #000000 0%, #001a00 50%, #000000 100%);
+    }
+
+    .room-container {
+      max-width: 900px;
+      margin: 80px auto 0;
+      padding: 30px;
+      background: rgba(0,20,0,0.8);
+      border: 2px solid var(--accent);
+      border-radius: 15px;
+      box-shadow: 0 0 40px rgba(0,255,0,0.3);
+      min-height: 500px;
+    }
+
+    .room-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .room-title {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin: 0 0 10px 0;
+      text-shadow: 0 0 10px rgba(0,255,0,0.5);
+    }
+
+    .room-subtitle {
+      font-size: 1.2rem;
+      color: var(--gray);
+      margin: 0;
+    }
+
+    .progress-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      padding: 15px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+
+    .progress-item {
+      text-align: center;
+      padding: 10px;
+      border-radius: 5px;
+      flex: 1;
+      margin: 0 5px;
+      transition: all 0.3s;
+    }
+
+    .progress-item.completed {
+      background: rgba(0,255,0,0.2);
+      border: 1px solid var(--accent);
+    }
+
+    .progress-item.active {
+      background: rgba(0,255,0,0.3);
+      border: 2px solid var(--accent);
+      animation: glow 1.5s infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 10px rgba(0,255,0,0.5); }
+      50% { box-shadow: 0 0 20px rgba(0,255,0,0.8); }
+    }
+
+    .room-content {
+      padding: 20px;
+    }
+
+    .puzzle-box {
+      background: rgba(0,50,0,0.3);
+      border: 1px solid var(--light-gray);
+      border-radius: 10px;
+      padding: 25px;
+      margin: 20px 0;
+    }
+
+    .puzzle-question {
+      font-size: 1.3rem;
+      color: var(--accent);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .puzzle-input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0,0,0,0.7);
+      border: 2px solid var(--light-gray);
+      color: var(--text);
+      font-family: 'Source Code Pro', monospace;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+
+    .puzzle-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(0,255,0,0.3);
+    }
+
+    .puzzle-button {
+      background: rgba(0,255,0,0.1);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 12px 30px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s;
+      margin-right: 10px;
+    }
+
+    .puzzle-button:hover {
+      background: rgba(0,255,0,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,255,0,0.3);
+    }
+
+    .puzzle-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .door {
+      background: rgba(0,100,0,0.2);
+      border: 3px solid var(--accent);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 15px 0;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .door:hover {
+      background: rgba(0,150,0,0.3);
+      transform: translateX(5px);
+      box-shadow: 0 5px 20px rgba(0,255,0,0.4);
+    }
+
+    .door.locked {
+      border-color: var(--gray);
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .door-title {
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin: 0 0 10px 0;
+    }
+
+    .door-description {
+      color: var(--gray);
+      margin: 0;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      animation: slideIn 0.3s;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.success {
+      background: rgba(0,255,0,0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+
+    .message.error {
+      background: rgba(255,0,0,0.2);
+      border: 1px solid var(--red);
+      color: var(--red);
+    }
+
+    .message.hint {
+      background: rgba(255,255,0,0.1);
+      border: 1px solid var(--yellow);
+      color: var(--yellow);
+    }
+
+    .info-reveal {
+      background: rgba(0,255,0,0.05);
+      border-left: 4px solid var(--accent);
+      padding: 20px;
+      margin: 20px 0;
+      animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .info-reveal h3 {
+      color: var(--accent);
+      margin-top: 0;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .choice-button {
+      background: rgba(0,255,0,0.05);
+      border: 2px solid var(--light-gray);
+      color: var(--text);
+      padding: 20px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .choice-button:hover {
+      background: rgba(0,255,0,0.15);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .hidden { display: none; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .mode-toggle {
+        top: 10px;
+        right: 10px;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+
+      .room-title {
+        font-size: 2rem;
+      }
+
+      .progress-bar {
+        flex-direction: column;
+      }
+
+      .progress-item {
+        margin: 5px 0;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div class="container">
+  <!-- Mode Toggle Button -->
+  <button class="mode-toggle" onclick="toggleMode()">
+    <span id="toggleText">EXIT ESCAPE ROOM</span>
+  </button>
 
-<!-- Navigation Bar -->
-  <nav>
-    <div class="nav-container">
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/blog/blog.html">Blog</a>
-        <a href="/papers.html">Papers</a>
-        <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
+  <!-- Escape Room View -->
+  <div id="escapeRoom" class="escape-room">
+    <div class="room-container">
+      <div class="room-header">
+        <h1 class="room-title">Welcome, Explorer</h1>
+        <p class="room-subtitle">Solve puzzles to discover who I am</p>
       </div>
+
+      <div class="progress-bar">
+        <div class="progress-item active" id="progress-0">Entry</div>
+        <div class="progress-item" id="progress-1">Code</div>
+        <div class="progress-item" id="progress-2">Data</div>
+        <div class="progress-item" id="progress-3">Neural</div>
+        <div class="progress-item" id="progress-4">Exit</div>
+      </div>
+
+      <div id="roomContent" class="room-content"></div>
     </div>
-  </nav>
-
-  <div class="container">
-
-
-    <!-- Hero Section -->
-    <header>
-        <img src="/prof_pic.jpeg" alt="Diego" class="avatar">
-      <h1>Diego</h1>
-      <p class="tagline">Mathematician · Data Engineer · Builder</p>
-      
-      <div class="links">
-        <a href="https://github.com/alektebel" target="_blank" rel="noopener">GitHub</a> • 
-        <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" rel="noopener">LinkedIn</a> • 
-        <a href="dratencia@gmail.com">Email</a> • 
-        <a href="https://twitter.com/didacum333" target="_blank" rel="noopener">X</a>
-      </div>
-    </header>
-
-    <!-- About -->
-    <section>
-      <p style="font-size:1.15rem; text-align:center; max-width:700px; margin:0 auto;">
-      I'm Diego — mathematician, data engineer, and builder. I spend most of my time working on ML systems and financial data pipelines by day, and hacking on open-source projects (neural nets in C, KANs, RL) by night. I also built <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>. Outside of that: hiking, rock climbing, chess, and sci-fi novels.
-      </p>
-    </section>
-
-    <!-- Experience -->
-    <section>
-      <h2>Experience</h2>
-      <ul>
-        <li>
-          <div class="job-title">Senior Data Analyst</div>
-          <div class="company">PriceWaterHouseCoopers</div>
-          <div class="date">2023 – Present</div>
-          <p>
-          3.5 ROI in billable hours
-          Migration of Loss Given Default database from SAS to Oracle from a bank in the top 5 financial entities of Spain.
-          Automation of FINREP/COREP compliance with stress testing scenarios (VBA).
-          Supervised development of field trace tool for database, using Python.
-          </p>
-        </li>
-        <li>
-          <div class="job-title">Data Engineer</div>
-          <div class="company">Álamo consulting</div>
-          <div class="date">2022 – 2023</div>
-          <p>
-            Personal data report for Bank of Spain of external financial entity (FINREP/COREP/SIRBE)
-          </p>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Projects -->
-    <section>
-      <h2>Projects</h2>
-      <div class="project-grid">
-        <div class="project-card">
-          <h3><a href="https://github.com/alektebel/deep_learning_in_c" target="_blank" rel="noopener">Neural Network in C</a></h3>
-          <p>Neural network from scratch in C</p>
-        </div>
-        <div class="project-card">
-          <h3><a href="https://github.com/alektebel/kan_implementation" target="_blank" rel="noopener">KAN implementation in pytorch</a></h3>
-          <p>KAN implementation using pytorch and the Taylor expansion instead of B-splines</p>
-        </div>
-        <div class="project-card">
-          <h3><a href="https://github.com/alektebel/litetorch" target="_blank" rel="noopener">litetorch</a></h3>
-          <p>Implementation of PyTorch + reinforcement learning algorithms for educational purposes</p>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      © 2025 Diego • Deployed on GitHub Pages
-    </footer>
   </div>
+
+  <!-- Traditional View -->
+  <div id="traditionalView" class="hidden">
+    <nav>
+      <div class="nav-container">
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="/blog/blog.html">Blog</a>
+          <a href="/papers.html">Papers</a>
+          <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <header>
+        <img src="/prof_pic.jpeg" alt="Diego" class="avatar">
+        <h1>Diego</h1>
+        <p class="tagline">Mathematician · Data Engineer · Builder</p>
+        
+        <div class="links">
+          <a href="https://github.com/alektebel" target="_blank" rel="noopener">GitHub</a> • 
+          <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" rel="noopener">LinkedIn</a> • 
+          <a href="dratencia@gmail.com">Email</a> • 
+          <a href="https://twitter.com/didacum333" target="_blank" rel="noopener">X</a>
+        </div>
+      </header>
+
+      <section>
+        <p style="font-size:1.15rem; text-align:center; max-width:700px; margin:0 auto;">
+        I'm Diego — mathematician, data engineer, and builder. I spend most of my time working on ML systems and financial data pipelines by day, and hacking on open-source projects (neural nets in C, KANs, RL) by night. I also built <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>. Outside of that: hiking, rock climbing, chess, and sci-fi novels.
+        </p>
+      </section>
+
+      <section>
+        <h2>Experience</h2>
+        <ul>
+          <li>
+            <div class="job-title">Senior Data Analyst</div>
+            <div class="company">PriceWaterHouseCoopers</div>
+            <div class="date">2023 – Present</div>
+            <p>
+            3.5 ROI in billable hours
+            Migration of Loss Given Default database from SAS to Oracle from a bank in the top 5 financial entities of Spain.
+            Automation of FINREP/COREP compliance with stress testing scenarios (VBA).
+            Supervised development of field trace tool for database, using Python.
+            </p>
+          </li>
+          <li>
+            <div class="job-title">Data Engineer</div>
+            <div class="company">Álamo consulting</div>
+            <div class="date">2022 – 2023</div>
+            <p>
+              Personal data report for Bank of Spain of external financial entity (FINREP/COREP/SIRBE)
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Projects</h2>
+        <div class="project-grid">
+          <div class="project-card">
+            <h3><a href="https://github.com/alektebel/deep_learning_in_c" target="_blank" rel="noopener">Neural Network in C</a></h3>
+            <p>Neural network from scratch in C</p>
+          </div>
+          <div class="project-card">
+            <h3><a href="https://github.com/alektebel/kan_implementation" target="_blank" rel="noopener">KAN implementation in pytorch</a></h3>
+            <p>KAN implementation using pytorch and the Taylor expansion instead of B-splines</p>
+          </div>
+          <div class="project-card">
+            <h3><a href="https://github.com/alektebel/litetorch" target="_blank" rel="noopener">litetorch</a></h3>
+            <p>Implementation of PyTorch + reinforcement learning algorithms for educational purposes</p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        © 2025 Diego • Deployed on GitHub Pages
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Game state
+    let currentRoom = 0;
+    let gameState = {
+      rooms: [false, false, false, false, false],
+      discoveries: []
+    };
+
+    // Room definitions
+    const rooms = [
+      {
+        // Room 0: Entry Hall
+        title: "The Entry Hall",
+        subtitle: "A mathematician's riddle guards the entrance",
+        render: () => `
+          <div class="puzzle-box">
+            <p class="puzzle-question">Welcome, traveler. To enter, solve this riddle:</p>
+            <p style="font-size: 1.1rem; margin: 20px 0; font-style: italic;">
+              "I am the sum of an infinite series: 1/2 + 1/4 + 1/8 + 1/16 + ...<br>
+              What number am I?"
+            </p>
+            <input type="text" id="answer" class="puzzle-input" placeholder="Enter your answer...">
+            <button class="puzzle-button" onclick="checkAnswer(0, document.getElementById('answer').value)">Submit</button>
+            <button class="puzzle-button" onclick="showHint(0)">Hint</button>
+          </div>
+          <div id="message"></div>
+          <div id="reveal"></div>
+        `,
+        check: (answer) => answer.trim() === "1",
+        hint: "Think about what happens when you keep halving and adding...",
+        success: "Correct! The series converges to 1. A mathematician at heart, I see.",
+        reveal: `
+          <div class="info-reveal">
+            <h3>About Me</h3>
+            <p>I'm Diego — a mathematician who fell in love with the elegance of infinite series, 
+            limits, and abstract algebra during my studies. This passion for mathematical thinking 
+            now drives my work in ML systems and data engineering.</p>
+          </div>
+        `
+      },
+      {
+        // Room 1: Code Room
+        title: "The Code Laboratory",
+        subtitle: "Decrypt my projects to proceed",
+        render: () => `
+          <div class="puzzle-box">
+            <p class="puzzle-question">I've built neural networks from scratch. Which language did I use for the lowest-level implementation?</p>
+            <div class="choice-grid">
+              <button class="choice-button" onclick="checkAnswer(1, 'Python')">Python</button>
+              <button class="choice-button" onclick="checkAnswer(1, 'C')">C</button>
+              <button class="choice-button" onclick="checkAnswer(1, 'JavaScript')">JavaScript</button>
+              <button class="choice-button" onclick="checkAnswer(1, 'Rust')">Rust</button>
+            </div>
+          </div>
+          <div id="message"></div>
+          <div id="reveal"></div>
+        `,
+        check: (answer) => answer === "C",
+        hint: "I like to get as close to the metal as possible...",
+        success: "Exactly! I built a neural network from scratch in C to understand the fundamentals.",
+        reveal: `
+          <div class="info-reveal">
+            <h3>My Projects</h3>
+            <ul>
+              <li><strong>Neural Network in C</strong>: Built from scratch to understand backpropagation at the lowest level</li>
+              <li><strong>KAN Implementation</strong>: Used PyTorch with Taylor expansion instead of B-splines</li>
+              <li><strong>litetorch</strong>: Educational reimplementation of PyTorch with RL algorithms</li>
+              <li><strong>regllm.xyz</strong>: A platform I built for the ML community</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        // Room 2: Data Vault
+        title: "The Data Vault",
+        subtitle: "Unlock my professional experience",
+        render: () => `
+          <div class="puzzle-box">
+            <p class="puzzle-question">I work with financial data. What's my current ROI in billable hours?</p>
+            <input type="text" id="answer2" class="puzzle-input" placeholder="Enter number (e.g., 3.5)">
+            <button class="puzzle-button" onclick="checkAnswer(2, document.getElementById('answer2').value)">Submit</button>
+            <button class="puzzle-button" onclick="showHint(2)">Hint</button>
+          </div>
+          <div id="message"></div>
+          <div id="reveal"></div>
+        `,
+        check: (answer) => answer.trim() === "3.5",
+        hint: "It's between 3 and 4, and it's impressive for the financial sector...",
+        success: "Correct! I've achieved a 3.5x ROI at PwC through automation and efficiency.",
+        reveal: `
+          <div class="info-reveal">
+            <h3>Professional Experience</h3>
+            <p><strong>Senior Data Analyst at PwC (2023-Present)</strong></p>
+            <ul>
+              <li>Achieved 3.5 ROI in billable hours</li>
+              <li>Migrated Loss Given Default database from SAS to Oracle for a top 5 Spanish bank</li>
+              <li>Automated FINREP/COREP compliance with stress testing scenarios</li>
+              <li>Supervised development of field trace tool for databases</li>
+            </ul>
+            <p><strong>Data Engineer at Álamo Consulting (2022-2023)</strong></p>
+            <ul>
+              <li>Managed personal data reports for Bank of Spain (FINREP/COREP/SIRBE)</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        // Room 3: Neural Network Lab
+        title: "The Neural Network Lab",
+        subtitle: "Connect the nodes of my interests",
+        render: () => `
+          <div class="puzzle-box">
+            <p class="puzzle-question">Besides coding and mathematics, I have outdoor passions. Select all that apply:</p>
+            <div style="margin: 20px 0;">
+              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
+                <input type="checkbox" value="hiking" style="margin-right: 10px;"> Hiking
+              </label>
+              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
+                <input type="checkbox" value="climbing" style="margin-right: 10px;"> Rock Climbing
+              </label>
+              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
+                <input type="checkbox" value="surfing" style="margin-right: 10px;"> Surfing
+              </label>
+              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
+                <input type="checkbox" value="skiing" style="margin-right: 10px;"> Skiing
+              </label>
+            </div>
+            <button class="puzzle-button" onclick="checkMultipleChoice()">Submit</button>
+            <button class="puzzle-button" onclick="showHint(3)">Hint</button>
+          </div>
+          <div id="message"></div>
+          <div id="reveal"></div>
+        `,
+        check: (answer) => {
+          const selected = answer.sort().join(',');
+          return selected === 'climbing,hiking';
+        },
+        hint: "I enjoy vertical challenges and long trails in nature...",
+        success: "Perfect! Hiking and rock climbing are my ways to disconnect and recharge.",
+        reveal: `
+          <div class="info-reveal">
+            <h3>Beyond the Code</h3>
+            <p>When I'm not building ML systems or hacking on projects, you'll find me:</p>
+            <ul>
+              <li><strong>Hiking</strong>: Exploring mountain trails and natural landscapes</li>
+              <li><strong>Rock Climbing</strong>: Solving vertical puzzles with my hands</li>
+              <li><strong>Playing Chess</strong>: Strategic thinking beyond the screen</li>
+              <li><strong>Reading Sci-Fi</strong>: Imagining future possibilities</li>
+            </ul>
+            <p>These activities keep me balanced and often inspire creative solutions to technical problems.</p>
+          </div>
+        `
+      },
+      {
+        // Room 4: Exit Portal
+        title: "The Exit Portal",
+        subtitle: "One final question before you leave",
+        render: () => `
+          <div class="puzzle-box">
+            <p class="puzzle-question">Now you know me better. What drives my work?</p>
+            <div class="choice-grid">
+              <button class="choice-button" onclick="checkAnswer(4, 'money')">Making Money</button>
+              <button class="choice-button" onclick="checkAnswer(4, 'curiosity')">Curiosity & Learning</button>
+              <button class="choice-button" onclick="checkAnswer(4, 'fame')">Recognition</button>
+              <button class="choice-button" onclick="checkAnswer(4, 'building')">Building & Creating</button>
+            </div>
+          </div>
+          <div id="message"></div>
+          <div id="reveal"></div>
+        `,
+        check: (answer) => answer === 'curiosity' || answer === 'building',
+        hint: "Look at my projects and interests. What pattern do you see?",
+        success: "Exactly! I'm driven by curiosity and the joy of building things from first principles.",
+        reveal: `
+          <div class="info-reveal">
+            <h3>Congratulations!</h3>
+            <p>You've completed the escape room and discovered who I am:</p>
+            <ul>
+              <li>A mathematician who loves elegant solutions</li>
+              <li>A builder who implements from first principles</li>
+              <li>A data engineer creating value in finance</li>
+              <li>An outdoor enthusiast finding balance in nature</li>
+              <li>A curious mind always learning and experimenting</li>
+            </ul>
+            <p style="margin-top: 20px; font-size: 1.2rem; color: var(--accent);">
+              Want to know more? Check out my blog, papers, or reach out!
+            </p>
+            <div style="margin-top: 20px;">
+              <a href="https://github.com/alektebel" target="_blank" class="puzzle-button" style="display: inline-block; text-decoration: none;">GitHub</a>
+              <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" class="puzzle-button" style="display: inline-block; text-decoration: none;">LinkedIn</a>
+              <a href="/blog/blog.html" class="puzzle-button" style="display: inline-block; text-decoration: none;">Blog</a>
+            </div>
+          </div>
+        `
+      }
+    ];
+
+    // Initialize game
+    function initGame() {
+      renderRoom(currentRoom);
+    }
+
+    // Render current room
+    function renderRoom(roomIndex) {
+      const room = rooms[roomIndex];
+      const content = document.getElementById('roomContent');
+      
+      content.innerHTML = `
+        <h2 style="color: var(--accent); font-size: 2rem; margin-bottom: 10px;">${room.title}</h2>
+        <p style="color: var(--gray); font-size: 1.1rem; margin-bottom: 30px;">${room.subtitle}</p>
+        ${room.render()}
+      `;
+
+      // Update progress bar
+      updateProgress(roomIndex);
+    }
+
+    // Update progress bar
+    function updateProgress(activeIndex) {
+      for (let i = 0; i < 5; i++) {
+        const item = document.getElementById(`progress-${i}`);
+        item.classList.remove('active', 'completed');
+        if (i < activeIndex) {
+          item.classList.add('completed');
+        } else if (i === activeIndex) {
+          item.classList.add('active');
+        }
+      }
+    }
+
+    // Check answer
+    function checkAnswer(roomIndex, answer) {
+      const room = rooms[roomIndex];
+      const messageDiv = document.getElementById('message');
+      const revealDiv = document.getElementById('reveal');
+
+      if (room.check(answer)) {
+        messageDiv.innerHTML = `<div class="message success">${room.success}</div>`;
+        revealDiv.innerHTML = room.reveal;
+        gameState.rooms[roomIndex] = true;
+        
+        setTimeout(() => {
+          if (roomIndex < rooms.length - 1) {
+            currentRoom++;
+            renderRoom(currentRoom);
+          }
+        }, 3000);
+      } else {
+        messageDiv.innerHTML = `<div class="message error">Not quite. Try again!</div>`;
+        setTimeout(() => {
+          messageDiv.innerHTML = '';
+        }, 2000);
+      }
+    }
+
+    // Check multiple choice (for room 3)
+    function checkMultipleChoice() {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+      const selected = Array.from(checkboxes).map(cb => cb.value);
+      checkAnswer(3, selected);
+    }
+
+    // Show hint
+    function showHint(roomIndex) {
+      const room = rooms[roomIndex];
+      const messageDiv = document.getElementById('message');
+      messageDiv.innerHTML = `<div class="message hint"><strong>Hint:</strong> ${room.hint}</div>`;
+    }
+
+    // Toggle between escape room and traditional view
+    function toggleMode() {
+      const escapeRoom = document.getElementById('escapeRoom');
+      const traditionalView = document.getElementById('traditionalView');
+      const toggleText = document.getElementById('toggleText');
+
+      if (escapeRoom.classList.contains('hidden')) {
+        escapeRoom.classList.remove('hidden');
+        traditionalView.classList.add('hidden');
+        toggleText.textContent = 'EXIT ESCAPE ROOM';
+      } else {
+        escapeRoom.classList.add('hidden');
+        traditionalView.classList.remove('hidden');
+        toggleText.textContent = 'ENTER ESCAPE ROOM';
+      }
+    }
+
+    // Start game on load
+    window.onload = initGame;
+  </script>
 </body>
 </html>
