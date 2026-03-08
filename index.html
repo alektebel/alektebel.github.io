@@ -15,6 +15,8 @@
       --red: #ff0000;
       --yellow: #ffff00;
       --blue: #0099ff;
+      --wall: #003300;
+      --floor: #001100;
     }
 
     * { box-sizing: border-box; }
@@ -25,7 +27,7 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     /* Mode Toggle Button */
@@ -58,6 +60,119 @@
       50% { box-shadow: 0 0 30px rgba(0,255,0,0.8); }
     }
 
+    /* Game Container */
+    .game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #000000 0%, #001a00 50%, #000000 100%);
+      overflow: hidden;
+    }
+
+    /* Canvas */
+    #gameCanvas {
+      display: block;
+      background: var(--floor);
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 40px rgba(0,255,0,0.3);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* HUD */
+    .hud {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background: rgba(0,20,0,0.9);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      padding: 15px;
+      max-width: 300px;
+      z-index: 100;
+      box-shadow: 0 0 20px rgba(0,255,0,0.3);
+    }
+
+    .hud-title {
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      text-shadow: 0 0 5px rgba(0,255,0,0.5);
+    }
+
+    .hud-text {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin: 5px 0;
+    }
+
+    .hud-instruction {
+      color: var(--yellow);
+      font-size: 0.85rem;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--light-gray);
+    }
+
+    /* Interaction Dialog */
+    .dialog {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,20,0,0.95);
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 20px 30px;
+      max-width: 600px;
+      width: 90%;
+      z-index: 200;
+      box-shadow: 0 0 30px rgba(0,255,0,0.5);
+      animation: slideUp 0.3s;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    .dialog-title {
+      color: var(--accent);
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+
+    .dialog-text {
+      color: var(--text);
+      font-size: 1rem;
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+
+    .dialog-button {
+      background: rgba(0,255,0,0.1);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 10px 20px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s;
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+
+    .dialog-button:hover {
+      background: rgba(0,255,0,0.2);
+      transform: translateY(-2px);
+    }
+
+    .hidden { display: none; }
+
     /* Navbar */
     nav {
       background: var(--bg);
@@ -78,13 +193,6 @@
       height: 70px;
     }
 
-    .logo {
-      font-weight: 700;
-      font-size: 1.3rem;
-      color: var(--accent);
-      text-decoration: none;
-    }
-
     .nav-links a {
       margin-left: 2rem;
       text-decoration: none;
@@ -97,18 +205,6 @@
     .nav-links a:hover {
       opacity: 1;
       color: var(--accent);
-    }
-
-    .nav-links a.coming-soon {
-      color: var(--gray);
-      cursor: not-allowed;
-      position: relative;
-    }
-
-    .nav-links a.coming-soon::after {
-      content: " (coming soon)";
-      font-size: 0.8rem;
-      opacity: 0.7;
     }
 
     .container {
@@ -159,271 +255,58 @@
       font-size: 0.9rem;
     }
 
-    /* Escape Room Styles */
-    .escape-room {
-      min-height: 100vh;
-      padding: 20px;
-      background: linear-gradient(135deg, #000000 0%, #001a00 50%, #000000 100%);
+    /* Mobile Controls */
+    .mobile-controls {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
     }
 
-    .room-container {
-      max-width: 900px;
-      margin: 80px auto 0;
-      padding: 30px;
-      background: rgba(0,20,0,0.8);
-      border: 2px solid var(--accent);
-      border-radius: 15px;
-      box-shadow: 0 0 40px rgba(0,255,0,0.3);
-      min-height: 500px;
-    }
-
-    .room-header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid var(--accent);
-    }
-
-    .room-title {
-      font-size: 2.5rem;
-      color: var(--accent);
-      margin: 0 0 10px 0;
-      text-shadow: 0 0 10px rgba(0,255,0,0.5);
-    }
-
-    .room-subtitle {
-      font-size: 1.2rem;
-      color: var(--gray);
-      margin: 0;
-    }
-
-    .progress-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-      padding: 15px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 8px;
-    }
-
-    .progress-item {
-      text-align: center;
-      padding: 10px;
-      border-radius: 5px;
-      flex: 1;
-      margin: 0 5px;
-      transition: all 0.3s;
-    }
-
-    .progress-item.completed {
-      background: rgba(0,255,0,0.2);
-      border: 1px solid var(--accent);
-    }
-
-    .progress-item.active {
-      background: rgba(0,255,0,0.3);
-      border: 2px solid var(--accent);
-      animation: glow 1.5s infinite;
-    }
-
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 10px rgba(0,255,0,0.5); }
-      50% { box-shadow: 0 0 20px rgba(0,255,0,0.8); }
-    }
-
-    .room-content {
-      padding: 20px;
-    }
-
-    .puzzle-box {
-      background: rgba(0,50,0,0.3);
-      border: 1px solid var(--light-gray);
-      border-radius: 10px;
-      padding: 25px;
-      margin: 20px 0;
-    }
-
-    .puzzle-question {
-      font-size: 1.3rem;
-      color: var(--accent);
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-
-    .puzzle-input {
-      width: 100%;
-      padding: 12px;
-      background: rgba(0,0,0,0.7);
-      border: 2px solid var(--light-gray);
-      color: var(--text);
-      font-family: 'Source Code Pro', monospace;
-      font-size: 1.1rem;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      transition: all 0.3s;
-    }
-
-    .puzzle-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 10px rgba(0,255,0,0.3);
-    }
-
-    .puzzle-button {
-      background: rgba(0,255,0,0.1);
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      padding: 12px 30px;
-      font-family: 'Source Code Pro', monospace;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: all 0.3s;
-      margin-right: 10px;
-    }
-
-    .puzzle-button:hover {
-      background: rgba(0,255,0,0.2);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,255,0,0.3);
-    }
-
-    .puzzle-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .door {
-      background: rgba(0,100,0,0.2);
-      border: 3px solid var(--accent);
-      border-radius: 10px;
-      padding: 20px;
-      margin: 15px 0;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .door:hover {
-      background: rgba(0,150,0,0.3);
-      transform: translateX(5px);
-      box-shadow: 0 5px 20px rgba(0,255,0,0.4);
-    }
-
-    .door.locked {
-      border-color: var(--gray);
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .door-title {
-      font-size: 1.5rem;
-      color: var(--accent);
-      margin: 0 0 10px 0;
-    }
-
-    .door-description {
-      color: var(--gray);
-      margin: 0;
-    }
-
-    .message {
-      padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-      animation: slideIn 0.3s;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message.success {
-      background: rgba(0,255,0,0.2);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-    }
-
-    .message.error {
-      background: rgba(255,0,0,0.2);
-      border: 1px solid var(--red);
-      color: var(--red);
-    }
-
-    .message.hint {
-      background: rgba(255,255,0,0.1);
-      border: 1px solid var(--yellow);
-      color: var(--yellow);
-    }
-
-    .info-reveal {
-      background: rgba(0,255,0,0.05);
-      border-left: 4px solid var(--accent);
-      padding: 20px;
-      margin: 20px 0;
-      animation: fadeIn 0.5s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .info-reveal h3 {
-      color: var(--accent);
-      margin-top: 0;
-    }
-
-    .choice-grid {
+    .dpad {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
+      grid-template-areas:
+        ". up ."
+        "left . right"
+        ". down .";
+      gap: 5px;
+      width: 150px;
+      height: 150px;
     }
 
-    .choice-button {
-      background: rgba(0,255,0,0.05);
-      border: 2px solid var(--light-gray);
-      color: var(--text);
-      padding: 20px;
-      font-family: 'Source Code Pro', monospace;
-      font-size: 1rem;
+    .dpad-button {
+      background: rgba(0,255,0,0.2);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      font-size: 1.5rem;
       cursor: pointer;
-      border-radius: 8px;
-      transition: all 0.3s;
-      text-align: center;
+      border-radius: 5px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .choice-button:hover {
-      background: rgba(0,255,0,0.15);
-      border-color: var(--accent);
-      transform: scale(1.05);
+    .dpad-button:active {
+      background: rgba(0,255,0,0.4);
     }
 
-    .hidden { display: none; }
+    .dpad-up { grid-area: up; }
+    .dpad-down { grid-area: down; }
+    .dpad-left { grid-area: left; }
+    .dpad-right { grid-area: right; }
 
-    /* Responsive */
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
+      .mobile-controls { display: block; }
+      .hud {
+        max-width: 200px;
+        font-size: 0.85rem;
+        padding: 10px;
+      }
       .mode-toggle {
-        top: 10px;
-        right: 10px;
-        padding: 10px 16px;
-        font-size: 0.9rem;
-      }
-
-      .room-title {
-        font-size: 2rem;
-      }
-
-      .progress-bar {
-        flex-direction: column;
-      }
-
-      .progress-item {
-        margin: 5px 0;
+        padding: 8px 16px;
+        font-size: 0.85rem;
       }
     }
   </style>
@@ -435,23 +318,38 @@
     <span id="toggleText">EXIT ESCAPE ROOM</span>
   </button>
 
-  <!-- Escape Room View -->
-  <div id="escapeRoom" class="escape-room">
-    <div class="room-container">
-      <div class="room-header">
-        <h1 class="room-title">Welcome, Explorer</h1>
-        <p class="room-subtitle">Solve puzzles to discover who I am</p>
+  <!-- Escape Room Game -->
+  <div id="escapeRoom" class="game-container">
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-title">Room: <span id="roomName">Entry Hall</span></div>
+      <div class="hud-text">Objects Found: <span id="objectCount">0</span>/15</div>
+      <div class="hud-text">Current Room: <span id="currentRoom">1</span>/5</div>
+      <div class="hud-instruction">
+        🎮 WASD or Arrow Keys to move<br>
+        E or SPACE to interact<br>
+        Find all objects to progress!
       </div>
+    </div>
 
-      <div class="progress-bar">
-        <div class="progress-item active" id="progress-0">Entry</div>
-        <div class="progress-item" id="progress-1">Code</div>
-        <div class="progress-item" id="progress-2">Data</div>
-        <div class="progress-item" id="progress-3">Neural</div>
-        <div class="progress-item" id="progress-4">Exit</div>
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Interaction Dialog -->
+    <div id="dialog" class="dialog hidden">
+      <div class="dialog-title" id="dialogTitle"></div>
+      <div class="dialog-text" id="dialogText"></div>
+      <button class="dialog-button" onclick="closeDialog()">Close</button>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+      <div class="dpad">
+        <button class="dpad-button dpad-up" onpointerdown="mobileMove('up')" onpointerup="mobileStop()">▲</button>
+        <button class="dpad-button dpad-left" onpointerdown="mobileMove('left')" onpointerup="mobileStop()">◀</button>
+        <button class="dpad-button dpad-right" onpointerdown="mobileMove('right')" onpointerup="mobileStop()">▶</button>
+        <button class="dpad-button dpad-down" onpointerdown="mobileMove('down')" onpointerup="mobileStop()">▼</button>
       </div>
-
-      <div id="roomContent" class="room-content"></div>
     </div>
   </div>
 
@@ -538,275 +436,360 @@
   </div>
 
   <script>
-    // Game state
-    let currentRoom = 0;
-    let gameState = {
-      rooms: [false, false, false, false, false],
-      discoveries: []
+    // Game State
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size
+    function resizeCanvas() {
+      canvas.width = Math.min(window.innerWidth - 40, 1200);
+      canvas.height = Math.min(window.innerHeight - 40, 700);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Game constants
+    const TILE_SIZE = 40;
+    const PLAYER_SIZE = 30;
+    const OBJECT_SIZE = 25;
+    const PLAYER_SPEED = 3;
+
+    // Player
+    const player = {
+      x: 100,
+      y: 100,
+      width: PLAYER_SIZE,
+      height: PLAYER_SIZE,
+      speed: PLAYER_SPEED,
+      color: '#00ff00'
     };
 
-    // Room definitions
+    // Input handling
+    const keys = {};
+    let mobileDirection = null;
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.key.toLowerCase()] = true;
+      if (e.key === 'e' || e.key === ' ') {
+        e.preventDefault();
+        checkInteraction();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    function mobileMove(direction) {
+      mobileDirection = direction;
+    }
+
+    function mobileStop() {
+      mobileDirection = null;
+    }
+
+    // Game state
+    let currentRoomIndex = 0;
+    let collectedObjects = [];
+    let totalObjects = 0;
+
+    // Room definitions with objects and doors
     const rooms = [
       {
-        // Room 0: Entry Hall
-        title: "The Entry Hall",
-        subtitle: "A mathematician's riddle guards the entrance",
-        render: () => `
-          <div class="puzzle-box">
-            <p class="puzzle-question">Welcome, traveler. To enter, solve this riddle:</p>
-            <p style="font-size: 1.1rem; margin: 20px 0; font-style: italic;">
-              "I am the sum of an infinite series: 1/2 + 1/4 + 1/8 + 1/16 + ...<br>
-              What number am I?"
-            </p>
-            <input type="text" id="answer" class="puzzle-input" placeholder="Enter your answer...">
-            <button class="puzzle-button" onclick="checkAnswer(0, document.getElementById('answer').value)">Submit</button>
-            <button class="puzzle-button" onclick="showHint(0)">Hint</button>
-          </div>
-          <div id="message"></div>
-          <div id="reveal"></div>
-        `,
-        check: (answer) => answer.trim() === "1",
-        hint: "Think about what happens when you keep halving and adding...",
-        success: "Correct! The series converges to 1. A mathematician at heart, I see.",
-        reveal: `
-          <div class="info-reveal">
-            <h3>About Me</h3>
-            <p>I'm Diego — a mathematician who fell in love with the elegance of infinite series, 
-            limits, and abstract algebra during my studies. This passion for mathematical thinking 
-            now drives my work in ML systems and data engineering.</p>
-          </div>
-        `
+        name: "Entry Hall - Mathematics",
+        color: '#001a00',
+        walls: [
+          {x: 0, y: 0, width: canvas.width, height: 20}, // top
+          {x: 0, y: 0, width: 20, height: canvas.height}, // left
+          {x: canvas.width - 20, y: 0, width: 20, height: canvas.height}, // right
+          {x: 0, y: canvas.height - 20, width: canvas.width, height: 20}, // bottom
+        ],
+        objects: [
+          {x: 150, y: 150, emoji: '∞', title: 'Infinite Series Book', text: 'A book on infinite series and convergence. Diego loves the elegance of limits and how 1/2 + 1/4 + 1/8... = 1', id: 'math1'},
+          {x: 300, y: 200, emoji: '∑', title: 'Summation Formula', text: 'Notes on summations and mathematical proofs. Mathematics is the foundation of everything I do.', id: 'math2'},
+          {x: 500, y: 300, emoji: '🎓', title: 'Mathematics Degree', text: 'My degree in Mathematics - where my journey into abstract thinking began.', id: 'math3'},
+        ],
+        doors: [
+          {x: canvas.width - 60, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 1, label: 'Code Lab →'}
+        ]
       },
       {
-        // Room 1: Code Room
-        title: "The Code Laboratory",
-        subtitle: "Decrypt my projects to proceed",
-        render: () => `
-          <div class="puzzle-box">
-            <p class="puzzle-question">I've built neural networks from scratch. Which language did I use for the lowest-level implementation?</p>
-            <div class="choice-grid">
-              <button class="choice-button" onclick="checkAnswer(1, 'Python')">Python</button>
-              <button class="choice-button" onclick="checkAnswer(1, 'C')">C</button>
-              <button class="choice-button" onclick="checkAnswer(1, 'JavaScript')">JavaScript</button>
-              <button class="choice-button" onclick="checkAnswer(1, 'Rust')">Rust</button>
-            </div>
-          </div>
-          <div id="message"></div>
-          <div id="reveal"></div>
-        `,
-        check: (answer) => answer === "C",
-        hint: "I like to get as close to the metal as possible...",
-        success: "Exactly! I built a neural network from scratch in C to understand the fundamentals.",
-        reveal: `
-          <div class="info-reveal">
-            <h3>My Projects</h3>
-            <ul>
-              <li><strong>Neural Network in C</strong>: Built from scratch to understand backpropagation at the lowest level</li>
-              <li><strong>KAN Implementation</strong>: Used PyTorch with Taylor expansion instead of B-splines</li>
-              <li><strong>litetorch</strong>: Educational reimplementation of PyTorch with RL algorithms</li>
-              <li><strong>regllm.xyz</strong>: A platform I built for the ML community</li>
-            </ul>
-          </div>
-        `
+        name: "Code Laboratory",
+        color: '#001100',
+        walls: [
+          {x: 0, y: 0, width: canvas.width, height: 20},
+          {x: 0, y: 0, width: 20, height: canvas.height},
+          {x: canvas.width - 20, y: 0, width: 20, height: canvas.height},
+          {x: 0, y: canvas.height - 20, width: canvas.width, height: 20},
+        ],
+        objects: [
+          {x: 200, y: 150, emoji: 'C', title: 'Neural Net in C', text: 'My neural network implementation from scratch in C. I wanted to understand backpropagation at the lowest level.', id: 'code1'},
+          {x: 400, y: 200, emoji: '🔥', title: 'PyTorch + KANs', text: 'KAN implementation using PyTorch with Taylor expansion instead of B-splines. Always experimenting!', id: 'code2'},
+          {x: 600, y: 300, emoji: '🤖', title: 'litetorch', text: 'Educational reimplementation of PyTorch with RL algorithms. Teaching through building.', id: 'code3'},
+          {x: 300, y: 400, emoji: '🌐', title: 'regllm.xyz', text: 'A platform I built for the ML community. Check it out at regllm.xyz!', id: 'code4'},
+        ],
+        doors: [
+          {x: 20, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 0, label: '← Math'},
+          {x: canvas.width - 60, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 2, label: 'Data →'}
+        ]
       },
       {
-        // Room 2: Data Vault
-        title: "The Data Vault",
-        subtitle: "Unlock my professional experience",
-        render: () => `
-          <div class="puzzle-box">
-            <p class="puzzle-question">I work with financial data. What's my current ROI in billable hours?</p>
-            <input type="text" id="answer2" class="puzzle-input" placeholder="Enter number (e.g., 3.5)">
-            <button class="puzzle-button" onclick="checkAnswer(2, document.getElementById('answer2').value)">Submit</button>
-            <button class="puzzle-button" onclick="showHint(2)">Hint</button>
-          </div>
-          <div id="message"></div>
-          <div id="reveal"></div>
-        `,
-        check: (answer) => answer.trim() === "3.5",
-        hint: "It's between 3 and 4, and it's impressive for the financial sector...",
-        success: "Correct! I've achieved a 3.5x ROI at PwC through automation and efficiency.",
-        reveal: `
-          <div class="info-reveal">
-            <h3>Professional Experience</h3>
-            <p><strong>Senior Data Analyst at PwC (2023-Present)</strong></p>
-            <ul>
-              <li>Achieved 3.5 ROI in billable hours</li>
-              <li>Migrated Loss Given Default database from SAS to Oracle for a top 5 Spanish bank</li>
-              <li>Automated FINREP/COREP compliance with stress testing scenarios</li>
-              <li>Supervised development of field trace tool for databases</li>
-            </ul>
-            <p><strong>Data Engineer at Álamo Consulting (2022-2023)</strong></p>
-            <ul>
-              <li>Managed personal data reports for Bank of Spain (FINREP/COREP/SIRBE)</li>
-            </ul>
-          </div>
-        `
+        name: "Data Vault - Professional Work",
+        color: '#002200',
+        walls: [
+          {x: 0, y: 0, width: canvas.width, height: 20},
+          {x: 0, y: 0, width: 20, height: canvas.height},
+          {x: canvas.width - 20, y: 0, width: 20, height: canvas.height},
+          {x: 0, y: canvas.height - 20, width: canvas.width, height: 20},
+        ],
+        objects: [
+          {x: 150, y: 150, emoji: '💼', title: 'PwC Senior Data Analyst', text: 'Currently at PwC with 3.5 ROI in billable hours. Specializing in financial data systems.', id: 'work1'},
+          {x: 350, y: 250, emoji: '🏦', title: 'Banking Migration', text: 'Migrated Loss Given Default database from SAS to Oracle for a top 5 Spanish bank.', id: 'work2'},
+          {x: 550, y: 200, emoji: '⚙️', title: 'Automation Expert', text: 'Automated FINREP/COREP compliance with stress testing scenarios using VBA and Python.', id: 'work3'},
+        ],
+        doors: [
+          {x: 20, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 1, label: '← Code'},
+          {x: canvas.width - 60, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 3, label: 'Life →'}
+        ]
       },
       {
-        // Room 3: Neural Network Lab
-        title: "The Neural Network Lab",
-        subtitle: "Connect the nodes of my interests",
-        render: () => `
-          <div class="puzzle-box">
-            <p class="puzzle-question">Besides coding and mathematics, I have outdoor passions. Select all that apply:</p>
-            <div style="margin: 20px 0;">
-              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
-                <input type="checkbox" value="hiking" style="margin-right: 10px;"> Hiking
-              </label>
-              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
-                <input type="checkbox" value="climbing" style="margin-right: 10px;"> Rock Climbing
-              </label>
-              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
-                <input type="checkbox" value="surfing" style="margin-right: 10px;"> Surfing
-              </label>
-              <label style="display: block; margin: 10px 0; font-size: 1.1rem;">
-                <input type="checkbox" value="skiing" style="margin-right: 10px;"> Skiing
-              </label>
-            </div>
-            <button class="puzzle-button" onclick="checkMultipleChoice()">Submit</button>
-            <button class="puzzle-button" onclick="showHint(3)">Hint</button>
-          </div>
-          <div id="message"></div>
-          <div id="reveal"></div>
-        `,
-        check: (answer) => {
-          const selected = answer.sort().join(',');
-          return selected === 'climbing,hiking';
-        },
-        hint: "I enjoy vertical challenges and long trails in nature...",
-        success: "Perfect! Hiking and rock climbing are my ways to disconnect and recharge.",
-        reveal: `
-          <div class="info-reveal">
-            <h3>Beyond the Code</h3>
-            <p>When I'm not building ML systems or hacking on projects, you'll find me:</p>
-            <ul>
-              <li><strong>Hiking</strong>: Exploring mountain trails and natural landscapes</li>
-              <li><strong>Rock Climbing</strong>: Solving vertical puzzles with my hands</li>
-              <li><strong>Playing Chess</strong>: Strategic thinking beyond the screen</li>
-              <li><strong>Reading Sci-Fi</strong>: Imagining future possibilities</li>
-            </ul>
-            <p>These activities keep me balanced and often inspire creative solutions to technical problems.</p>
-          </div>
-        `
+        name: "Life Beyond Code",
+        color: '#001a0a',
+        walls: [
+          {x: 0, y: 0, width: canvas.width, height: 20},
+          {x: 0, y: 0, width: 20, height: canvas.height},
+          {x: canvas.width - 20, y: 0, width: 20, height: canvas.height},
+          {x: 0, y: canvas.height - 20, width: canvas.width, height: 20},
+        ],
+        objects: [
+          {x: 200, y: 150, emoji: '⛰️', title: 'Hiking', text: 'I love exploring mountain trails and natural landscapes. It clears my mind for problem solving.', id: 'life1'},
+          {x: 400, y: 200, emoji: '🧗', title: 'Rock Climbing', text: 'Rock climbing is like solving vertical puzzles. Strategy, strength, and persistence.', id: 'life2'},
+          {x: 600, y: 280, emoji: '♟️', title: 'Chess', text: 'Strategic thinking beyond the keyboard. Every move counts.', id: 'life3'},
+          {x: 300, y: 400, emoji: '📚', title: 'Sci-Fi Novels', text: 'Reading sci-fi helps me imagine future possibilities and think outside the box.', id: 'life4'},
+        ],
+        doors: [
+          {x: 20, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 2, label: '← Data'},
+          {x: canvas.width - 60, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 4, label: 'Exit →'}
+        ]
       },
       {
-        // Room 4: Exit Portal
-        title: "The Exit Portal",
-        subtitle: "One final question before you leave",
-        render: () => `
-          <div class="puzzle-box">
-            <p class="puzzle-question">Now you know me better. What drives my work?</p>
-            <div class="choice-grid">
-              <button class="choice-button" onclick="checkAnswer(4, 'money')">Making Money</button>
-              <button class="choice-button" onclick="checkAnswer(4, 'curiosity')">Curiosity & Learning</button>
-              <button class="choice-button" onclick="checkAnswer(4, 'fame')">Recognition</button>
-              <button class="choice-button" onclick="checkAnswer(4, 'building')">Building & Creating</button>
-            </div>
-          </div>
-          <div id="message"></div>
-          <div id="reveal"></div>
-        `,
-        check: (answer) => answer === 'curiosity' || answer === 'building',
-        hint: "Look at my projects and interests. What pattern do you see?",
-        success: "Exactly! I'm driven by curiosity and the joy of building things from first principles.",
-        reveal: `
-          <div class="info-reveal">
-            <h3>Congratulations!</h3>
-            <p>You've completed the escape room and discovered who I am:</p>
-            <ul>
-              <li>A mathematician who loves elegant solutions</li>
-              <li>A builder who implements from first principles</li>
-              <li>A data engineer creating value in finance</li>
-              <li>An outdoor enthusiast finding balance in nature</li>
-              <li>A curious mind always learning and experimenting</li>
-            </ul>
-            <p style="margin-top: 20px; font-size: 1.2rem; color: var(--accent);">
-              Want to know more? Check out my blog, papers, or reach out!
-            </p>
-            <div style="margin-top: 20px;">
-              <a href="https://github.com/alektebel" target="_blank" class="puzzle-button" style="display: inline-block; text-decoration: none;">GitHub</a>
-              <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" class="puzzle-button" style="display: inline-block; text-decoration: none;">LinkedIn</a>
-              <a href="/blog/blog.html" class="puzzle-button" style="display: inline-block; text-decoration: none;">Blog</a>
-            </div>
-          </div>
-        `
+        name: "Exit Portal - What Drives Me",
+        color: '#001100',
+        walls: [
+          {x: 0, y: 0, width: canvas.width, height: 20},
+          {x: 0, y: 0, width: 20, height: canvas.height},
+          {x: canvas.width - 20, y: 0, width: 20, height: canvas.height},
+          {x: 0, y: canvas.height - 20, width: canvas.width, height: 20},
+        ],
+        objects: [
+          {x: canvas.width/2 - 50, y: canvas.height/2 - 100, emoji: '🔬', title: 'Curiosity', text: 'Curiosity drives everything I do. Always learning, always exploring.', id: 'final1'},
+          {x: canvas.width/2 - 50, y: canvas.height/2, emoji: '🏗️', title: 'Building', text: 'I love building things from first principles. Understanding how things work at the core.', id: 'final2'},
+        ],
+        doors: [
+          {x: 20, y: canvas.height / 2 - 40, width: 40, height: 80, toRoom: 3, label: '← Life'},
+        ]
       }
     ];
 
-    // Initialize game
-    function initGame() {
-      renderRoom(currentRoom);
+    // Calculate total objects
+    rooms.forEach(room => {
+      totalObjects += room.objects.length;
+    });
+
+    // Current room
+    function getCurrentRoom() {
+      return rooms[currentRoomIndex];
     }
 
-    // Render current room
-    function renderRoom(roomIndex) {
-      const room = rooms[roomIndex];
-      const content = document.getElementById('roomContent');
-      
-      content.innerHTML = `
-        <h2 style="color: var(--accent); font-size: 2rem; margin-bottom: 10px;">${room.title}</h2>
-        <p style="color: var(--gray); font-size: 1.1rem; margin-bottom: 30px;">${room.subtitle}</p>
-        ${room.render()}
-      `;
-
-      // Update progress bar
-      updateProgress(roomIndex);
+    // Collision detection
+    function checkCollision(x, y, width, height, obstacles) {
+      for (let obstacle of obstacles) {
+        if (x < obstacle.x + obstacle.width &&
+            x + width > obstacle.x &&
+            y < obstacle.y + obstacle.height &&
+            y + height > obstacle.y) {
+          return true;
+        }
+      }
+      return false;
     }
 
-    // Update progress bar
-    function updateProgress(activeIndex) {
-      for (let i = 0; i < 5; i++) {
-        const item = document.getElementById(`progress-${i}`);
-        item.classList.remove('active', 'completed');
-        if (i < activeIndex) {
-          item.classList.add('completed');
-        } else if (i === activeIndex) {
-          item.classList.add('active');
+    // Update player position
+    function updatePlayer() {
+      const room = getCurrentRoom();
+      let newX = player.x;
+      let newY = player.y;
+
+      // Handle mobile controls
+      if (mobileDirection === 'up') keys['w'] = true;
+      if (mobileDirection === 'down') keys['s'] = true;
+      if (mobileDirection === 'left') keys['a'] = true;
+      if (mobileDirection === 'right') keys['d'] = true;
+
+      // Movement
+      if (keys['w'] || keys['arrowup']) newY -= player.speed;
+      if (keys['s'] || keys['arrowdown']) newY += player.speed;
+      if (keys['a'] || keys['arrowleft']) newX -= player.speed;
+      if (keys['d'] || keys['arrowright']) newX += player.speed;
+
+      // Check collision with walls
+      if (!checkCollision(newX, newY, player.width, player.height, room.walls)) {
+        player.x = newX;
+        player.y = newY;
+      }
+
+      // Check collision with doors
+      for (let door of room.doors) {
+        if (checkCollision(player.x, player.y, player.width, player.height, [door])) {
+          changeRoom(door.toRoom);
+          break;
         }
       }
     }
 
-    // Check answer
-    function checkAnswer(roomIndex, answer) {
-      const room = rooms[roomIndex];
-      const messageDiv = document.getElementById('message');
-      const revealDiv = document.getElementById('reveal');
-
-      if (room.check(answer)) {
-        messageDiv.innerHTML = `<div class="message success">${room.success}</div>`;
-        revealDiv.innerHTML = room.reveal;
-        gameState.rooms[roomIndex] = true;
-        
-        setTimeout(() => {
-          if (roomIndex < rooms.length - 1) {
-            currentRoom++;
-            renderRoom(currentRoom);
-          }
-        }, 3000);
+    // Change room
+    function changeRoom(roomIndex) {
+      currentRoomIndex = roomIndex;
+      const room = getCurrentRoom();
+      
+      // Position player at opposite door
+      if (roomIndex > currentRoomIndex) {
+        player.x = 80;
+        player.y = canvas.height / 2 - player.height / 2;
       } else {
-        messageDiv.innerHTML = `<div class="message error">Not quite. Try again!</div>`;
-        setTimeout(() => {
-          messageDiv.innerHTML = '';
-        }, 2000);
+        player.x = canvas.width - 100;
+        player.y = canvas.height / 2 - player.height / 2;
+      }
+
+      updateHUD();
+    }
+
+    // Check for nearby objects
+    function checkInteraction() {
+      const room = getCurrentRoom();
+      const interactDistance = 50;
+
+      for (let obj of room.objects) {
+        const dx = (player.x + player.width/2) - (obj.x + OBJECT_SIZE/2);
+        const dy = (player.y + player.height/2) - (obj.y + OBJECT_SIZE/2);
+        const distance = Math.sqrt(dx*dx + dy*dy);
+
+        if (distance < interactDistance) {
+          if (!collectedObjects.includes(obj.id)) {
+            collectedObjects.push(obj.id);
+            updateHUD();
+          }
+          showDialog(obj.title, obj.text);
+          return;
+        }
       }
     }
 
-    // Check multiple choice (for room 3)
-    function checkMultipleChoice() {
-      const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-      const selected = Array.from(checkboxes).map(cb => cb.value);
-      checkAnswer(3, selected);
+    // Show dialog
+    function showDialog(title, text) {
+      document.getElementById('dialogTitle').textContent = title;
+      document.getElementById('dialogText').textContent = text;
+      document.getElementById('dialog').classList.remove('hidden');
     }
 
-    // Show hint
-    function showHint(roomIndex) {
-      const room = rooms[roomIndex];
-      const messageDiv = document.getElementById('message');
-      messageDiv.innerHTML = `<div class="message hint"><strong>Hint:</strong> ${room.hint}</div>`;
+    // Close dialog
+    function closeDialog() {
+      document.getElementById('dialog').classList.add('hidden');
     }
 
-    // Toggle between escape room and traditional view
+    // Update HUD
+    function updateHUD() {
+      document.getElementById('roomName').textContent = getCurrentRoom().name;
+      document.getElementById('objectCount').textContent = collectedObjects.length;
+      document.getElementById('currentRoom').textContent = currentRoomIndex + 1;
+    }
+
+    // Draw everything
+    function draw() {
+      const room = getCurrentRoom();
+
+      // Clear canvas
+      ctx.fillStyle = room.color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw walls
+      ctx.fillStyle = '#003300';
+      for (let wall of room.walls) {
+        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+      }
+
+      // Draw doors
+      ctx.fillStyle = '#005500';
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 2;
+      for (let door of room.doors) {
+        ctx.fillRect(door.x, door.y, door.width, door.height);
+        ctx.strokeRect(door.x, door.y, door.width, door.height);
+        
+        // Draw door label
+        ctx.fillStyle = '#00ff00';
+        ctx.font = '12px "Source Code Pro"';
+        ctx.textAlign = 'center';
+        ctx.fillText(door.label, door.x + door.width/2, door.y - 5);
+      }
+
+      // Draw objects
+      ctx.font = `${OBJECT_SIZE}px "Source Code Pro"`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      for (let obj of room.objects) {
+        const collected = collectedObjects.includes(obj.id);
+        
+        // Glow effect for uncollected objects
+        if (!collected) {
+          ctx.shadowColor = '#00ff00';
+          ctx.shadowBlur = 15;
+        }
+        
+        ctx.fillStyle = collected ? '#00aa00' : '#00ff00';
+        ctx.fillText(obj.emoji, obj.x + OBJECT_SIZE/2, obj.y + OBJECT_SIZE/2);
+        
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw player
+      ctx.fillStyle = player.color;
+      ctx.shadowColor = '#00ff00';
+      ctx.shadowBlur = 10;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      ctx.shadowBlur = 0;
+
+      // Draw player face
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(player.x + 8, player.y + 8, 6, 6); // left eye
+      ctx.fillRect(player.x + 16, player.y + 8, 6, 6); // right eye
+      ctx.fillRect(player.x + 8, player.y + 20, 14, 3); // mouth
+
+      // Draw interaction prompt
+      const room2 = getCurrentRoom();
+      for (let obj of room2.objects) {
+        const dx = (player.x + player.width/2) - (obj.x + OBJECT_SIZE/2);
+        const dy = (player.y + player.height/2) - (obj.y + OBJECT_SIZE/2);
+        const distance = Math.sqrt(dx*dx + dy*dy);
+
+        if (distance < 50) {
+          ctx.fillStyle = '#ffff00';
+          ctx.font = '14px "Source Code Pro"';
+          ctx.textAlign = 'center';
+          ctx.fillText('Press E', obj.x + OBJECT_SIZE/2, obj.y - 15);
+        }
+      }
+    }
+
+    // Game loop
+    function gameLoop() {
+      updatePlayer();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Toggle between modes
     function toggleMode() {
       const escapeRoom = document.getElementById('escapeRoom');
       const traditionalView = document.getElementById('traditionalView');
@@ -823,8 +806,9 @@
       }
     }
 
-    // Start game on load
-    window.onload = initGame;
+    // Start game
+    updateHUD();
+    gameLoop();
   </script>
 </body>
 </html>
