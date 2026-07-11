@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI skill tree — Diego Rodríguez Atencia</title>
+<meta name="description" content="An Obsidian-style graph of the papers and principles behind modern AI, LLMs and robotics — from McCulloch–Pitts to today's VLA models.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='3' y='13' font-family='monospace' font-size='13' fill='%2300ff00'%3Ea%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #1a1a19;
+    --panel: #212120;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --line: #2c2c2a;
+    --border: rgba(255,255,255,0.10);
+    --c-found: #3987e5;
+    --c-dl: #199e70;
+    --c-llm: #c98500;
+    --c-gen: #008300;
+    --c-rl: #9085e9;
+    --c-rob: #e66767;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: monospace;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--ink-2);
+    overflow: hidden;
+  }
+  a { color: #7aa2f7; }
+  #graph { display: block; width: 100vw; height: 100vh; cursor: grab; }
+  #graph.dragging { cursor: grabbing; }
+
+  /* top-left chrome */
+  #chrome {
+    position: fixed;
+    top: 0; left: 0;
+    padding: 14px 16px;
+    max-width: 300px;
+    pointer-events: none;
+  }
+  #chrome > * { pointer-events: auto; }
+  #chrome .home { color: var(--muted); text-decoration: none; }
+  #chrome .home:hover { color: var(--ink); }
+  #chrome h1 { font-size: 15px; color: var(--ink); margin: 6px 0 2px; font-weight: 700; }
+  #chrome .hint { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  #search {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 5px 8px;
+    outline: none;
+  }
+  #search::placeholder { color: var(--muted); }
+  #legend { margin-top: 10px; list-style: none; padding: 0; }
+  #legend li {
+    cursor: pointer;
+    font-size: 12px;
+    margin: 3px 0;
+    color: var(--ink-2);
+    user-select: none;
+  }
+  #legend li.off { color: var(--muted); text-decoration: line-through; }
+  #legend .dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: 0;
+  }
+  #legend li.off .dot { opacity: 0.25; }
+
+  /* note panel */
+  #panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 400px;
+    max-width: 100vw;
+    height: 100vh;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    padding: 20px 22px 40px;
+    overflow-y: auto;
+    display: none;
+  }
+  #panel.open { display: block; }
+  #panel .close {
+    float: right;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  #panel .close:hover { color: var(--ink); }
+  #panel h2 { font-size: 16px; color: var(--ink); margin: 0 0 4px; line-height: 1.35; }
+  #panel .meta { color: var(--muted); font-size: 12px; margin: 0 0 14px; }
+  #panel .meta .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  #panel h3 { font-size: 12px; color: var(--muted); text-transform: lowercase; margin: 18px 0 6px; }
+  #panel h3::before { content: "## "; }
+  #panel p { margin: 0 0 10px; line-height: 1.55; font-size: 13px; }
+  #panel .links a {
+    display: inline-block;
+    margin: 0 10px 6px 0;
+    font-size: 13px;
+  }
+  #panel ul { padding-left: 2ch; list-style: none; margin: 0; }
+  #panel li { margin-bottom: 4px; font-size: 13px; }
+  #panel li::before { content: "* "; color: var(--muted); }
+  #panel li a { text-decoration: none; }
+  #panel li a:hover { text-decoration: underline; }
+  #panel code { background: var(--bg); padding: 0 4px; font-size: 12px; }
+
+  @media (max-width: 700px) {
+    #panel { width: 100vw; height: 62vh; top: auto; bottom: 0; border-left: none; border-top: 1px solid var(--border); }
+    #chrome { max-width: 210px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="graph"></canvas>
+
+<div id="chrome">
+  <a class="home" href="/">&larr; alektebel</a>
+  <h1>ai skill tree</h1>
+  <p class="hint">the papers behind modern AI.<br>drag &middot; scroll to zoom &middot; click a node</p>
+  <input id="search" type="search" placeholder="search papers..." aria-label="search papers">
+  <ul id="legend"></ul>
+</div>
+
+<aside id="panel" aria-label="paper note">
+  <button class="close" aria-label="close">&times;</button>
+  <div id="note"></div>
+</aside>
+
+<script>
+"use strict";
+
+/* ---------------- data ---------------- */
+
+const CATS = {
+  found: { name: "foundations",            col: "#3987e5" },
+  dl:    { name: "deep learning",          col: "#199e70" },
+  llm:   { name: "language models",        col: "#c98500" },
+  gen:   { name: "vision & generative",    col: "#008300" },
+  rl:    { name: "reinforcement learning", col: "#9085e9" },
+  rob:   { name: "robotics",               col: "#e66767" },
+};
+
+/* Each node: id, s(hort label), t(itle), y(ear), c(ategory), a(uthors),
+   deps (what it builds on), paper/code/demo links, sum(mary), impl(ementation notes). */
+const NODES = [
+
+/* ---- foundations ---- */
+{ id:"mcp", s:"McCulloch–Pitts", t:"A Logical Calculus of the Ideas Immanent in Nervous Activity", y:1943, c:"found",
+  a:"McCulloch & Pitts", deps:[],
+  paper:"https://doi.org/10.1007/BF02478259",
+  sum:"The first mathematical model of a neuron: a threshold unit that fires when its weighted inputs exceed a bound. Showed networks of such units can compute any logical function — the founding abstraction of the whole field.",
+  impl:"A McCulloch–Pitts neuron is one line of code: `output = sum(w*x) >= threshold`. Wire a few together by hand to build AND/OR/NOT and you have rebuilt the paper." },
+
+{ id:"shannon", s:"Information Theory", t:"A Mathematical Theory of Communication", y:1948, c:"found",
+  a:"Claude Shannon", deps:[],
+  paper:"https://doi.org/10.1002/j.1538-7305.1948.tb01338.x",
+  sum:"Defined entropy, channel capacity and the bit. Every loss function you have ever minimized — cross-entropy, KL divergence, perplexity — is downstream of this paper, and language modeling is literally compression in Shannon's sense.",
+  impl:"Compute the entropy of character frequencies in a text file, then build Shannon's n-gram text generator from section 3 — the 1948 ancestor of GPT." },
+
+{ id:"turing", s:"Turing Test", t:"Computing Machinery and Intelligence", y:1950, c:"found",
+  a:"Alan Turing", deps:[],
+  paper:"https://doi.org/10.1093/mind/LIX.236.433",
+  sum:"Asked 'can machines think?' and replaced it with an operational test: can a machine hold a conversation indistinguishable from a human's? Also anticipated learning machines and the child-machine idea — training instead of programming.",
+  impl:"No code to write — read it (it is short and very readable) and notice how many 2020s debates it already contains." },
+
+{ id:"bellman", s:"Bellman Equations", t:"Dynamic Programming", y:1957, c:"found",
+  a:"Richard Bellman", deps:[],
+  paper:"https://en.wikipedia.org/wiki/Bellman_equation",
+  sum:"The recursive decomposition of optimal decisions: the value of a state is the best immediate reward plus the discounted value of what follows. All of reinforcement learning is approximate ways of solving this equation.",
+  impl:"Solve a small gridworld exactly with value iteration (a 30-line loop) before touching any deep RL — everything later is this loop with a neural network stuffed in." },
+
+{ id:"perceptron", s:"Perceptron", t:"The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain", y:1958, c:"found",
+  a:"Frank Rosenblatt", deps:["mcp"],
+  paper:"https://doi.org/10.1037/h0042519",
+  sum:"The first learning machine: a McCulloch–Pitts neuron with a training rule that provably converges on linearly separable data. Triggered the first wave of neural-network optimism (and hardware — Rosenblatt built it in analog electronics).",
+  impl:"Implement the perceptron learning rule in ~20 lines of numpy and train it on two Gaussian blobs; then try XOR and watch it fail — that failure is the next node." },
+
+{ id:"minsky", s:"Perceptrons (critique)", t:"Perceptrons: An Introduction to Computational Geometry", y:1969, c:"found",
+  a:"Minsky & Papert", deps:["perceptron"],
+  paper:"https://en.wikipedia.org/wiki/Perceptrons_(book)",
+  sum:"Proved single-layer perceptrons cannot represent XOR or connectedness, and the field (over-)read it as 'neural nets are a dead end', helping cause the first AI winter. The fix — hidden layers — needed a training algorithm that took 17 more years.",
+  impl:"Show XOR is impossible for one layer by drawing the four points, then solve it with one hidden layer by hand — the smallest possible deep network." },
+
+{ id:"neocognitron", s:"Neocognitron", t:"Neocognitron: A Self-organizing Neural Network Model for a Mechanism of Pattern Recognition", y:1980, c:"found",
+  a:"Kunihiko Fukushima", deps:["perceptron"],
+  paper:"https://doi.org/10.1007/BF00344251",
+  sum:"Introduced the convolutional architecture — local receptive fields, weight sharing, alternating feature/pooling layers — inspired by Hubel and Wiesel's cat visual cortex. It had the CNN structure but not yet a good way to train it.",
+  impl:"Read it next to the LeNet paper: the architecture is nearly identical, the difference is backprop." },
+
+{ id:"hopfield", s:"Hopfield Network", t:"Neural Networks and Physical Systems with Emergent Collective Computational Abilities", y:1982, c:"found",
+  a:"John Hopfield", deps:["mcp"],
+  paper:"https://doi.org/10.1073/pnas.79.8.2554",
+  sum:"Recast a neural network as a physical system minimizing an energy function, giving content-addressable memory and bringing statistical physics into the field. Direct ancestor of Boltzmann machines, and (2024 Nobel Prize) of energy-based views of attention.",
+  impl:"Store a few 10×10 binary images in a Hopfield net (the weight rule is one outer product) and watch corrupted inputs relax back to the stored memory." },
+
+{ id:"backprop", s:"Backpropagation", t:"Learning Representations by Back-propagating Errors", y:1986, c:"found",
+  a:"Rumelhart, Hinton & Williams", deps:["perceptron","minsky"],
+  paper:"https://doi.org/10.1038/323533a0",
+  code:"https://github.com/karpathy/micrograd",
+  sum:"The chain rule applied systematically to train multi-layer networks — the answer to Minsky's critique and still the only algorithm anyone uses to train deep networks. Every node below this one is 'backprop plus an architecture plus data'.",
+  impl:"Build a scalar autograd engine à la karpathy/micrograd (~100 lines), or in C the hard way — see my <a href='https://github.com/alektebel/deep_learning_in_c'>deep_learning_in_c</a>, backprop and gradient descent with no framework." },
+
+{ id:"uat", s:"Universal Approximation", t:"Approximation by Superpositions of a Sigmoidal Function", y:1989, c:"found",
+  a:"George Cybenko", deps:["backprop"],
+  paper:"https://doi.org/10.1007/BF02551274",
+  sum:"Proved a single hidden layer with enough units can approximate any continuous function. The reason 'just fit it with a neural net' is mathematically legitimate — though it says nothing about how many units, or whether gradient descent finds the fit.",
+  impl:"Fit sin(x), |x| and a step function with a 1-hidden-layer MLP of growing width and plot approximation error versus width — the theorem made tangible." },
+
+/* ---- deep learning ---- */
+{ id:"lstm", s:"LSTM", t:"Long Short-Term Memory", y:1997, c:"dl",
+  a:"Hochreiter & Schmidhuber", deps:["backprop"],
+  paper:"https://doi.org/10.1162/neco.1997.9.8.1735",
+  sum:"Solved vanishing gradients in recurrent nets with gated memory cells that let error flow unchanged across hundreds of timesteps. For two decades this was how machines read text, until the Transformer replaced recurrence with attention.",
+  impl:"Implement one LSTM cell from the equations (4 gates, ~15 lines) and train a character-level language model on your own writing — karpathy's 'Unreasonable Effectiveness of RNNs' is the classic guided tour." },
+
+{ id:"lenet", s:"LeNet / CNNs", t:"Gradient-Based Learning Applied to Document Recognition", y:1998, c:"dl",
+  a:"LeCun, Bottou, Bengio & Haffner", deps:["neocognitron","backprop"],
+  paper:"https://doi.org/10.1109/5.726791",
+  sum:"The convolutional network trained end-to-end with backprop, deployed to read ~10% of US bank checks. Proved gradient-based feature learning beats hand-engineered features — 14 years before the world agreed.",
+  impl:"Train LeNet-5 on MNIST (it fits in ~50 lines of PyTorch and trains on a laptop CPU in minutes) — still the canonical 'hello world' of deep learning." },
+
+{ id:"dbn", s:"Deep Belief Nets", t:"A Fast Learning Algorithm for Deep Belief Nets", y:2006, c:"dl",
+  a:"Hinton, Osindero & Teh", deps:["backprop","hopfield"],
+  paper:"https://doi.org/10.1162/neco.2006.18.7.1527",
+  sum:"Greedy layer-wise pretraining of stacked restricted Boltzmann machines made deep networks trainable for the first time, ending the second neural-net winter and coining 'deep learning'. The technique died; the confidence it created did not.",
+  impl:"Train a single RBM on MNIST with contrastive divergence and visualize the learned filters — mostly of historical interest now, but a beautiful generative model." },
+
+{ id:"imagenet", s:"ImageNet", t:"ImageNet: A Large-Scale Hierarchical Image Database", y:2009, c:"dl",
+  a:"Deng, Dong, Socher, Li, Li & Fei-Fei", deps:[],
+  paper:"https://doi.org/10.1109/CVPR.2009.5206848",
+  sum:"14 million labeled images and a public benchmark. The lesson that mattered: progress in AI is often bottlenecked by datasets and evaluation, not algorithms. AlexNet, ResNet and ViT are all children of this benchmark.",
+  impl:"No implementation — but every project needs its ImageNet. Decide what yours is before touching the model." },
+
+{ id:"alexnet", s:"AlexNet", t:"ImageNet Classification with Deep Convolutional Neural Networks", y:2012, c:"dl",
+  a:"Krizhevsky, Sutskever & Hinton", deps:["lenet","imagenet","dbn"],
+  paper:"https://papers.nips.cc/paper_files/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html",
+  sum:"A big CNN trained on two GPUs halved the ImageNet error rate overnight and started the deep-learning era. The recipe — more data, more compute, ReLU, dropout — is essentially the modern recipe at 2012 scale.",
+  impl:"Train an AlexNet-style CNN on CIFAR-10; the exact architecture matters less than experiencing the GPU-versus-CPU speedup that made it possible." },
+
+{ id:"word2vec", s:"word2vec", t:"Efficient Estimation of Word Representations in Vector Space", y:2013, c:"dl",
+  a:"Mikolov et al., Google", deps:["backprop","lstm"],
+  paper:"https://arxiv.org/abs/1301.3781",
+  sum:"Cheap self-supervised training (predict nearby words) produces vectors where meaning is geometry: king − man + woman ≈ queen. The proof that representation learning from raw text works, and the conceptual seed of LLM embeddings.",
+  impl:"Implement skip-gram with negative sampling in numpy on a small corpus, then do the vector-arithmetic parlor tricks on your own embeddings." },
+
+{ id:"adam", s:"Adam", t:"Adam: A Method for Stochastic Optimization", y:2014, c:"dl",
+  a:"Kingma & Ba", deps:["backprop"],
+  paper:"https://arxiv.org/abs/1412.6980",
+  sum:"Per-parameter learning rates from running estimates of the gradient's first and second moments. It made training robust to hyperparameters, and a decade later (as AdamW) still trains essentially every large model.",
+  impl:"Write the update rule yourself (8 lines) and race it against plain SGD on a small MLP — the difference in the loss curve is the whole story." },
+
+{ id:"batchnorm", s:"BatchNorm", t:"Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift", y:2015, c:"dl",
+  a:"Ioffe & Szegedy", deps:["alexnet"],
+  paper:"https://arxiv.org/abs/1502.03167",
+  sum:"Normalizing activations inside the network made training dramatically faster and more stable, unlocking much deeper nets. The stated theory (covariate shift) turned out wrong; the practice conquered the world anyway — a recurring pattern in deep learning.",
+  impl:"Add batchnorm to a plain deep MLP and compare trainable depth with and without; then read about its LayerNorm/RMSNorm descendants that Transformers actually use." },
+
+{ id:"resnet", s:"ResNet", t:"Deep Residual Learning for Image Recognition", y:2015, c:"dl",
+  a:"He, Zhang, Ren & Sun", deps:["alexnet","batchnorm"],
+  paper:"https://arxiv.org/abs/1512.03385",
+  sum:"Skip connections let layers learn residuals instead of full transforms, jumping usable depth from ~20 layers to 1000+. The residual stream is now the backbone of every Transformer — a modern LLM is a very deep residual network.",
+  impl:"Take a 20-layer plain convnet that fails to train, add identity skip connections, and watch it train — the cleanest ablation in the field." },
+
+{ id:"alphafold", s:"AlphaFold 2", t:"Highly Accurate Protein Structure Prediction with AlphaFold", y:2021, c:"dl",
+  a:"Jumper et al., DeepMind", deps:["resnet","transformer"],
+  paper:"https://doi.org/10.1038/s41586-021-03819-2",
+  code:"https://github.com/google-deepmind/alphafold",
+  sum:"Attention over residue pairs plus clever geometric inductive biases effectively solved 50-year-old protein structure prediction, and won the 2024 Chemistry Nobel. The flagship proof that deep learning can crack real scientific problems, not just benchmarks.",
+  impl:"Run a prediction on ColabFold (free notebook) for any protein sequence and inspect the structure — a research-frontier result you can reproduce in minutes." },
+
+{ id:"kan", s:"KANs", t:"KAN: Kolmogorov–Arnold Networks", y:2024, c:"dl",
+  a:"Liu et al., MIT", deps:["uat"],
+  paper:"https://arxiv.org/abs/2404.19756",
+  code:"https://github.com/alektebel/kan_implementation",
+  sum:"Puts learnable univariate functions on the edges instead of fixed activations on the nodes, motivated by the Kolmogorov–Arnold representation theorem. Interesting for interpretability and symbolic regression; the jury is out on scale.",
+  impl:"I implemented this one — <a href='https://github.com/alektebel/kan_implementation'>kan_implementation</a> uses Taylor expansions in place of the paper's B-splines. The official pykan repo is the reference." },
+
+/* ---- language models ---- */
+{ id:"nlm", s:"Neural LM", t:"A Neural Probabilistic Language Model", y:2003, c:"llm",
+  a:"Bengio, Ducharme, Vincent & Jauvin", deps:["backprop"],
+  paper:"https://www.jmlr.org/papers/v3/bengio03a.html",
+  sum:"The first neural language model: learn word embeddings and predict the next word with an MLP, beating n-grams. GPT-4 is this paper's architecture swapped for a Transformer and scaled a billionfold — the objective never changed.",
+  impl:"Reproduce it at character level in PyTorch — karpathy's makemore series does exactly this paper as episode two." },
+
+{ id:"seq2seq", s:"seq2seq", t:"Sequence to Sequence Learning with Neural Networks", y:2014, c:"llm",
+  a:"Sutskever, Vinyals & Le", deps:["lstm","word2vec"],
+  paper:"https://arxiv.org/abs/1409.3215",
+  sum:"Encode a sentence into a vector with one LSTM, decode the translation with another — the general recipe for any 'sequence in, sequence out' task. Its bottleneck (one fixed vector for the whole input) directly provoked attention.",
+  impl:"Train a tiny seq2seq to reverse strings or add numbers; observe accuracy collapse as inputs get longer — the bottleneck you can measure, and the reason the next node exists." },
+
+{ id:"attn", s:"Attention", t:"Neural Machine Translation by Jointly Learning to Align and Translate", y:2014, c:"llm",
+  a:"Bahdanau, Cho & Bengio", deps:["seq2seq"],
+  paper:"https://arxiv.org/abs/1409.0473",
+  sum:"Let the decoder look back at every input position with learned soft weights instead of squeezing everything through one vector. Introduced as a translation fix, it turned out to be the fundamental operation — the T in GPT.",
+  impl:"Add attention to your toy seq2seq and plot the alignment matrix; seeing the model attend to the right source word is one of the field's genuinely satisfying visualizations." },
+
+{ id:"transformer", s:"Transformer", t:"Attention Is All You Need", y:2017, c:"llm",
+  a:"Vaswani et al., Google", deps:["attn","seq2seq","resnet"],
+  paper:"https://arxiv.org/abs/1706.03762",
+  code:"https://github.com/karpathy/nanoGPT",
+  sum:"Dropped recurrence entirely: stacked self-attention plus MLP blocks on a residual stream, fully parallel over the sequence. Trains vastly faster than RNNs, scales without apparent limit, and is the architecture of essentially everything since — GPT, BERT, ViT, AlphaFold, RT-2.",
+  impl:"Build nanoGPT-style GPT from scratch (karpathy's 'Let's build GPT' video, ~300 lines) — the single highest-value implementation exercise in this whole graph." },
+
+{ id:"bert", s:"BERT", t:"BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding", y:2018, c:"llm",
+  a:"Devlin, Chang, Lee & Toutanova", deps:["transformer"],
+  paper:"https://arxiv.org/abs/1810.04805",
+  sum:"Pretrain a bidirectional Transformer on masked-word prediction, then fine-tune for any task: pretrain-then-finetune became the paradigm and crushed every NLP benchmark. The encoder branch of the family tree — GPT is the decoder branch that won the generative era.",
+  impl:"Fine-tune a small BERT from HuggingFace on a sentiment dataset in ~30 lines; BERT-style encoders still power most production search and embedding systems." },
+
+{ id:"gpt2", s:"GPT-1/2", t:"Improving Language Understanding by Generative Pre-Training / Language Models are Unsupervised Multitask Learners", y:2018, c:"llm",
+  a:"Radford et al., OpenAI", deps:["transformer","nlm"],
+  paper:"https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf",
+  code:"https://github.com/karpathy/nanoGPT",
+  sum:"Decoder-only Transformers trained purely on next-token prediction. GPT-2's surprise: scale it and tasks it was never trained for (translation, QA, summarization) start emerging from the language-modeling objective alone.",
+  impl:"nanoGPT reproduces GPT-2 (124M) exactly; training it on OpenWebText is a feasible weekend-with-a-GPU project and the best way to demystify LLMs." },
+
+{ id:"scaling", s:"Scaling Laws", t:"Scaling Laws for Neural Language Models", y:2020, c:"llm",
+  a:"Kaplan et al., OpenAI", deps:["gpt2"],
+  paper:"https://arxiv.org/abs/2001.08361",
+  sum:"Loss falls as a smooth power law in parameters, data and compute, over many orders of magnitude. It turned 'train a bigger model' from a gamble into an engineering plan with a budget — arguably the most consequential empirical finding of the LLM era.",
+  impl:"Train the same small Transformer at 4–5 widths, plot loss versus parameters on log–log axes, and fit the line — scaling laws reproduce at laptop scale." },
+
+{ id:"gpt3", s:"GPT-3", t:"Language Models are Few-Shot Learners", y:2020, c:"llm",
+  a:"Brown et al., OpenAI", deps:["gpt2","scaling"],
+  paper:"https://arxiv.org/abs/2005.14165",
+  sum:"175B parameters and a new interface: in-context learning. Show it a few examples in the prompt and it performs the task with frozen weights — no fine-tuning. 'Prompting' as a way of programming computers starts here.",
+  impl:"Take any instruct model and compare zero-shot vs few-shot prompting on a classification task you care about; measuring the gap teaches you what in-context learning is." },
+
+{ id:"rag", s:"RAG", t:"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", y:2020, c:"llm",
+  a:"Lewis et al., FAIR", deps:["bert","gpt3"],
+  paper:"https://arxiv.org/abs/2005.11401",
+  sum:"Bolt a retriever onto a generator: fetch relevant documents, condition generation on them. Now the standard pattern for grounding LLMs in private or fresh knowledge without retraining, and the backbone of most enterprise LLM systems.",
+  impl:"Build the minimal version: embed your notes with an embedding model, cosine-similarity search, stuff the top-3 chunks into the prompt. ~80 lines, no framework needed." },
+
+{ id:"moe", s:"Mixture of Experts", t:"Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity", y:2021, c:"llm",
+  a:"Fedus, Zoph & Shazeer, Google", deps:["transformer","scaling"],
+  paper:"https://arxiv.org/abs/2101.03961",
+  sum:"Replace each MLP with many 'experts' and route each token to one or two of them: parameter count grows, compute per token doesn't. This is how frontier models (Mixtral, DeepSeek, and reportedly GPT-4) get huge without proportional inference cost.",
+  impl:"Add a 4-expert MoE layer with top-1 routing to nanoGPT and log expert utilization — you'll immediately meet load balancing, the problem that dominates MoE engineering." },
+
+{ id:"lora", s:"LoRA", t:"LoRA: Low-Rank Adaptation of Large Language Models", y:2021, c:"llm",
+  a:"Hu et al., Microsoft", deps:["gpt3"],
+  paper:"https://arxiv.org/abs/2106.09685",
+  code:"https://github.com/microsoft/LoRA",
+  sum:"Freeze the pretrained weights and learn tiny low-rank update matrices instead — fine-tuning with ~0.1% of the trainable parameters and no inference cost. The reason a consumer GPU can customize a 7B model.",
+  impl:"Implement the trick directly: replace a linear layer's update with A·B where A,B have rank 8, or use the peft library to LoRA-finetune a small LLaMA on your own text." },
+
+{ id:"flash", s:"FlashAttention", t:"FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness", y:2022, c:"llm",
+  a:"Dao et al., Stanford", deps:["transformer"],
+  paper:"https://arxiv.org/abs/2205.14135",
+  code:"https://github.com/Dao-AILab/flash-attention",
+  sum:"Exact attention computed in tiles that fit in GPU SRAM, never materializing the N×N matrix: 2–4× faster, memory linear in sequence length. The paper that made long context windows economically possible, and the flagship of the 'hardware-aware algorithms' school.",
+  impl:"You use it via `torch.nn.functional.scaled_dot_product_attention`. To understand it, benchmark naive attention vs SDPA at growing sequence lengths and watch the memory curves diverge." },
+
+{ id:"rlhf", s:"InstructGPT / RLHF", t:"Training Language Models to Follow Instructions with Human Feedback", y:2022, c:"llm",
+  a:"Ouyang et al., OpenAI", deps:["gpt3","prefs","ppo"],
+  paper:"https://arxiv.org/abs/2203.02155",
+  sum:"Fine-tune with human demonstrations, train a reward model from human preference comparisons, optimize against it with PPO. Turned raw next-token predictors into assistants that follow instructions — the step that made ChatGPT possible.",
+  impl:"The tractable home version is the DPO node. To see RLHF's effect, compare a base model's completions with its instruct sibling's on identical prompts — the delta is the alignment training." },
+
+{ id:"chinchilla", s:"Chinchilla", t:"Training Compute-Optimal Large Language Models", y:2022, c:"llm",
+  a:"Hoffmann et al., DeepMind", deps:["scaling"],
+  paper:"https://arxiv.org/abs/2203.15556",
+  sum:"Corrected Kaplan: for a fixed compute budget, models were far too big and undertrained — parameters and data should scale together (~20 tokens per parameter). Reset every training budget in the industry and set up LLaMA's 'small model, lots of tokens' recipe.",
+  impl:"Given a compute budget C ≈ 6·N·D, work out the compute-optimal N and D for a 1-GPU-month budget — a pencil-and-paper exercise every practitioner should do once." },
+
+{ id:"cot", s:"Chain-of-Thought", t:"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models", y:2022, c:"llm",
+  a:"Wei et al., Google", deps:["gpt3"],
+  paper:"https://arxiv.org/abs/2201.11903",
+  sum:"Ask the model to show intermediate steps and reasoning performance jumps — an emergent ability that appears only at scale. Spending inference tokens to buy accuracy is the idea that o1-style reasoning models later turned into a training objective.",
+  impl:"Benchmark a model on 50 grade-school math problems with and without 'think step by step' and measure the gap yourself — it's large and easy to reproduce." },
+
+{ id:"cai", s:"Constitutional AI", t:"Constitutional AI: Harmlessness from AI Feedback", y:2022, c:"llm",
+  a:"Bai et al., Anthropic", deps:["rlhf"],
+  paper:"https://arxiv.org/abs/2212.08073",
+  sum:"Replace most human preference labels with AI feedback guided by an explicit written constitution: the model critiques and revises its own outputs against the principles. Made alignment training scalable and auditable — this is Claude's lineage.",
+  impl:"Miniature version: write 3 principles, have a model generate → critique its own answer against them → revise. That loop is the paper's core mechanism." },
+
+{ id:"llama", s:"LLaMA", t:"LLaMA: Open and Efficient Foundation Language Models", y:2023, c:"llm",
+  a:"Touvron et al., Meta", deps:["chinchilla","gpt3"],
+  paper:"https://arxiv.org/abs/2302.13971",
+  code:"https://github.com/meta-llama/llama",
+  sum:"Chinchilla-style training pushed further: 7–65B models trained on trillions of tokens, weights released to researchers (then, inevitably, everyone). Detonated the open-weights ecosystem — llama.cpp, LoRA finetunes, local LLMs — that most non-frontier work now builds on.",
+  impl:"Run a Llama-family model locally with llama.cpp or ollama, then read the architecture diffs from GPT-2: RMSNorm, SwiGLU, rotary embeddings — three small, instructive deltas." },
+
+{ id:"gpt4", s:"GPT-4", t:"GPT-4 Technical Report", y:2023, c:"llm",
+  a:"OpenAI", deps:["rlhf","scaling"],
+  paper:"https://arxiv.org/abs/2303.08774",
+  sum:"The first model to feel broadly competent — bar exams, competition math, multimodal input — with loss predicted in advance from small-scale runs, vindicating scaling laws as engineering. Also the moment frontier labs stopped publishing how their models are built.",
+  impl:"Nothing to implement (that's the point of the closed era). The durable skill: build your own eval set of ~50 hard prompts from your domain and score each new model against it." },
+
+{ id:"dpo", s:"DPO", t:"Direct Preference Optimization: Your Language Model is Secretly a Reward Model", y:2023, c:"llm",
+  a:"Rafailov et al., Stanford", deps:["rlhf"],
+  paper:"https://arxiv.org/abs/2305.18290",
+  sum:"A closed-form insight collapses RLHF's reward-model-plus-PPO pipeline into a single supervised loss on preference pairs. Alignment training went from a fragile RL system to a stable one-file training script — most open models now align this way.",
+  impl:"The loss is ~5 lines. DPO-tune a small model on the Anthropic HH preference dataset with HuggingFace TRL and compare outputs before/after." },
+
+{ id:"mamba", s:"Mamba / SSMs", t:"Mamba: Linear-Time Sequence Modeling with Selective State Spaces", y:2023, c:"llm",
+  a:"Gu & Dao", deps:["lstm","transformer"],
+  paper:"https://arxiv.org/abs/2312.00752",
+  code:"https://github.com/state-spaces/mamba",
+  sum:"State-space models with input-dependent (selective) dynamics: recurrent inference at O(1) memory per step, parallel training, quality competitive with Transformers at small-to-mid scale. The strongest current challenger to attention, now appearing in hybrid architectures.",
+  impl:"Implement a minimal selective SSM scan in PyTorch (the 'mamba-minimal' repos are ~100 lines) and race it against attention on long-sequence copying." },
+
+{ id:"o1", s:"o1 / test-time compute", t:"Learning to Reason with LLMs (o1)", y:2024, c:"llm",
+  a:"OpenAI", deps:["cot","rlhf"],
+  paper:"https://openai.com/index/learning-to-reason-with-llms/",
+  sum:"Train the chain of thought itself with RL so the model learns to search, backtrack and verify — then let it think longer at inference for harder problems. Added a second scaling axis (test-time compute) just as pretraining scaling was flattening.",
+  impl:"Get the flavor cheaply: sample a model 32× on math problems and take majority vote (self-consistency); accuracy climbs with samples — test-time compute in its simplest form." },
+
+{ id:"r1", s:"DeepSeek-R1", t:"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning", y:2025, c:"llm",
+  a:"DeepSeek", deps:["o1","llama","ppo"],
+  paper:"https://arxiv.org/abs/2501.12948",
+  code:"https://github.com/deepseek-ai/DeepSeek-R1",
+  sum:"Showed o1-style reasoning emerges from pure RL on verifiable rewards (math/code correctness) without process supervision — the R1-Zero result — then released the weights and the recipe (GRPO). Reasoning models stopped being a proprietary mystery within weeks.",
+  impl:"Read the R1-Zero section for the 'aha moment' logs, then run a distilled R1 model locally; the open-r1 project reproduces the full pipeline in public." },
+
+/* ---- vision & generative ---- */
+{ id:"vae", s:"VAE", t:"Auto-Encoding Variational Bayes", y:2013, c:"gen",
+  a:"Kingma & Welling", deps:["backprop"],
+  paper:"https://arxiv.org/abs/1312.6114",
+  sum:"Made latent-variable generative models trainable with backprop via the reparameterization trick, optimizing a variational bound. The latent-space toolkit it introduced underlies World Models and the 'latent' in latent diffusion.",
+  impl:"Train a VAE on MNIST and walk the 2-D latent space with a grid of decoded digits — the classic figure, and worth making yourself once." },
+
+{ id:"gan", s:"GANs", t:"Generative Adversarial Networks", y:2014, c:"gen",
+  a:"Goodfellow et al.", deps:["backprop"],
+  paper:"https://arxiv.org/abs/1406.2661",
+  sum:"A generator and a discriminator trained as adversaries — the first neural images sharp enough to fool people, and a decade of deepfakes, StyleGAN and art. Dethroned by diffusion for generation quality, but adversarial training remains a core idea.",
+  impl:"Train a DCGAN on MNIST or CelebA and experience mode collapse firsthand — the instability is the lesson, and the reason diffusion won." },
+
+{ id:"ddpm", s:"Diffusion (DDPM)", t:"Denoising Diffusion Probabilistic Models", y:2020, c:"gen",
+  a:"Ho, Jain & Abbeel, Berkeley", deps:["vae"],
+  paper:"https://arxiv.org/abs/2006.11239",
+  code:"https://github.com/lucidrains/denoising-diffusion-pytorch",
+  sum:"Gradually noise data to pure Gaussian, train a network to reverse one step at a time. Stable to train (it's just regression on noise), spectacular sample quality — the engine of the entire image/video/audio generation boom.",
+  impl:"Train a tiny DDPM on 2-D point clouds (a spiral works) so you can plot the reverse process — the whole algorithm fits in ~100 lines before touching images." },
+
+{ id:"vit", s:"ViT", t:"An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale", y:2020, c:"gen",
+  a:"Dosovitskiy et al., Google", deps:["transformer","imagenet"],
+  paper:"https://arxiv.org/abs/2010.11929",
+  code:"https://github.com/google-research/vision_transformer",
+  sum:"Chop an image into 16×16 patches, feed them to a plain Transformer as tokens: with enough data it beats CNNs, and convolution's built-in assumptions stop paying rent. Unified vision and language under one architecture — the precondition for CLIP, multimodal LLMs and VLAs.",
+  impl:"Patchify + linear embed + your nanoGPT blocks = a ViT; train it on CIFAR-10 and compare against a similarly-sized CNN (the CNN wins at this scale — which is exactly the paper's point about data)." },
+
+{ id:"clip", s:"CLIP", t:"Learning Transferable Visual Models From Natural Language Supervision", y:2021, c:"gen",
+  a:"Radford et al., OpenAI", deps:["vit","transformer"],
+  paper:"https://arxiv.org/abs/2103.00020",
+  code:"https://github.com/openai/CLIP",
+  sum:"Contrastively align 400M image–caption pairs into one embedding space where images and text are comparable. Gave vision an open vocabulary — zero-shot classification from text prompts — and became the text conditioning inside Stable Diffusion and the eyes of most multimodal systems.",
+  impl:"Load open_clip, embed your photo library, and build semantic image search ('dog on a beach') in ~40 lines — the most immediately useful model in this graph." },
+
+{ id:"nerf", s:"NeRF", t:"NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis", y:2020, c:"gen",
+  a:"Mildenhall et al., Berkeley", deps:["uat"],
+  paper:"https://arxiv.org/abs/2003.08934",
+  sum:"Represent a 3-D scene as a small MLP mapping (position, direction) → (color, density), trained from photos via differentiable volume rendering. Founded neural 3-D representation; its successor 3D Gaussian Splatting now runs in real time.",
+  impl:"nerf-pytorch on the lego dataset is the standard reproduction; 'tiny NeRF' notebooks fit the whole idea in one Colab." },
+
+{ id:"sd", s:"Stable Diffusion", t:"High-Resolution Image Synthesis with Latent Diffusion Models", y:2022, c:"gen",
+  a:"Rombach et al., LMU/Runway", deps:["ddpm","vae","clip"],
+  paper:"https://arxiv.org/abs/2112.10752",
+  code:"https://github.com/CompVis/latent-diffusion",
+  sum:"Run diffusion in a VAE's compressed latent space instead of pixel space — ~50× cheaper, same quality — with CLIP-based text conditioning via cross-attention. Released openly, it put image generation on consumer GPUs and spawned an entire ecosystem.",
+  impl:"Run it via the diffusers library, then read the pipeline source: recognizing the VAE, the UNet denoiser, the text encoder and the scheduler ties four nodes of this graph together." },
+
+{ id:"sora", s:"Video world models", t:"Video Generation Models as World Simulators (Sora)", y:2024, c:"gen",
+  a:"OpenAI", deps:["sd","vit"],
+  paper:"https://openai.com/index/video-generation-models-as-world-simulators/",
+  sum:"Diffusion Transformers over spacetime patches of compressed video, scaled hard: minute-long coherent video with emergent 3-D consistency and object permanence. The live hypothesis: video generation at scale learns an implicit physics simulator — which is why robotics is watching closely.",
+  impl:"Nothing runnable at home at this scale; study the DiT (Diffusion Transformer) paper and code instead, which is Sora's published backbone." },
+
+/* ---- reinforcement learning ---- */
+{ id:"td", s:"TD Learning", t:"Learning to Predict by the Methods of Temporal Differences", y:1988, c:"rl",
+  a:"Richard Sutton", deps:["bellman"],
+  paper:"https://doi.org/10.1007/BF00115009",
+  sum:"Learn value estimates from the difference between successive predictions — bootstrapping from your own future estimate rather than waiting for final outcomes. The core learning signal of RL, and (via dopamine's match to TD error) neuroscience's favorite AI algorithm.",
+  impl:"Implement TD(0) on a random-walk chain (the paper's own example, ~30 lines) and compare its learning curve against Monte Carlo estimation." },
+
+{ id:"qlearning", s:"Q-Learning", t:"Q-Learning (Machine Learning, 8, 279–292)", y:1992, c:"rl",
+  a:"Watkins & Dayan", deps:["td"],
+  paper:"https://doi.org/10.1007/BF00992698",
+  sum:"Off-policy control: learn the value of the best action while behaving however you like, with a convergence proof. The tabular algorithm that, plugged into a CNN 23 years later, became DQN.",
+  impl:"Tabular Q-learning on FrozenLake or a maze — 40 lines including the ε-greedy policy, and the best first RL program to write." },
+
+{ id:"reinforce", s:"Policy Gradient", t:"Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning", y:1992, c:"rl",
+  a:"Ronald Williams", deps:["bellman"],
+  paper:"https://doi.org/10.1007/BF00992696",
+  sum:"Skip value functions and differentiate the expected return with respect to the policy directly: increase the probability of actions that led to reward. Ancestor of PPO, and hence of both robot controllers and RLHF.",
+  impl:"REINFORCE on CartPole in ~60 lines of PyTorch; watch the variance problem firsthand, then add a baseline and watch it train — the exact motivation for actor-critic." },
+
+{ id:"dqn", s:"DQN", t:"Human-Level Control through Deep Reinforcement Learning", y:2015, c:"rl",
+  a:"Mnih et al., DeepMind", deps:["qlearning","alexnet"],
+  paper:"https://doi.org/10.1038/nature14236",
+  sum:"Q-learning with a CNN, stabilized by experience replay and a frozen target network: one algorithm, raw pixels in, superhuman Atari out. The proof that deep learning and RL compose — deep RL starts here.",
+  impl:"DQN on CartPole then Pong via cleanrl's single-file implementation; replay buffer and target network are each ~10 lines and both matter (ablate them)." },
+
+{ id:"prefs", s:"RL from Human Prefs", t:"Deep Reinforcement Learning from Human Preferences", y:2017, c:"rl",
+  a:"Christiano et al., OpenAI/DeepMind", deps:["dqn","ppo"],
+  paper:"https://arxiv.org/abs/1706.03741",
+  sum:"When you can't write the reward function, learn it: humans compare pairs of behavior clips, a reward model is fit to the comparisons, RL optimizes the learned reward. Taught a simulated robot to backflip from ~900 human clicks — and became the blueprint for RLHF on language models.",
+  impl:"Reproduce the mechanism in a gridworld: collect pairwise trajectory preferences, fit a reward net with the Bradley–Terry loss, train a policy against it." },
+
+{ id:"ppo", s:"PPO", t:"Proximal Policy Optimization Algorithms", y:2017, c:"rl",
+  a:"Schulman et al., OpenAI", deps:["reinforce"],
+  paper:"https://arxiv.org/abs/1707.06347",
+  sum:"Policy gradients with a clipped objective that forbids destructively large policy updates — TRPO's guarantees at SGD's simplicity. The workhorse of practical RL for years, from robot locomotion to the RL step inside RLHF.",
+  impl:"cleanrl's ppo.py is the reference single-file implementation; my <a href='https://github.com/alektebel/litetorch'>litetorch</a> also reimplements RL algorithms in this family for learning purposes." },
+
+{ id:"alphago", s:"AlphaGo / AlphaZero", t:"Mastering the Game of Go with Deep Neural Networks and Tree Search", y:2016, c:"rl",
+  a:"Silver et al., DeepMind", deps:["dqn","reinforce"],
+  paper:"https://doi.org/10.1038/nature16961",
+  demo:"https://www.youtube.com/watch?v=WXuK6gekU1Y",
+  sum:"Policy/value networks guiding Monte Carlo tree search beat the world champion at Go a decade ahead of schedule; AlphaZero then dropped all human data and mastered Go, chess and shogi from self-play alone. The definitive demo that search + learning beats either alone — an idea returning in reasoning LLMs.",
+  impl:"Build AlphaZero for Connect-4 or Othello: MCTS + a small policy/value net + self-play. A weekend project that teaches the whole architecture (many minimal repos exist to crib from)." },
+
+{ id:"worldmodels", s:"World Models", t:"World Models", y:2018, c:"rl",
+  a:"Ha & Schmidhuber", deps:["vae","lstm"],
+  paper:"https://arxiv.org/abs/1803.10122",
+  demo:"https://worldmodels.github.io/",
+  sum:"Learn a compressed generative model of the environment (VAE + recurrent dynamics), then train the policy inside the learned model — 'training inside the dream'. Founded the model-based line that leads to Dreamer, MuZero and today's world-model claims about video generators.",
+  impl:"The interactive paper site is the best artifact. Reproduce the VAE+RNN dream on CarRacing, or read Dreamer-v3 for the modern production version." },
+
+{ id:"sac", s:"SAC", t:"Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning", y:2018, c:"rl",
+  a:"Haarnoja et al., Berkeley", deps:["qlearning","reinforce"],
+  paper:"https://arxiv.org/abs/1801.01290",
+  demo:"/blog/sac_model_700.mp4",
+  sum:"Maximize reward plus policy entropy: exploration and robustness fall out of the objective, with off-policy sample efficiency. The default algorithm for continuous control — if a simulated or real robot learned a motion in the late 2010s, it was probably SAC or PPO.",
+  impl:"I trained SAC agents for my master's thesis — <a href='/blog/master-thesis-reinforcement-learning.html'>write-up here</a> and a trained-agent demo video above. cleanrl's sac_continuous_action.py is the reference code." },
+
+/* ---- robotics ---- */
+{ id:"alvinn", s:"ALVINN", t:"ALVINN: An Autonomous Land Vehicle in a Neural Network", y:1989, c:"rob",
+  a:"Dean Pomerleau, CMU", deps:["backprop"],
+  paper:"https://papers.nips.cc/paper_files/paper/1988/hash/812b4ba287f5ee0bc9d43bbf5bbe87fb-Abstract.html",
+  sum:"A 3-layer network steering a real van from camera pixels, trained by imitating a human driver — in 1989. Behavioral cloning, the idea under RT-1, ACT and Diffusion Policy, is this paper; so is its core failure mode (compounding errors off the training distribution).",
+  impl:"Behavioral cloning is supervised learning: record (observation, action) pairs from a human playing any game, fit a network, deploy it, and watch distribution shift kill it — then read about DAgger, the standard fix." },
+
+{ id:"slam", s:"SLAM", t:"Simultaneous Localization and Mapping (survey)", y:2006, c:"rob",
+  a:"Durrant-Whyte & Bailey", deps:["shannon"],
+  paper:"https://doi.org/10.1109/MRA.2006.1638022",
+  sum:"Build a map of an unknown environment while localizing within it — the estimation-theory core of mobile robotics, solved with Kalman/particle filters and factor graphs rather than neural nets. Every vacuum robot, drone and AR headset runs a descendant.",
+  impl:"Implement an extended Kalman filter for a 2-D robot with landmark observations, or run ORB-SLAM3 on your phone's video — classical robotics worth knowing before the learned kind." },
+
+{ id:"domainrand", s:"Sim2Real", t:"Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World", y:2017, c:"rob",
+  a:"Tobin et al., OpenAI", deps:["ppo"],
+  paper:"https://arxiv.org/abs/1703.06907",
+  sum:"Randomize the simulator's textures, lighting and physics so aggressively that the real world looks like just another sample — and policies trained purely in sim transfer to real robots. The trick behind OpenAI's Rubik's-cube hand and most of today's sim-trained locomotion.",
+  impl:"In any MuJoCo/Isaac task, randomize masses and frictions during training and evaluate on unseen parameters; the generalization gap closes measurably." },
+
+{ id:"rt1", s:"RT-1", t:"RT-1: Robotics Transformer for Real-World Control at Scale", y:2022, c:"rob",
+  a:"Brohan et al., Google", deps:["transformer","alvinn"],
+  paper:"https://arxiv.org/abs/2212.06817",
+  sum:"The scaling-laws bet applied to robots: a Transformer trained on 130k real teleoperated episodes across 700+ tasks, emitting discretized motor tokens. Showed robot skills scale with data diversity like language skills do — manipulation as sequence modeling.",
+  impl:"The Open X-Embodiment dataset (RT-1's data plus 20+ labs') is public; fine-tuning a small policy on a slice of it is the accessible entry point." },
+
+{ id:"rt2", s:"RT-2 (VLA)", t:"RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control", y:2023, c:"rob",
+  a:"Brohan et al., Google DeepMind", deps:["rt1","clip"],
+  paper:"https://arxiv.org/abs/2307.15818",
+  sum:"Take a web-scale vision-language model and fine-tune it to emit actions as text tokens: the robot inherits internet semantics, moving a banana to 'the sum of 2+1' with no such training example. Defined the VLA (vision-language-action) category that now dominates robot learning.",
+  impl:"Closed model — the open reproduction is the OpenVLA node below. The idea to internalize: actions as just another token vocabulary of a multimodal LLM." },
+
+{ id:"act", s:"ACT / ALOHA", t:"Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware", y:2023, c:"rob",
+  a:"Zhao et al., Stanford", deps:["transformer","alvinn"],
+  paper:"https://arxiv.org/abs/2304.13705",
+  code:"https://github.com/tonyzhaozh/aloha",
+  demo:"https://tonyzhaozh.github.io/aloha/",
+  sum:"A $20k bimanual teleoperation rig plus Action Chunking Transformers: predict short sequences of actions instead of single steps, and 50 demonstrations suffice for fine manipulation. Made serious robot-learning research affordable and kicked off the imitation-learning renaissance.",
+  impl:"Fully open hardware and code. Without a robot, train ACT in the simulated ALOHA environments (bundled in the repo, and in HuggingFace LeRobot)." },
+
+{ id:"diffpolicy", s:"Diffusion Policy", t:"Diffusion Policy: Visuomotor Policy Learning via Action Diffusion", y:2023, c:"rob",
+  a:"Chi et al., Columbia/TRI", deps:["ddpm","alvinn"],
+  paper:"https://arxiv.org/abs/2303.04137",
+  code:"https://github.com/real-stanford/diffusion_policy",
+  sum:"Generate robot action sequences with a diffusion model conditioned on observations: multimodal demonstrations (many valid ways to do a task) stop averaging into mush. Roughly +47% over prior imitation methods, now a default choice for manipulation policies.",
+  impl:"The repo includes the push-T benchmark that runs without a robot; if you built the toy DDPM node earlier, this is the same math with actions instead of pixels." },
+
+{ id:"openvla", s:"OpenVLA", t:"OpenVLA: An Open-Source Vision-Language-Action Model", y:2024, c:"rob",
+  a:"Kim et al., Stanford et al.", deps:["rt2","llama"],
+  paper:"https://arxiv.org/abs/2406.09246",
+  code:"https://github.com/openvla/openvla",
+  sum:"A 7B open-weights VLA (Llama-2 backbone, dual vision encoders) trained on 970k Open-X episodes — outperforming the 55B RT-2-X while being fully reproducible, LoRA-finetunable on one GPU. The LLaMA moment for robot policies.",
+  impl:"Weights are on HuggingFace; the repo documents fine-tuning to a new robot arm with LoRA on a single A100 — the practical on-ramp to VLA research." },
+
+{ id:"pi0", s:"π0", t:"π0: A Vision-Language-Action Flow Model for General Robot Control", y:2024, c:"rob",
+  a:"Black et al., Physical Intelligence", deps:["diffpolicy","rt2"],
+  paper:"https://arxiv.org/abs/2410.24164",
+  code:"https://github.com/Physical-Intelligence/openpi",
+  demo:"https://www.physicalintelligence.company/blog/pi0",
+  sum:"A VLM backbone plus a flow-matching action head producing smooth 50Hz continuous control across many robot bodies — folding laundry, clearing tables, assembling boxes. The current frontier bet: one generalist foundation model for all robots, and the weights (openpi) are open.",
+  impl:"openpi releases π0 checkpoints with fine-tuning recipes; the demo videos are the current state of the art in general manipulation — compare them to ALOHA's from 18 months earlier to feel the slope." },
+];
+
+const CHRONO_END = 2026;
+
+/* ---------------- graph setup ---------------- */
+
+const byId = {};
+NODES.forEach(n => { byId[n.id] = n; });
+const EDGES = [];
+NODES.forEach(n => n.deps.forEach(d => { if (byId[d]) EDGES.push([d, n.id]); }));
+
+/* degree → radius */
+const degree = {};
+NODES.forEach(n => degree[n.id] = 0);
+EDGES.forEach(([a, b]) => { degree[a]++; degree[b]++; });
+NODES.forEach(n => {
+  n.r = 4 + Math.min(9, degree[n.id] * 0.9);
+  n.out = []; n.in = [];
+});
+EDGES.forEach(([a, b]) => { byId[a].out.push(b); byId[b].in.push(a); });
+
+/* ---------------- simulation ---------------- */
+
+const canvas = document.getElementById("graph");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+}
+window.addEventListener("resize", () => { resize(); kick(); });
+resize();
+
+/* seed positions: x by year rank (timeline flavor without the empty decades),
+   y spread by category band */
+const catKeys = Object.keys(CATS);
+const SPAN = 2200;
+const YEARS = [...new Set(NODES.map(n => n.y))].sort((a, b) => a - b);
+function yearX(y) { return (YEARS.indexOf(y) / (YEARS.length - 1) - 0.5) * SPAN; }
+NODES.forEach((n, i) => {
+  n.x = yearX(n.y) + (Math.random() - 0.5) * 60;
+  n.y2 = 0;
+  const band = catKeys.indexOf(n.c) - (catKeys.length - 1) / 2;
+  n.py = band * 155 + (Math.random() - 0.5) * 120;
+  n.vx = 0; n.vy = 0;
+});
+NODES.forEach(n => { n.yy = n.py; });
+
+let alpha = 1;
+function kick() { alpha = Math.max(alpha, 0.35); }
+
+function step() {
+  if (alpha < 0.003) return;
+  const rep = 5200, spring = 0.03, rest = 115;
+  for (let i = 0; i < NODES.length; i++) {
+    const a = NODES[i];
+    for (let j = i + 1; j < NODES.length; j++) {
+      const b = NODES[j];
+      let dx = a.x - b.x, dy = a.yy - b.yy;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
+      if (d2 > 160000) continue;
+      const f = rep / d2;
+      const d = Math.sqrt(d2);
+      const fx = f * dx / d, fy = f * dy / d;
+      a.vx += fx; a.vy += fy; b.vx -= fx; b.vy -= fy;
+    }
+  }
+  for (const [ai, bi] of EDGES) {
+    const a = byId[ai], b = byId[bi];
+    const dx = b.x - a.x, dy = b.yy - a.yy;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const f = spring * (d - rest) / d;
+    a.vx += f * dx; a.vy += f * dy;
+    b.vx -= f * dx; b.vy -= f * dy;
+  }
+  for (const n of NODES) {
+    /* weak pull toward its chronological x and category band y */
+    n.vx += (yearX(n.y) - n.x) * 0.02;
+    n.vy += (n.py - n.yy) * 0.004;
+    n.vy += (0 - n.yy) * 0.002;
+    if (n !== dragNode) {
+      n.x += n.vx * alpha; n.yy += n.vy * alpha;
+    }
+    n.vx *= 0.6; n.vy *= 0.6;
+  }
+  alpha *= 0.995;
+}
+
+/* ---------------- view / interaction ---------------- */
+
+let scale = 0.7, tx = 0, ty = 0;
+function fitView() {
+  scale = Math.min(W / (SPAN + 260), 0.9);
+  tx = W / 2; ty = H / 2;
+}
+fitView();
+
+function toWorld(px, py) { return [(px - tx) / scale, (py - ty) / scale]; }
+
+let hoverId = null, selectedId = null;
+let hiddenCats = new Set();
+let searchQ = "";
+
+function nodeVisible(n) {
+  if (hiddenCats.has(n.c)) return false;
+  if (searchQ && !(n.s + " " + n.t + " " + n.a + " " + n.y).toLowerCase().includes(searchQ)) return false;
+  return true;
+}
+
+function activeSet() {
+  const focus = hoverId || selectedId;
+  if (!focus) return null;
+  const s = new Set([focus]);
+  byId[focus].in.forEach(i => s.add(i));
+  byId[focus].out.forEach(i => s.add(i));
+  return s;
+}
+
+function pick(px, py) {
+  const [wx, wy] = toWorld(px, py);
+  let best = null, bestD = 1e9;
+  for (const n of NODES) {
+    if (!nodeVisible(n)) continue;
+    const dx = n.x - wx, dy = n.yy - wy;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    const hit = n.r + 8 / scale;
+    if (d < hit && d < bestD) { best = n; bestD = d; }
+  }
+  return best;
+}
+
+let dragNode = null, panning = false, moved = false;
+let lastX = 0, lastY = 0;
+
+canvas.addEventListener("pointerdown", e => {
+  canvas.setPointerCapture(e.pointerId);
+  moved = false;
+  lastX = e.clientX; lastY = e.clientY;
+  const n = pick(e.clientX, e.clientY);
+  if (n) { dragNode = n; } else { panning = true; canvas.classList.add("dragging"); }
+});
+canvas.addEventListener("pointermove", e => {
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  if (dragNode || panning) {
+    if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+  }
+  if (dragNode) {
+    const [wx, wy] = toWorld(e.clientX, e.clientY);
+    dragNode.x = wx; dragNode.yy = wy;
+    dragNode.vx = 0; dragNode.vy = 0;
+    kick();
+  } else if (panning) {
+    tx += dx; ty += dy;
+  } else {
+    const n = pick(e.clientX, e.clientY);
+    const id = n ? n.id : null;
+    if (id !== hoverId) { hoverId = id; canvas.style.cursor = n ? "pointer" : "grab"; }
+  }
+  lastX = e.clientX; lastY = e.clientY;
+});
+canvas.addEventListener("pointerup", e => {
+  if (!moved) {
+    const n = pick(e.clientX, e.clientY);
+    if (n) openNote(n.id); else closeNote();
+  }
+  dragNode = null; panning = false;
+  canvas.classList.remove("dragging");
+});
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const f = Math.exp(-e.deltaY * 0.0012);
+  const ns = Math.min(3.5, Math.max(0.15, scale * f));
+  const [wx, wy] = toWorld(e.clientX, e.clientY);
+  tx = e.clientX - wx * ns;
+  ty = e.clientY - wy * ns;
+  scale = ns;
+}, { passive: false });
+
+/* pinch zoom */
+let pinch = null;
+canvas.addEventListener("touchstart", e => {
+  if (e.touches.length === 2) {
+    const [a, b] = e.touches;
+    pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), s: scale,
+              cx: (a.clientX + b.clientX) / 2, cy: (a.clientY + b.clientY) / 2 };
+  }
+}, { passive: true });
+canvas.addEventListener("touchmove", e => {
+  if (pinch && e.touches.length === 2) {
+    const [a, b] = e.touches;
+    const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const ns = Math.min(3.5, Math.max(0.15, pinch.s * d / pinch.d));
+    const [wx, wy] = toWorld(pinch.cx, pinch.cy);
+    tx = pinch.cx - wx * ns; ty = pinch.cy - wy * ns;
+    scale = ns;
+    dragNode = null; panning = false;
+  }
+}, { passive: true });
+canvas.addEventListener("touchend", () => { pinch = null; }, { passive: true });
+
+/* ---------------- render ---------------- */
+
+function draw() {
+  step();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.translate(tx, ty);
+  ctx.scale(scale, scale);
+
+  const act = activeSet();
+
+  /* edges */
+  ctx.lineWidth = 1 / scale;
+  for (const [ai, bi] of EDGES) {
+    const a = byId[ai], b = byId[bi];
+    if (!nodeVisible(a) || !nodeVisible(b)) continue;
+    const on = act && (act.has(ai) && act.has(bi)) &&
+               (ai === (hoverId || selectedId) || bi === (hoverId || selectedId));
+    ctx.strokeStyle = on ? "rgba(195,194,183,0.8)" : (act ? "rgba(44,44,42,0.5)" : "#2c2c2a");
+    ctx.lineWidth = (on ? 1.6 : 1) / Math.sqrt(scale);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.yy);
+    ctx.lineTo(b.x, b.yy);
+    ctx.stroke();
+  }
+
+  /* nodes */
+  for (const n of NODES) {
+    if (!nodeVisible(n)) continue;
+    const dim = act && !act.has(n.id);
+    ctx.globalAlpha = dim ? 0.15 : 1;
+    ctx.fillStyle = CATS[n.c].col;
+    ctx.beginPath();
+    ctx.arc(n.x, n.yy, n.r, 0, Math.PI * 2);
+    ctx.fill();
+    if (n.id === selectedId) {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5 / scale;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* labels */
+  const fs = 11 / scale;
+  ctx.font = fs + "px monospace";
+  ctx.textAlign = "center";
+  for (const n of NODES) {
+    if (!nodeVisible(n)) continue;
+    const focus = act && act.has(n.id);
+    const show = focus || scale > 0.55 || degree[n.id] >= 5;
+    if (!show) continue;
+    const dim = act && !act.has(n.id);
+    ctx.globalAlpha = dim ? 0.12 : (focus ? 1 : 0.85);
+    ctx.fillStyle = focus ? "#ffffff" : "#898781";
+    ctx.fillText(n.s, n.x, n.yy + n.r + fs + 2 / scale);
+    ctx.globalAlpha = 1;
+  }
+
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+/* ---------------- legend / search ---------------- */
+
+const legend = document.getElementById("legend");
+for (const k of catKeys) {
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="dot" style="background:${CATS[k].col}"></span>${CATS[k].name}`;
+  li.onclick = () => {
+    if (hiddenCats.has(k)) hiddenCats.delete(k); else hiddenCats.add(k);
+    li.classList.toggle("off");
+  };
+  legend.appendChild(li);
+}
+document.getElementById("search").addEventListener("input", e => {
+  searchQ = e.target.value.trim().toLowerCase();
+});
+
+/* ---------------- note panel ---------------- */
+
+const panel = document.getElementById("panel");
+const noteEl = document.getElementById("note");
+
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+/* inline markdown: `code`, **bold**, [text](url) — node text may also carry raw <a> links */
+function md(s) {
+  return s
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+function connList(ids) {
+  return ids.filter(i => byId[i]).map(i =>
+    `<li><a href="#${i}" data-node="${i}">${esc(byId[i].s)} (${byId[i].y})</a></li>`).join("");
+}
+
+function openNote(id) {
+  const n = byId[id];
+  if (!n) return;
+  selectedId = id;
+  const links = [];
+  if (n.paper) links.push(`<a href="${n.paper}" target="_blank" rel="noopener">[paper]</a>`);
+  if (n.code) links.push(`<a href="${n.code}" target="_blank" rel="noopener">[code]</a>`);
+  if (n.demo) links.push(`<a href="${n.demo}" target="_blank" rel="noopener">[demo]</a>`);
+  let html = `
+    <h2>${esc(n.t)}</h2>
+    <p class="meta"><span class="dot" style="background:${CATS[n.c].col}"></span>${CATS[n.c].name} &middot; ${esc(n.a)} &middot; ${n.y}</p>
+    <div class="links">${links.join(" ")}</div>
+    <h3>summary</h3><p>${md(n.sum)}</p>
+    <h3>implementation</h3><p>${md(n.impl)}</p>`;
+  if (n.in.length) html += `<h3>builds on</h3><ul>${connList(n.in)}</ul>`;
+  if (n.out.length) html += `<h3>leads to</h3><ul>${connList(n.out)}</ul>`;
+  noteEl.innerHTML = html;
+  noteEl.querySelectorAll("a[data-node]").forEach(a => {
+    a.onclick = e => { e.preventDefault(); openNote(a.dataset.node); };
+  });
+  panel.classList.add("open");
+  history.replaceState(null, "", "#" + id);
+}
+
+function closeNote() {
+  selectedId = null;
+  panel.classList.remove("open");
+  history.replaceState(null, "", location.pathname);
+}
+panel.querySelector(".close").onclick = closeNote;
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeNote(); });
+
+/* deep link */
+if (location.hash) {
+  const id = location.hash.slice(1);
+  if (byId[id]) openNote(id);
+}
+</script>
+</body>
+</html>
