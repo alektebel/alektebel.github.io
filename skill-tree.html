@@ -291,6 +291,12 @@ const NODES = [
   sum:"Attention over residue pairs plus clever geometric inductive biases effectively solved 50-year-old protein structure prediction, and won the 2024 Chemistry Nobel. The flagship proof that deep learning can crack real scientific problems, not just benchmarks.",
   impl:"Run a prediction on ColabFold (free notebook) for any protein sequence and inspect the structure — a research-frontier result you can reproduce in minutes." },
 
+{ id:"distill", s:"Distillation", t:"Distilling the Knowledge in a Neural Network", y:2015, c:"dl",
+  a:"Hinton, Vinyals & Dean", deps:["alexnet"],
+  paper:"https://arxiv.org/abs/1503.02531",
+  sum:"Train a small 'student' network on a big 'teacher' network's soft output probabilities instead of hard labels — the dark knowledge in the teacher's mistakes transfers surprisingly well. How frontier capability gets compressed into deployable models, from mobile vision nets to DeepSeek-R1's distilled reasoners.",
+  impl:"Train a large MLP on MNIST, then train a 10× smaller one on its temperature-softened logits; compare against training the small one from scratch — the gap is the paper." },
+
 { id:"kan", s:"KANs", t:"KAN: Kolmogorov–Arnold Networks", y:2024, c:"dl",
   a:"Liu et al., MIT", deps:["uat"],
   paper:"https://arxiv.org/abs/2404.19756",
@@ -317,6 +323,12 @@ const NODES = [
   sum:"Let the decoder look back at every input position with learned soft weights instead of squeezing everything through one vector. Introduced as a translation fix, it turned out to be the fundamental operation — the T in GPT.",
   impl:"Add attention to your toy seq2seq and plot the alignment matrix; seeing the model attend to the right source word is one of the field's genuinely satisfying visualizations." },
 
+{ id:"bpe", s:"BPE Tokenization", t:"Neural Machine Translation of Rare Words with Subword Units", y:2016, c:"llm",
+  a:"Sennrich, Haddow & Birch", deps:["seq2seq"],
+  paper:"https://arxiv.org/abs/1508.07909",
+  sum:"Byte-pair encoding builds a vocabulary of subword pieces from data, so any string is representable and frequent words stay whole. Every GPT sees the world through a BPE-style tokenizer — and many LLM quirks (arithmetic, spelling, 'how many r's in strawberry') are tokenizer artifacts, not model failures.",
+  impl:"karpathy's minbpe implements the exact GPT tokenizer in ~100 readable lines; train one on your own text corpus and inspect what merges it learns." },
+
 { id:"transformer", s:"Transformer", t:"Attention Is All You Need", y:2017, c:"llm",
   a:"Vaswani et al., Google", deps:["attn","seq2seq","resnet"],
   paper:"https://arxiv.org/abs/1706.03762",
@@ -331,11 +343,17 @@ const NODES = [
   impl:"Fine-tune a small BERT from HuggingFace on a sentiment dataset in ~30 lines; BERT-style encoders still power most production search and embedding systems." },
 
 { id:"gpt2", s:"GPT-1/2", t:"Improving Language Understanding by Generative Pre-Training / Language Models are Unsupervised Multitask Learners", y:2018, c:"llm",
-  a:"Radford et al., OpenAI", deps:["transformer","nlm"],
+  a:"Radford et al., OpenAI", deps:["transformer","nlm","bpe"],
   paper:"https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf",
   code:"https://github.com/karpathy/nanoGPT",
   sum:"Decoder-only Transformers trained purely on next-token prediction. GPT-2's surprise: scale it and tasks it was never trained for (translation, QA, summarization) start emerging from the language-modeling objective alone.",
   impl:"nanoGPT reproduces GPT-2 (124M) exactly; training it on OpenWebText is a feasible weekend-with-a-GPU project and the best way to demystify LLMs." },
+
+{ id:"t5", s:"T5", t:"Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer", y:2019, c:"llm",
+  a:"Raffel et al., Google", deps:["transformer","bert"],
+  paper:"https://arxiv.org/abs/1910.10683",
+  sum:"Cast every NLP task — translation, summarization, classification, QA — as text-in, text-out for one encoder-decoder model, and ran the most systematic ablation study of the pretraining era to find what actually matters. The 'everything is text generation' framing is now simply how the field thinks.",
+  impl:"Fine-tune t5-small on any two tasks at once by prefixing inputs with task names — multi-task learning in 30 lines, and a feel for why unified formats won." },
 
 { id:"scaling", s:"Scaling Laws", t:"Scaling Laws for Neural Language Models", y:2020, c:"llm",
   a:"Kaplan et al., OpenAI", deps:["gpt2"],
@@ -354,6 +372,24 @@ const NODES = [
   paper:"https://arxiv.org/abs/2005.11401",
   sum:"Bolt a retriever onto a generator: fetch relevant documents, condition generation on them. Now the standard pattern for grounding LLMs in private or fresh knowledge without retraining, and the backbone of most enterprise LLM systems.",
   impl:"Build the minimal version: embed your notes with an embedding model, cosine-similarity search, stuff the top-3 chunks into the prompt. ~80 lines, no framework needed." },
+
+{ id:"flan", s:"Instruction Tuning", t:"Finetuned Language Models are Zero-Shot Learners (FLAN)", y:2021, c:"llm",
+  a:"Wei et al., Google", deps:["t5","gpt3"],
+  paper:"https://arxiv.org/abs/2109.01652",
+  sum:"Fine-tune on thousands of tasks phrased as natural-language instructions and the model learns to follow instructions in general, including for tasks it never saw. The supervised half of what turns a base model into an assistant — RLHF's preference training sits on top of this.",
+  impl:"Fine-tune a small base model on a few thousand examples from an open instruction dataset (Alpaca, Dolly) and compare zero-shot behavior before and after — the transformation is dramatic and cheap to see." },
+
+{ id:"star", s:"STaR", t:"STaR: Bootstrapping Reasoning with Reasoning", y:2022, c:"llm",
+  a:"Zelikman, Wu, Mu & Goodman, Stanford", deps:["cot"],
+  paper:"https://arxiv.org/abs/2203.14465",
+  sum:"Have the model generate chains of thought, keep only the ones that reach correct answers, fine-tune on those, repeat — the model bootstraps its own reasoning training data. The loop that, scaled up with RL, becomes o1 and R1: reasoning models are this paper industrialized.",
+  impl:"Reproducible at small scale: sample rationales on GSM8K with a 7B model, filter by answer correctness, LoRA-finetune on the survivors, and measure the accuracy gain of one iteration." },
+
+{ id:"react", s:"LLM Agents", t:"ReAct: Synergizing Reasoning and Acting in Language Models", y:2022, c:"llm",
+  a:"Yao et al., Princeton/Google", deps:["cot","rlhf"],
+  paper:"https://arxiv.org/abs/2210.03629",
+  sum:"Interleave thought, action and observation: the model reasons about what to do, calls a tool, reads the result, and continues. Together with Toolformer this defined the agent loop — every coding assistant, computer-use agent and tool-calling API today runs some descendant of it.",
+  impl:"Build the loop raw, without a framework: a while-loop where the model emits either 'thought', a JSON tool call (give it a calculator and web search), or a final answer. ~80 lines, and you understand every agent product on the market." },
 
 { id:"moe", s:"Mixture of Experts", t:"Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity", y:2021, c:"llm",
   a:"Fedus, Zoph & Shazeer, Google", deps:["transformer","scaling"],
@@ -376,7 +412,7 @@ const NODES = [
   impl:"You use it via `torch.nn.functional.scaled_dot_product_attention`. To understand it, benchmark naive attention vs SDPA at growing sequence lengths and watch the memory curves diverge." },
 
 { id:"rlhf", s:"InstructGPT / RLHF", t:"Training Language Models to Follow Instructions with Human Feedback", y:2022, c:"llm",
-  a:"Ouyang et al., OpenAI", deps:["gpt3","prefs","ppo"],
+  a:"Ouyang et al., OpenAI", deps:["gpt3","prefs","ppo","flan"],
   paper:"https://arxiv.org/abs/2203.02155",
   sum:"Fine-tune with human demonstrations, train a reward model from human preference comparisons, optimize against it with PPO. Turned raw next-token predictors into assistants that follow instructions — the step that made ChatGPT possible.",
   impl:"The tractable home version is the DPO node. To see RLHF's effect, compare a base model's completions with its instruct sibling's on identical prompts — the delta is the alignment training." },
@@ -426,13 +462,13 @@ const NODES = [
   impl:"Implement a minimal selective SSM scan in PyTorch (the 'mamba-minimal' repos are ~100 lines) and race it against attention on long-sequence copying." },
 
 { id:"o1", s:"o1 / test-time compute", t:"Learning to Reason with LLMs (o1)", y:2024, c:"llm",
-  a:"OpenAI", deps:["cot","rlhf"],
+  a:"OpenAI", deps:["cot","rlhf","star"],
   paper:"https://openai.com/index/learning-to-reason-with-llms/",
   sum:"Train the chain of thought itself with RL so the model learns to search, backtrack and verify — then let it think longer at inference for harder problems. Added a second scaling axis (test-time compute) just as pretraining scaling was flattening.",
   impl:"Get the flavor cheaply: sample a model 32× on math problems and take majority vote (self-consistency); accuracy climbs with samples — test-time compute in its simplest form." },
 
 { id:"r1", s:"DeepSeek-R1", t:"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning", y:2025, c:"llm",
-  a:"DeepSeek", deps:["o1","llama","ppo"],
+  a:"DeepSeek", deps:["o1","llama","ppo","distill"],
   paper:"https://arxiv.org/abs/2501.12948",
   code:"https://github.com/deepseek-ai/DeepSeek-R1",
   sum:"Showed o1-style reasoning emerges from pure RL on verifiable rewards (math/code correctness) without process supervision — the R1-Zero result — then released the weights and the recipe (GRPO). Reasoning models stopped being a proprietary mystery within weeks.",
@@ -516,6 +552,12 @@ const NODES = [
   sum:"Q-learning with a CNN, stabilized by experience replay and a frozen target network: one algorithm, raw pixels in, superhuman Atari out. The proof that deep learning and RL compose — deep RL starts here.",
   impl:"DQN on CartPole then Pong via cleanrl's single-file implementation; replay buffer and target network are each ~10 lines and both matter (ablate them)." },
 
+{ id:"ddpg", s:"DDPG", t:"Continuous Control with Deep Reinforcement Learning", y:2015, c:"rl",
+  a:"Lillicrap et al., DeepMind", deps:["dqn","reinforce"],
+  paper:"https://arxiv.org/abs/1509.02971",
+  sum:"Extended DQN's tricks to continuous action spaces with a deterministic actor trained through a learned critic — suddenly deep RL could drive joints and torques, not just pick from menus. Notoriously brittle, which is exactly what TD3 and SAC were built to fix.",
+  impl:"DDPG on Pendulum-v1 via cleanrl; then read the TD3 paper as a case study in diagnosing why it fails (overestimation, hyperparameter sensitivity)." },
+
 { id:"prefs", s:"RL from Human Prefs", t:"Deep Reinforcement Learning from Human Preferences", y:2017, c:"rl",
   a:"Christiano et al., OpenAI/DeepMind", deps:["dqn","ppo"],
   paper:"https://arxiv.org/abs/1706.03741",
@@ -543,11 +585,31 @@ const NODES = [
   impl:"The interactive paper site is the best artifact. Reproduce the VAE+RNN dream on CarRacing, or read Dreamer-v3 for the modern production version." },
 
 { id:"sac", s:"SAC", t:"Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning", y:2018, c:"rl",
-  a:"Haarnoja et al., Berkeley", deps:["qlearning","reinforce"],
+  a:"Haarnoja et al., Berkeley", deps:["ddpg","reinforce"],
   paper:"https://arxiv.org/abs/1801.01290",
   demo:"/blog/sac_model_700.mp4",
   sum:"Maximize reward plus policy entropy: exploration and robustness fall out of the objective, with off-policy sample efficiency. The default algorithm for continuous control — if a simulated or real robot learned a motion in the late 2010s, it was probably SAC or PPO.",
   impl:"I trained SAC agents for my master's thesis — <a href='/blog/master-thesis-reinforcement-learning.html'>write-up here</a> and a trained-agent demo video above. cleanrl's sac_continuous_action.py is the reference code." },
+
+{ id:"muzero", s:"MuZero", t:"Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model", y:2019, c:"rl",
+  a:"Schrittwieser et al., DeepMind", deps:["alphago","worldmodels"],
+  paper:"https://arxiv.org/abs/1911.08265",
+  sum:"AlphaZero without being told the rules: it learns a latent model of the environment's dynamics and plans inside it — the model only has to predict rewards, values and policies, not reconstruct the world. The cleanest fusion of the model-based and search lineages.",
+  impl:"Minimal open reproductions exist (muzero-general); running it on CartPole and inspecting what the latent model does — and doesn't — represent is the instructive part." },
+
+{ id:"dt", s:"Decision Transformer", t:"Decision Transformer: Reinforcement Learning via Sequence Modeling", y:2021, c:"rl",
+  a:"Chen et al., Berkeley/Google/Facebook", deps:["transformer","qlearning"],
+  paper:"https://arxiv.org/abs/2106.01345",
+  code:"https://github.com/kzl/decision-transformer",
+  sum:"Reframe offline RL as sequence modeling: feed (return-to-go, state, action) tokens to a GPT and just predict the next action — no Bellman backups, no bootstrapping. The conceptual bridge between LLMs and control, and a direct ancestor of treating robot actions as tokens (RT-1, RT-2).",
+  impl:"The official repo is small; train it on the D4RL gym datasets and note how conditioning on a higher target return changes the behavior it emits." },
+
+{ id:"dreamer", s:"DreamerV3", t:"Mastering Diverse Domains through World Models", y:2023, c:"rl",
+  a:"Hafner et al., DeepMind/Toronto", deps:["worldmodels","sac"],
+  paper:"https://arxiv.org/abs/2301.04104",
+  code:"https://github.com/danijar/dreamerv3",
+  sum:"World Models made production-grade: learn a recurrent latent world model from pixels, train an actor-critic entirely inside its imagination, and — with one fixed set of hyperparameters — solve 150+ tasks, including collecting Minecraft diamonds from scratch. The strongest evidence yet that model-based RL has arrived.",
+  impl:"The official repo runs on a single GPU for the simpler domains; watching the model's imagined rollouts (it can decode them to video) next to real ones is worth the setup." },
 
 /* ---- robotics ---- */
 { id:"alvinn", s:"ALVINN", t:"ALVINN: An Autonomous Land Vehicle in a Neural Network", y:1989, c:"rob",
@@ -569,7 +631,7 @@ const NODES = [
   impl:"In any MuJoCo/Isaac task, randomize masses and frictions during training and evaluate on unseen parameters; the generalization gap closes measurably." },
 
 { id:"rt1", s:"RT-1", t:"RT-1: Robotics Transformer for Real-World Control at Scale", y:2022, c:"rob",
-  a:"Brohan et al., Google", deps:["transformer","alvinn"],
+  a:"Brohan et al., Google", deps:["transformer","alvinn","dt"],
   paper:"https://arxiv.org/abs/2212.06817",
   sum:"The scaling-laws bet applied to robots: a Transformer trained on 130k real teleoperated episodes across 700+ tasks, emitting discretized motor tokens. Showed robot skills scale with data diversity like language skills do — manipulation as sequence modeling.",
   impl:"The Open X-Embodiment dataset (RT-1's data plus 20+ labs') is public; fine-tuning a small policy on a slice of it is the accessible entry point." },
