@@ -487,8 +487,14 @@ const NODES = [
   sum:"A generator and a discriminator trained as adversaries — the first neural images sharp enough to fool people, and a decade of deepfakes, StyleGAN and art. Dethroned by diffusion for generation quality, but adversarial training remains a core idea.",
   impl:"Train a DCGAN on MNIST or CelebA and experience mode collapse firsthand — the instability is the lesson, and the reason diffusion won." },
 
+{ id:"score", s:"Score Matching", t:"Generative Modeling by Estimating Gradients of the Data Distribution", y:2019, c:"gen",
+  a:"Song & Ermon, Stanford", deps:["vae"],
+  paper:"https://arxiv.org/abs/1907.05600",
+  sum:"Learn the score — the gradient of the data's log-density — at multiple noise levels, then sample by following it with Langevin dynamics. Independently arrived at what DDPM found from the variational side; the 2021 SDE paper proved they are the same thing, giving diffusion its theory.",
+  impl:"On 2-D toy data the score is a vector field you can plot with quiver arrows; implement noise-conditional score matching and watch Langevin sampling walk noise up the arrows into the data distribution." },
+
 { id:"ddpm", s:"Diffusion (DDPM)", t:"Denoising Diffusion Probabilistic Models", y:2020, c:"gen",
-  a:"Ho, Jain & Abbeel, Berkeley", deps:["vae"],
+  a:"Ho, Jain & Abbeel, Berkeley", deps:["vae","score"],
   paper:"https://arxiv.org/abs/2006.11239",
   code:"https://github.com/lucidrains/denoising-diffusion-pytorch",
   sum:"Gradually noise data to pure Gaussian, train a network to reverse one step at a time. Stable to train (it's just regression on noise), spectacular sample quality — the engine of the entire image/video/audio generation boom.",
@@ -514,15 +520,40 @@ const NODES = [
   sum:"Represent a 3-D scene as a small MLP mapping (position, direction) → (color, density), trained from photos via differentiable volume rendering. Founded neural 3-D representation; its successor 3D Gaussian Splatting now runs in real time.",
   impl:"nerf-pytorch on the lego dataset is the standard reproduction; 'tiny NeRF' notebooks fit the whole idea in one Colab." },
 
+{ id:"cfg", s:"CF Guidance", t:"Classifier-Free Diffusion Guidance", y:2022, c:"gen",
+  a:"Ho & Salimans, Google", deps:["ddpm"],
+  paper:"https://arxiv.org/abs/2207.12598",
+  sum:"Train the denoiser both with and without conditioning (drop the prompt some fraction of the time), then at sampling extrapolate away from the unconditional prediction. This is the 'guidance scale' slider in every image generator — the trick that makes text-to-image actually obey the prompt.",
+  impl:"Add it to a conditional toy diffusion model: it's a two-line change at sampling time (`eps = eps_u + w*(eps_c - eps_u)`); sweep w and watch fidelity trade against diversity." },
+
+{ id:"dit", s:"DiT", t:"Scalable Diffusion Models with Transformers", y:2022, c:"gen",
+  a:"Peebles & Xie, Berkeley/NYU", deps:["ddpm","vit"],
+  paper:"https://arxiv.org/abs/2212.09748",
+  code:"https://github.com/facebookresearch/DiT",
+  sum:"Replace diffusion's convolutional U-Net with a plain Transformer over latent patches and it scales like language models do — compute in, quality out, cleanly. Now the standard backbone: Sora, Stable Diffusion 3, Flux and most frontier video models are DiTs.",
+  impl:"If you built the toy DDPM and the ViT nodes, this is their composition: swap the denoiser for your ViT blocks with a timestep embedding. The official repo is unusually readable." },
+
 { id:"sd", s:"Stable Diffusion", t:"High-Resolution Image Synthesis with Latent Diffusion Models", y:2022, c:"gen",
-  a:"Rombach et al., LMU/Runway", deps:["ddpm","vae","clip"],
+  a:"Rombach et al., LMU/Runway", deps:["ddpm","vae","clip","cfg"],
   paper:"https://arxiv.org/abs/2112.10752",
   code:"https://github.com/CompVis/latent-diffusion",
   sum:"Run diffusion in a VAE's compressed latent space instead of pixel space — ~50× cheaper, same quality — with CLIP-based text conditioning via cross-attention. Released openly, it put image generation on consumer GPUs and spawned an entire ecosystem.",
   impl:"Run it via the diffusers library, then read the pipeline source: recognizing the VAE, the UNet denoiser, the text encoder and the scheduler ties four nodes of this graph together." },
 
+{ id:"flow", s:"Flow Matching", t:"Flow Matching for Generative Modeling", y:2022, c:"gen",
+  a:"Lipman et al., Meta AI", deps:["ddpm"],
+  paper:"https://arxiv.org/abs/2210.02747",
+  sum:"Train a continuous normalizing flow by regressing a vector field along straight-line paths from noise to data — simpler objective than diffusion, fewer sampling steps, and it contains diffusion as a special case. Powers Stable Diffusion 3's rectified flows and π0's robot action head.",
+  impl:"On 2-D toy data, flow matching is arguably easier to implement than DDPM: regress the network onto (x1 − x0) along interpolation paths, then integrate the ODE with Euler steps to sample." },
+
+{ id:"jepa", s:"JEPA", t:"Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture", y:2023, c:"gen",
+  a:"Assran et al., Meta AI", deps:["vit","clip"],
+  paper:"https://arxiv.org/abs/2301.08243",
+  sum:"Predict masked regions in representation space rather than pixel space — LeCun's bet that world models should predict abstractions, not render every detail. V-JEPA extends it to video; the counter-position to 'generation = understanding' held by the Sora line, and the debate is live.",
+  impl:"Weights and code are open (ijepa, vjepa2 on GitHub); probe the learned representations on a small classification task against a supervised ViT to see what masked prediction learns for free." },
+
 { id:"sora", s:"Video world models", t:"Video Generation Models as World Simulators (Sora)", y:2024, c:"gen",
-  a:"OpenAI", deps:["sd","vit"],
+  a:"OpenAI", deps:["sd","vit","dit"],
   paper:"https://openai.com/index/video-generation-models-as-world-simulators/",
   sum:"Diffusion Transformers over spacetime patches of compressed video, scaled hard: minute-long coherent video with emergent 3-D consistency and object permanence. The live hypothesis: video generation at scale learns an implicit physics simulator — which is why robotics is watching closely.",
   impl:"Nothing runnable at home at this scale; study the DiT (Diffusion Transformer) paper and code instead, which is Sora's published backbone." },
@@ -611,6 +642,12 @@ const NODES = [
   sum:"World Models made production-grade: learn a recurrent latent world model from pixels, train an actor-critic entirely inside its imagination, and — with one fixed set of hyperparameters — solve 150+ tasks, including collecting Minecraft diamonds from scratch. The strongest evidence yet that model-based RL has arrived.",
   impl:"The official repo runs on a single GPU for the simpler domains; watching the model's imagined rollouts (it can decode them to video) next to real ones is worth the setup." },
 
+{ id:"genie", s:"Genie", t:"Genie: Generative Interactive Environments", y:2024, c:"rl",
+  a:"Bruce et al., Google DeepMind", deps:["worldmodels","sora"],
+  paper:"https://arxiv.org/abs/2402.15391",
+  sum:"From unlabeled gameplay video alone, learn a playable world model: a latent action space emerges without any action labels, so you can control the generated video frame by frame. Genie 3 now produces navigable 3-D worlds in real time — world models becoming training grounds for embodied agents.",
+  impl:"Nothing runnable at this scale; the paper's latent-action idea (a VQ-VAE over frame transitions) is the part worth understanding, and small open reproductions of it exist for 2-D platformers." },
+
 /* ---- robotics ---- */
 { id:"alvinn", s:"ALVINN", t:"ALVINN: An Autonomous Land Vehicle in a Neural Network", y:1989, c:"rob",
   a:"Dean Pomerleau, CMU", deps:["backprop"],
@@ -665,7 +702,7 @@ const NODES = [
   impl:"Weights are on HuggingFace; the repo documents fine-tuning to a new robot arm with LoRA on a single A100 — the practical on-ramp to VLA research." },
 
 { id:"pi0", s:"π0", t:"π0: A Vision-Language-Action Flow Model for General Robot Control", y:2024, c:"rob",
-  a:"Black et al., Physical Intelligence", deps:["diffpolicy","rt2"],
+  a:"Black et al., Physical Intelligence", deps:["diffpolicy","rt2","flow"],
   paper:"https://arxiv.org/abs/2410.24164",
   code:"https://github.com/Physical-Intelligence/openpi",
   demo:"https://www.physicalintelligence.company/blog/pi0",
