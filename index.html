@@ -3,107 +3,808 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diego Rodríguez Atencia</title>
+<title>Diego Rodríguez Atencia — mathematician, data engineer, builder</title>
 <meta name="description" content="Diego Rodríguez Atencia — mathematician, data engineer, builder. ML systems, financial data pipelines, and open-source projects.">
 <meta property="og:title" content="Diego Rodríguez Atencia">
 <meta property="og:description" content="Mathematician, data engineer, builder. ML systems, financial data pipelines, and open-source projects.">
 <meta property="og:url" content="https://alektebel.github.io/">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='3' y='13' font-family='monospace' font-size='13' fill='%2300ff00'%3Ea%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg: #f4f2ed;
+    --panel: #efece4;
+    --ink: #111110;
+    --body: #3c3a35;
+    --muted: #6b6862;
+    --faint: #9a958b;
+    --line: #111110;
+    --soft-line: #ddd8cb;
+    --accent: #ff3b1f;
+    --dark: #111110;
+    --dark-ink: #f4f2ed;
+    --dark-muted: #b3aea3;
+    --dark-faint: #8a857b;
+    --dark-line: #2c2b28;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
   body {
-    font-family: monospace;
+    color: var(--ink);
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
     font-size: 15px;
-    line-height: 1.5;
-    color: #222;
-    background: #fdfdfd;
-    max-width: 72ch;
-    margin: 0 auto;
-    padding: 2em 1em 4em;
+    line-height: 1.55;
   }
-  a { color: #0044cc; }
-  h2 { font-size: 1em; margin: 2.5em 0 0.5em; }
-  h2::before { content: "## "; }
-  pre { overflow-x: auto; margin: 0 0 1em; }
-  ul { padding-left: 2ch; list-style: none; margin: 0; }
-  li { margin-bottom: 0.4em; }
-  li::before { content: "* "; }
-  hr { border: none; overflow: hidden; white-space: nowrap; }
-  hr::before {
-    content: "----------------------------------------";
-    color: #999;
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
-  footer { margin-top: 3em; color: #777; }
-  .sr-only {
+  .mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  .label {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .skip {
     position: absolute;
-    width: 1px; height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    left: -9999px;
+    top: 0;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 16px;
+    z-index: 100;
   }
-  @media (prefers-color-scheme: dark) {
-    body { color: #ddd; background: #111; }
-    a { color: #7aa2f7; }
+  .skip:focus { left: 0; }
+  .wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+  /* ── Sidebar ─────────────────────────────── */
+  .sidebar {
+    flex: 1 1 268px;
+    min-width: 0;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    padding: 34px 26px 40px;
+    border-right: 1px solid var(--line);
+  }
+  .id-row { display: flex; align-items: center; gap: 13px; }
+  .avatar {
+    width: 52px; height: 52px;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: grayscale(1) contrast(1.08);
+    flex: none;
+  }
+  .id-name { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+  .id-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+  .id-bio { margin: 22px 0 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
+  .id-links {
+    display: flex; flex-wrap: wrap; gap: 8px 14px;
+    margin-top: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .id-links a { border-bottom: 1px solid #c9c4b8; }
+  .now { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .now-head {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pulse {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); flex: none;
+    animation: livePulse 1.9s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.82); }
+  }
+  .now dl { margin: 16px 0 0; display: grid; gap: 15px; }
+  .now dt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint);
+  }
+  .now dd { margin: 4px 0 0; font-size: 13.5px; }
+  .now .gh-repo {
+    border-bottom: 1px solid #c9c4b8;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+  }
+  .now .gh-ago { color: var(--muted); }
+  .now .gh-msg { font-size: 13px; color: var(--body); margin-top: 2px; }
+  .now .gh-wait { font-size: 13px; color: var(--faint); font-family: 'IBM Plex Mono', monospace; }
+  /* ── Main ────────────────────────────────── */
+  main { flex: 1 1 560px; min-width: 0; border-right: 1px solid var(--line); }
+  section { padding: 38px 30px; border-bottom: 1px solid var(--line); }
+  section:last-child { border-bottom: none; }
+  /* Hero */
+  .hero { position: relative; overflow: hidden; background: var(--bg); padding: 0; }
+  .hero canvas { display: block; width: 100%; height: 390px; min-height: 390px; }
+  .hero-copy {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 34px 30px;
+    pointer-events: none;
+  }
+  .hero-kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #4a4842; margin-bottom: 12px;
+  }
+  .hero h1 {
+    margin: 0;
+    font-size: clamp(34px, 5.6vw, 60px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+    max-width: 16ch;
+  }
+  .hero p { margin: 16px 0 0; max-width: 46ch; font-size: 15.5px; color: var(--body); text-wrap: pretty; }
+  .hero-tools { position: absolute; top: 22px; right: 24px; display: flex; gap: 8px; }
+  .btn-ghost {
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  /* Skills */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+    gap: 26px;
+    margin-top: 22px;
+  }
+  .skills-grid h3 { margin: 0 0 7px; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+  .skills-grid p { margin: 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
+  /* Ask */
+  .ask { background: var(--panel); }
+  .ask h2 { margin: 14px 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; max-width: 30ch; }
+  .ask .sub { margin: 0 0 18px; font-size: 14px; color: var(--body); max-width: 52ch; }
+  .ask .lang-hint { margin: 0 0 14px; font-size: 12.5px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .suggestions button {
+    padding: 7px 12px;
+    border: 1px solid #c9c4b8;
+    background: var(--bg);
+    color: var(--body);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .suggestions button:hover { border-color: var(--ink); color: var(--ink); }
+  .ask-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+  .ask-row input {
+    flex: 1 1 260px; min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+  }
+  .ask-row button {
+    padding: 12px 22px;
+    border: 1px solid var(--line);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer;
+  }
+  .ask-row button:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+  .ask-row button:disabled { opacity: 0.6; cursor: wait; }
+  .ask-status {
+    margin-top: 16px; padding: 16px 18px;
+    border-left: 2px solid var(--accent);
+    background: var(--bg);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .ask-answer {
+    margin-top: 16px; padding: 18px 20px;
+    border-left: 2px solid var(--accent);
+    background: var(--bg);
+  }
+  .ask-answer .re {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 8px;
+  }
+  .ask-answer p { margin: 0; font-size: 14.5px; color: var(--ink); white-space: pre-wrap; text-wrap: pretty; }
+  /* Built */
+  .built-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .built-head a { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; border-bottom: 1px solid #c9c4b8; }
+  .built-list { margin-top: 20px; border-top: 1px solid var(--soft-line); }
+  .built-list a {
+    display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline;
+    padding: 15px 4px;
+    border-bottom: 1px solid var(--soft-line);
+    transition: background 0.16s, padding-left 0.16s;
+  }
+  .built-list a:hover { background: var(--ink); color: var(--bg); padding-left: 12px; }
+  .built-list .b-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500; flex: none; }
+  .built-list .b-what { font-size: 14px; flex: 1 1 200px; min-width: 0; opacity: 0.78; }
+  .built-list .b-stack {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    opacity: 0.6; flex: none;
+  }
+  /* Written */
+  .posts { display: grid; gap: 2px; margin-top: 20px; }
+  .posts a {
+    display: block;
+    padding: 18px 20px;
+    background: var(--panel);
+    border: 1px solid var(--soft-line);
+    transition: border-color 0.16s, transform 0.16s;
+  }
+  .posts a:hover { border-color: var(--accent); transform: translateX(4px); color: var(--ink); }
+  .posts .p-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 7px;
+  }
+  .posts .p-title { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; }
+  .posts .p-blurb { margin: 7px 0 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
+  /* Questions (dark) */
+  .dark-sec { background: var(--dark); color: var(--dark-ink); }
+  .dark-sec .label { color: var(--dark-faint); }
+  .dark-sec .lede { margin: 14px 0 22px; font-size: 14px; color: var(--dark-muted); max-width: 52ch; }
+  .q-list { display: grid; gap: 14px; }
+  .q-item { display: flex; gap: 14px; align-items: baseline; padding-bottom: 14px; border-bottom: 1px solid var(--dark-line); }
+  .q-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .q-n { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); flex: none; }
+  .q-title { font-size: 19px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.25; }
+  .q-note { margin-top: 5px; font-size: 13.5px; color: var(--dark-muted); text-wrap: pretty; }
+  /* Track */
+  .track-list { display: grid; gap: 18px; margin-top: 20px; }
+  .track-row { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+  .track-when { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--muted); flex: none; min-width: 9ch; }
+  .track-what { flex: 1 1 240px; min-width: 0; }
+  .track-what strong { font-weight: 600; }
+  .track-what div { font-size: 14px; color: var(--body); }
+  .cta {
+    margin-top: 34px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: center; justify-content: space-between;
+  }
+  .cta .big { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; max-width: 26ch; }
+  .cta a.mail {
+    padding: 12px 20px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .cta a.mail:hover { background: var(--ink); color: var(--bg); }
+  footer.colophon { margin-top: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
+  @media (max-width: 860px) {
+    .sidebar { position: static; border-right: none; border-bottom: 1px solid var(--line); }
+    main { border-right: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse { animation: none; }
   }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
-<h1 class="sr-only">Diego Rodríguez Atencia</h1>
+<div class="wrap">
+  <!-- ══ Sidebar ══ -->
+  <aside class="sidebar" aria-label="About Diego">
+    <div class="id-row">
+      <img class="avatar" src="profile.jpeg" alt="Portrait of Diego Rodríguez Atencia">
+      <div>
+        <div class="id-name">Diego Rodríguez<br>Atencia</div>
+        <div class="id-tag">Madrid · data / ML</div>
+      </div>
+    </div>
 
-<pre role="img" aria-label="alektebel">
-       _      _    _       _          _
-  __ _| | ___| | _| |_ ___| |__   ___| |
- / _` | |/ _ \ |/ / __/ _ \ '_ \ / _ \ |
-| (_| | |  __/   &lt;| ||  __/ |_) |  __/ |
- \__,_|_|\___|_|\_\\__\___|_.__/ \___|_|
-</pre>
+    <p class="id-bio">I own processing pipelines end to end, and I debug by taking things apart until the pieces are too small to hide anything.</p>
 
-<p>Diego Rodríguez Atencia — mathematician, data engineer, builder.</p>
+    <nav class="id-links" aria-label="Profiles">
+      <a href="mailto:dratencia@gmail.com">email</a>
+      <a href="https://github.com/alektebel" target="_blank" rel="noopener">github</a>
+      <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" rel="noopener">linkedin</a>
+      <a href="https://twitter.com/didacum333" target="_blank" rel="noopener">x</a>
+      <a href="/blog/blog.html">blog</a>
+      <a href="/skill-tree.html">ai skill tree</a>
+      <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
+    </nav>
 
-<p>
-<a href="https://github.com/alektebel">github</a> ·
-<a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190">linkedin</a> ·
-<a href="mailto:dratencia@gmail.com">email</a> ·
-<a href="https://twitter.com/didacum333">x</a> ·
-<a href="/blog/blog.html">blog</a> ·
-<a href="/skill-tree.html">ai skill tree</a> ·
-<a href="https://regllm.xyz">regllm.xyz</a>
-</p>
+    <div class="now" aria-live="polite">
+      <div class="now-head"><span class="pulse" aria-hidden="true"></span><span>now — <span id="clock">--:--</span></span></div>
+      <dl>
+        <div>
+          <dt>last commit</dt>
+          <dd id="gh-box"><span class="gh-wait">reading github…</span></dd>
+        </div>
+        <div>
+          <dt>building</dt>
+          <dd>A Bayesian consensus algorithm for noisy data labeling.</dd>
+        </div>
+        <div>
+          <dt>at work</dt>
+          <dd>LGD migration, SAS → Oracle, top-5 Spanish bank.</dd>
+        </div>
+        <div>
+          <dt>turning over</dt>
+          <dd>Whether a decentralized civilization is actually feasible.</dd>
+        </div>
+        <div>
+          <dt>away from the desk</dt>
+          <dd>Rock climbing, chess, sci-fi novels.</dd>
+        </div>
+      </dl>
+    </div>
+  </aside>
 
-<h2>about</h2>
-<p>
-I work on ML systems and financial data pipelines by day, and hack on
-open-source projects (neural nets in C, KANs, RL) by night. I also built
-<a href="https://regllm.xyz">regllm.xyz</a>. Outside of that: hiking, rock
-climbing, chess, and sci-fi novels.
-</p>
+  <!-- ══ Main ══ -->
+  <main id="main">
+    <!-- Hero: live gradient descent -->
+    <section class="hero" aria-label="Introduction">
+      <canvas id="field" height="390" aria-hidden="true"></canvas>
+      <div class="hero-copy">
+        <div class="hero-kicker">gradient descent, live · <span id="descent-label">surface 01 · 26 walkers · move the cursor</span></div>
+        <h1>Take it to the limit, then delete the rest.</h1>
+        <p>Mathematician and data engineer. I run regulatory data at national-bank scale, and I write neural nets in C to make sure I still understand what&rsquo;s underneath.</p>
+      </div>
+      <div class="hero-tools">
+        <button class="btn-ghost" id="reseed" type="button">reseed</button>
+      </div>
+    </section>
 
-<h2>experience</h2>
-<ul>
-  <li>2023–now &nbsp;Senior Data Analyst, PwC — LGD database migration
-      (SAS to Oracle) for a top 5 Spanish bank, FINREP/COREP automation,
-      stress testing.</li>
-  <li>2022–2023 Data Engineer, Álamo Consulting — regulatory reporting
-      (FINREP/COREP/SIRBE) for Bank of Spain.</li>
-</ul>
+    <!-- 01 skills -->
+    <section aria-labelledby="h-skills">
+      <div class="label" id="h-skills">01 — what I&rsquo;m good at</div>
+      <div class="skills-grid">
+        <div>
+          <h3>Pipelines, end to end</h3>
+          <p>Ingestion to regulatory output, owned rather than handed off. FINREP, COREP, SIRBE, stress testing — filed, reconciled, defended.</p>
+        </div>
+        <div>
+          <h3>Debugging by disaggregation</h3>
+          <p>Split the thing until each part is small enough to be obviously right or obviously wrong. It has never failed to find the bug.</p>
+        </div>
+        <div>
+          <h3>Removing the non-essential</h3>
+          <p>I like systems pushed to their physical limits with the redundancy cut out — and AI used hard as part of how the work gets built.</p>
+        </div>
+      </div>
+    </section>
 
-<h2>projects</h2>
-<ul>
-  <li><a href="https://github.com/alektebel/deep_learning_in_c">deep_learning_in_c</a>
-      — neural network from scratch in C: backprop and gradient descent at
-      the lowest level.</li>
-  <li><a href="https://github.com/alektebel/kan_implementation">kan_implementation</a>
-      — Kolmogorov-Arnold Networks in PyTorch, using Taylor expansion
-      instead of B-splines.</li>
-  <li><a href="https://github.com/alektebel/litetorch">litetorch</a>
-      — educational reimplementation of PyTorch with RL algorithms.</li>
-</ul>
+    <!-- 02 ask -->
+    <section class="ask" aria-labelledby="h-ask">
+      <div class="label" id="h-ask">02 — ask this site</div>
+      <h2>Interview the page instead of reading it.</h2>
+      <p class="sub">It answers from what I&rsquo;ve actually built and shipped. If it doesn&rsquo;t know, it&rsquo;ll say so.</p>
+      <p class="lang-hint">Pregunta en español o inglés — respondo en tu idioma · Ask in Spanish or English</p>
+      <div class="suggestions" role="group" aria-label="Suggested questions">
+        <button type="button" data-q="What have you built from scratch?">What have you built from scratch?</button>
+        <button type="button" data-q="Do you actually know regulatory reporting?">Do you actually know regulatory reporting?</button>
+        <button type="button" data-q="How do you debug something nobody understands?">How do you debug something nobody understands?</button>
+        <button type="button" data-q="What's the RL thesis about?">What&rsquo;s the RL thesis about?</button>
+      </div>
+      <form id="ask-form" class="ask-row" autocomplete="off">
+        <input id="ask-input" type="text" maxlength="500" placeholder="Ask anything about my work…"
+               aria-label="Ask about Diego's work">
+        <button id="ask-btn" type="submit">ask</button>
+      </form>
+      <div id="ask-status" class="ask-status" hidden>consulting the archive…</div>
+      <div id="ask-answer" class="ask-answer" hidden>
+        <div class="re" id="ask-re">re: —</div>
+        <p id="ask-text"></p>
+      </div>
+    </section>
 
-<footer>
-<hr>
-<p>© 2026 Diego Rodríguez Atencia</p>
-</footer>
+    <!-- 03 built -->
+    <section aria-labelledby="h-built">
+      <div class="built-head">
+        <div class="label" id="h-built">03 — built</div>
+        <a href="https://github.com/alektebel" target="_blank" rel="noopener">all repos →</a>
+      </div>
+      <div class="built-list">
+        <a href="https://github.com/alektebel/deep_learning_in_c" target="_blank" rel="noopener">
+          <span class="b-name">deep_learning_in_c</span>
+          <span class="b-what">A neural network from scratch in C — backprop and gradient descent at the lowest level.</span>
+          <span class="b-stack">C</span>
+        </a>
+        <a href="https://github.com/alektebel/litetorch" target="_blank" rel="noopener">
+          <span class="b-name">litetorch</span>
+          <span class="b-what">PyTorch reimplemented small enough to read, with RL algorithms included.</span>
+          <span class="b-stack">Python</span>
+        </a>
+        <a href="https://github.com/alektebel/kan_implementation" target="_blank" rel="noopener">
+          <span class="b-name">kan_implementation</span>
+          <span class="b-what">Kolmogorov-Arnold Networks using Taylor expansion instead of B-splines.</span>
+          <span class="b-stack">PyTorch</span>
+        </a>
+        <a href="https://regllm.xyz" target="_blank" rel="noopener">
+          <span class="b-name">regllm.xyz</span>
+          <span class="b-what">Shipped and live on the open internet.</span>
+          <span class="b-stack">product</span>
+        </a>
+        <a href="https://alektebel.github.io/skill-tree.html">
+          <span class="b-name">ai skill tree</span>
+          <span class="b-what">Learning ML as a browsable tech tree, from linear algebra upward.</span>
+          <span class="b-stack">interactive</span>
+        </a>
+      </div>
+    </section>
 
+    <!-- 04 written -->
+    <section aria-labelledby="h-written">
+      <div class="label" id="h-written">04 — written</div>
+      <div class="posts">
+        <a href="https://alektebel.github.io/blog/master-thesis-reinforcement-learning.html">
+          <div class="p-meta">Oct 2025 · RL</div>
+          <div class="p-title">Master thesis: reinforcement learning applications</div>
+          <p class="p-blurb">Soft Actor-Critic implemented and pushed, plus an analysis of modern RL on continuous control.</p>
+        </a>
+        <a href="https://alektebel.github.io/blog/kan-implementation-pytorch-taylor.html">
+          <div class="p-meta">Jan 2025 · PyTorch</div>
+          <div class="p-title">Kolmogorov-Arnold networks via Taylor expansion</div>
+          <p class="p-blurb">What happens to a KAN when you swap B-splines for Taylor polynomials.</p>
+        </a>
+        <a href="https://alektebel.github.io/blog/proposal-for-consensus-algorithm.html">
+          <div class="p-meta">Nov 2025 · Bayesian · in progress</div>
+          <div class="p-title">A consensus algorithm for data labeling</div>
+          <p class="p-blurb">Many noisy annotators, one true label. A Bayesian way to decide who to believe.</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- 05 open questions -->
+    <section class="dark-sec" aria-labelledby="h-open">
+      <div class="label" id="h-open">05 — open questions</div>
+      <p class="lede">Unfinished on purpose. If you have an answer, or a better question, I want to hear it.</p>
+      <div class="q-list">
+        <div class="q-item">
+          <span class="q-n">Q1</span>
+          <div>
+            <div class="q-title">Is a decentralized civilization feasible?</div>
+            <div class="q-note">Not the token — the civilization. Governance, defence, and the logistics nobody writes whitepapers about.</div>
+          </div>
+        </div>
+        <div class="q-item">
+          <span class="q-n">Q2</span>
+          <div>
+            <div class="q-title">What is true, versus what you are told?</div>
+            <div class="q-note">The gap between the account and the event, and whether you can measure it.</div>
+          </div>
+        </div>
+        <div class="q-item">
+          <span class="q-n">Q3</span>
+          <div>
+            <div class="q-title">Can the Collatz conjecture be read as linear algebra?</div>
+            <div class="q-note">3n+1 and n/2 as matrices, hunting invariants. Unpublished — ask me.</div>
+          </div>
+        </div>
+        <div class="q-item">
+          <span class="q-n">Q4</span>
+          <div>
+            <div class="q-title">How big a sofa fits around the corner?</div>
+            <div class="q-note">A soft actor-critic agent versus an L-shaped corridor. Geometry by search.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 track -->
+    <section aria-labelledby="h-track">
+      <div class="label" id="h-track">06 — track</div>
+      <div class="track-list">
+        <div class="track-row">
+          <span class="track-when">2023 → now</span>
+          <div class="track-what"><strong>Senior Data Analyst, PwC</strong><div>LGD database migration (SAS → Oracle) for a top-5 Spanish bank; FINREP/COREP automation; stress testing.</div></div>
+        </div>
+        <div class="track-row">
+          <span class="track-when">2022 → 23</span>
+          <div class="track-what"><strong>Data Engineer, Álamo Consulting</strong><div>Regulatory reporting (FINREP / COREP / SIRBE) for the Bank of Spain.</div></div>
+        </div>
+      </div>
+      <div class="cta">
+        <div class="big">Got a pipeline nobody can debug?</div>
+        <a class="mail" href="mailto:dratencia@gmail.com">dratencia@gmail.com</a>
+      </div>
+      <footer class="colophon">© 2026 Diego Rodríguez Atencia</footer>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ── Backend endpoint: paste the Lambda Function URL after `sam deploy`.
+   Leave empty and the ask box degrades gracefully to an email fallback. */
+const ASK_ENDPOINT = "https://20rv2a9if4.execute-api.eu-west-1.amazonaws.com/ask";
+const FALLBACK = "That didn't go through. Ask me directly instead: dratencia@gmail.com";
+
+/* ── Clock ── */
+(function clock() {
+  const el = document.getElementById("clock");
+  const pad = (n) => String(n).padStart(2, "0");
+  const tick = () => {
+    const d = new Date();
+    el.textContent = pad(d.getHours()) + ":" + pad(d.getMinutes());
+  };
+  tick();
+  setInterval(tick, 20000);
+})();
+
+/* ── GitHub: latest public push ── */
+(async function github() {
+  const box = document.getElementById("gh-box");
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const ago = (iso) => {
+    const s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (s < 3600) return Math.max(1, Math.round(s / 60)) + "m ago";
+    if (s < 86400) return Math.round(s / 3600) + "h ago";
+    return Math.round(s / 86400) + "d ago";
+  };
+  try {
+    const r = await fetch("https://api.github.com/users/alektebel/events/public?per_page=30");
+    if (!r.ok) throw new Error("gh " + r.status);
+    const events = await r.json();
+    const mine = events.filter((e) => e.repo && e.repo.name.split("/")[0].toLowerCase() === "alektebel");
+    const ev = mine.find((e) => e.type === "PushEvent") || mine[0];
+    if (!ev) throw new Error("no events");
+    const full = ev.repo.name, repo = full.split("/").pop();
+    const inline = ev.payload && ev.payload.commits && ev.payload.commits.length
+      ? ev.payload.commits[ev.payload.commits.length - 1] : null;
+    const verbs = { PushEvent: "pushed to", PullRequestEvent: "opened a PR in", CreateEvent: "created", IssuesEvent: "filed an issue in", WatchEvent: "starred", ForkEvent: "forked", ReleaseEvent: "released", DeleteEvent: "pruned a branch in" };
+    let msg = inline ? inline.message.split("\n")[0] : (verbs[ev.type] || "worked on") + " " + repo;
+    let url = "https://github.com/" + full;
+    if (!inline && ev.type === "PushEvent") {
+      try {
+        const cr = await fetch("https://api.github.com/repos/" + full + "/commits?per_page=1");
+        if (cr.ok) {
+          const cs = await cr.json();
+          if (cs.length) { msg = cs[0].commit.message.split("\n")[0]; url = cs[0].html_url; }
+        }
+      } catch (e) { /* keep generic line */ }
+    } else if (inline) {
+      url = "https://github.com/" + full + "/commit/" + inline.sha;
+    }
+    box.innerHTML =
+      '<a class="gh-repo" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(repo) + "</a> " +
+      '<span class="gh-ago">· ' + esc(ago(ev.created_at)) + "</span>" +
+      '<div class="gh-msg">' + esc(msg.slice(0, 84)) + "</div>";
+  } catch (e) {
+    box.innerHTML = '<span class="gh-wait">github is being shy — see the repos</span>';
+  }
+})();
+
+/* ── Ask this site → AWS Lambda backend ── */
+(function ask() {
+  const form = document.getElementById("ask-form");
+  const input = document.getElementById("ask-input");
+  const btn = document.getElementById("ask-btn");
+  const status = document.getElementById("ask-status");
+  const box = document.getElementById("ask-answer");
+  const re = document.getElementById("ask-re");
+  const text = document.getElementById("ask-text");
+  let busy = false;
+
+  async function run(question) {
+    const q = (question || "").trim();
+    if (!q || busy) return;
+    busy = true;
+    btn.disabled = true;
+    btn.textContent = "thinking";
+    status.hidden = false;
+    box.hidden = true;
+    try {
+      if (!ASK_ENDPOINT) throw new Error("no backend configured");
+      const r = await fetch(ASK_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q })
+      });
+      if (!r.ok) throw new Error("backend " + r.status);
+      const data = await r.json();
+      const answer = (data && data.answer || "").trim();
+      if (!answer) throw new Error("empty answer");
+      re.textContent = "re: " + q.slice(0, 120);
+      text.textContent = answer;
+      box.hidden = false;
+    } catch (e) {
+      re.textContent = "re: " + q.slice(0, 120);
+      text.textContent = ASK_ENDPOINT ? FALLBACK
+        : "The ask backend isn't deployed yet — email me directly: dratencia@gmail.com";
+      box.hidden = false;
+    } finally {
+      busy = false;
+      btn.disabled = false;
+      btn.textContent = "ask";
+      status.hidden = true;
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    run(input.value);
+  });
+  document.querySelectorAll(".suggestions button").forEach((b) =>
+    b.addEventListener("click", () => {
+      input.value = b.getAttribute("data-q");
+      run(input.value);
+    })
+  );
+})();
+
+/* ── Gradient-descent field (canvas) ── */
+(function field() {
+  const cv = document.getElementById("field");
+  const label = document.getElementById("descent-label");
+  const ACCENT = "#ff3b1f";
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  const S = {
+    basins: [], walkers: [], mouse: null, surface: 0,
+    seed() {
+      this.basins = [];
+      for (let i = 0; i < 3; i++) {
+        this.basins.push({
+          x: rnd(0.15, 0.85), y: rnd(0.15, 0.85),
+          s: rnd(0.10, 0.26), w: rnd(0.6, 1.5),
+          vx: rnd(-0.5, 0.5) * 0.00012, vy: rnd(-0.5, 0.5) * 0.00012
+        });
+      }
+      this.walkers = [];
+      for (let i = 0; i < 26; i++) this.walkers.push(newWalker());
+      this.surface++;
+      label.textContent = "surface " + String(this.surface).padStart(2, "0") + " · 26 walkers · move the cursor";
+    }
+  };
+  function newWalker() {
+    return { x: Math.random(), y: Math.random(), trail: [], life: 0, max: rnd(180, 440) };
+  }
+  function grad(x, y) {
+    let gx = 0, gy = 0;
+    for (const b of S.basins) {
+      const dx = x - b.x, dy = y - b.y, r2 = dx * dx + dy * dy;
+      const e = b.w * Math.exp(-r2 / (2 * b.s * b.s)) / (b.s * b.s);
+      gx += dx * e; gy += dy * e;
+    }
+    if (S.mouse) {
+      const dx = x - S.mouse.x, dy = y - S.mouse.y, r2 = dx * dx + dy * dy;
+      const e = 1.6 * Math.exp(-r2 / 0.024) / 0.012;
+      gx -= dx * e; gy -= dy * e;
+    }
+    return [gx, gy];
+  }
+  function val(x, y) {
+    let v = 0;
+    for (const b of S.basins) {
+      const dx = x - b.x, dy = y - b.y;
+      v -= b.w * Math.exp(-(dx * dx + dy * dy) / (2 * b.s * b.s));
+    }
+    return v;
+  }
+
+  const ctx = cv.getContext("2d");
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let w = 0, h = 0;
+  function measure() {
+    const cw = cv.clientWidth, ch = cv.clientHeight;
+    if (!cw || !ch) return false;
+    if (cw !== w || ch !== h) {
+      w = cw; h = ch;
+      cv.width = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    return true;
+  }
+  function contours() {
+    const cols = 52, rows = 30, g = [];
+    for (let j = 0; j <= rows; j++) {
+      g[j] = [];
+      for (let i = 0; i <= cols; i++) g[j][i] = val(i / cols, j / rows);
+    }
+    ctx.lineWidth = 1;
+    for (let li = 0; li < 9; li++) {
+      const lv = -0.06 - li * 0.13;
+      ctx.strokeStyle = "rgba(17,17,16," + (0.05 + li * 0.028) + ")";
+      ctx.beginPath();
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const a = g[j][i], b = g[j][i + 1], c = g[j + 1][i + 1], d = g[j + 1][i];
+        const px = (i / cols) * w, py = (j / rows) * h, cw = w / cols, ch = h / rows;
+        const pts = [];
+        if ((a < lv) !== (b < lv)) pts.push([px + cw * (lv - a) / (b - a), py]);
+        if ((b < lv) !== (c < lv)) pts.push([px + cw, py + ch * (lv - b) / (c - b)]);
+        if ((c < lv) !== (d < lv)) pts.push([px + cw * (1 - (lv - c) / (d - c)), py + ch]);
+        if ((d < lv) !== (a < lv)) pts.push([px, py + ch * (1 - (lv - d) / (a - d))]);
+        if (pts.length >= 2) { ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); }
+      }
+      ctx.stroke();
+    }
+  }
+  function frame() {
+    if (!measure()) return;
+    ctx.clearRect(0, 0, w, h);
+    for (const b of S.basins) {
+      b.x += b.vx * 16; b.y += b.vy * 16;
+      if (b.x < 0.08 || b.x > 0.92) b.vx *= -1;
+      if (b.y < 0.08 || b.y > 0.92) b.vy *= -1;
+    }
+    contours();
+    for (const b of S.basins) {
+      ctx.strokeStyle = "rgba(17,17,16,0.5)";
+      ctx.beginPath(); ctx.arc(b.x * w, b.y * h, 3, 0, 6.284); ctx.stroke();
+    }
+    for (let k = 0; k < S.walkers.length; k++) {
+      const p = S.walkers[k];
+      const [gx, gy] = grad(p.x, p.y);
+      const step = 0.0016;
+      p.x -= gx * step; p.y -= gy * step;
+      p.x += (Math.random() - 0.5) * 0.0012;
+      p.y += (Math.random() - 0.5) * 0.0012;
+      p.life++;
+      p.trail.push([p.x, p.y]);
+      if (p.trail.length > 46) p.trail.shift();
+      if (p.life > p.max || p.x < -0.05 || p.x > 1.05 || p.y < -0.05 || p.y > 1.05) {
+        S.walkers[k] = newWalker();
+        continue;
+      }
+      ctx.strokeStyle = ACCENT;
+      ctx.lineWidth = 1.1;
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      p.trail.forEach((t, i) => {
+        const X = t[0] * w, Y = t[1] * h;
+        if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y);
+      });
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = ACCENT;
+      ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 1.9, 0, 6.284); ctx.fill();
+    }
+  }
+
+  S.seed();
+  cv.addEventListener("pointermove", (e) => {
+    const r = cv.getBoundingClientRect();
+    S.mouse = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
+  });
+  cv.addEventListener("pointerleave", () => { S.mouse = null; });
+  document.getElementById("reseed").addEventListener("click", () => { S.seed(); frame(); });
+
+  frame();
+  if (!reduce) setInterval(frame, 33);
+})();
+</script>
 </body>
 </html>

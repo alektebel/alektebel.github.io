@@ -1,0 +1,124 @@
+# Plain CloudFormation (no SAM transform) for the ask-this-site backend.
+# The deploy IAM user lacks permission on the Serverless transform, so this
+# template uses raw resources: Secret + Role + Function + FunctionUrl.
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Ask-this-site backend for alektebel.github.io (bilingual ES/EN portfolio Q&A)
+
+Parameters:
+  CodeBucket:
+    Type: String
+    Description: S3 bucket holding the zipped Lambda code.
+  CodeKey:
+    Type: String
+    Default: ask-site/ask.zip
+    Description: S3 key of the zipped Lambda code.
+  LlmBaseUrl:
+    Type: String
+    Default: https://api.nan.builders/v1
+  LlmModel:
+    Type: String
+    Default: qwen3.6
+  ApiKeyValue:
+    Type: String
+    NoEcho: true
+    Description: LLM API key, stored in Secrets Manager (never in env vars).
+  AllowedOrigin:
+    Type: String
+    Default: https://alektebel.github.io
+
+Resources:
+  ApiKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: ask-site/llm-api-key
+      Description: LLM API key for the portfolio ask backend
+      SecretString: !Sub '{"api_key":"${ApiKeyValue}"}'
+
+  AskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: read-own-secret
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref ApiKeySecret
+
+  AskFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: { S3Bucket: !Ref CodeBucket, S3Key: !Ref CodeKey }
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Timeout: 30
+      MemorySize: 256
+      Role: !GetAtt AskRole.Arn
+      Environment:
+        Variables:
+          LLM_PROVIDER: openai
+          LLM_BASE_URL: !Ref LlmBaseUrl
+          LLM_MODEL: !Ref LlmModel
+          SECRET_ARN: !Ref ApiKeySecret
+          ALLOWED_ORIGIN: !Ref AllowedOrigin
+
+  # Function URLs are unusable in this account (anonymous calls get 403
+  # AccessDenied even with AuthType NONE), so the public frontend is an
+  # API Gateway HTTP API instead. CORS is answered in app.py itself.
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ask-site
+      ProtocolType: HTTP
+
+  HttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt AskFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  AskRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /ask'
+      Target: !Sub 'integrations/${HttpIntegration}'
+
+  PreflightRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      # Answered inside app.py (204 + Access-Control-Allow-* headers).
+      ApiId: !Ref HttpApi
+      RouteKey: 'OPTIONS /ask'
+      Target: !Sub 'integrations/${HttpIntegration}'
+
+  DefaultStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+
+  InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt AskFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
+
+Outputs:
+  AskEndpoint:
+    Description: Paste this URL into ASK_ENDPOINT in index.html
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/ask'
