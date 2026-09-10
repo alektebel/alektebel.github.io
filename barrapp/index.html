@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>barrapp — mide tus repeticiones</title>
+<meta name="description" content="barrapp graba una serie de calistenia, mide cada repetición y te dice qué falló — y cuándo no ha podido medirlo.">
+<meta property="og:title" content="barrapp — mide tus repeticiones">
+<meta property="og:description" content="Graba la serie. barrapp cuenta las repeticiones, puntúa cada una y señala los errores de técnica.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#161826; --surface:#1C1D28; --surface-2:#232532;
+    --primary:#9184D9; --primary-bright:#7C5CFF; --primary-soft:#262A60;
+    --on-primary-container:#D2CEFD;
+    --outline:#3F424D; --fg:#E9E9ED; --muted:#9B9DAD;
+    --good:#3FD9A0; --warn:#E0A340;
+    --display:"Barlow Condensed",Impact,"Haettenschweiler","Arial Narrow",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:16px/1.65 var(--sans);
+    overflow-x:hidden;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px}
+
+  /* ---- top bar ---- */
+  .top{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap;
+    padding:22px 0 0;
+  }
+  .wordmark{
+    font:600 13px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase;
+    color:var(--primary);
+  }
+  .toplinks{display:flex; gap:18px; flex-wrap:wrap}
+  .toplinks a{
+    font:500 12px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); text-decoration:none;
+  }
+  .toplinks a:hover{color:var(--fg)}
+
+  /* ---- hero ---- */
+  header.hero{padding:56px 0 8px}
+  .eyebrow{
+    display:inline-block; font:500 11px/1 var(--mono);
+    letter-spacing:.2em; text-transform:uppercase;
+    color:var(--on-primary-container); background:var(--primary-soft);
+    padding:7px 12px; border-radius:999px; margin-bottom:22px;
+  }
+  h1{
+    font-family:var(--display); font-weight:900;
+    font-size:clamp(44px,10vw,88px); line-height:.94;
+    margin:0 0 20px; letter-spacing:.01em; text-transform:uppercase;
+  }
+  h1 .accent{color:var(--primary)}
+  .lead{
+    font-size:clamp(17px,2.4vw,20px); line-height:1.55;
+    color:var(--muted); max-width:52ch; margin:0 0 14px;
+  }
+  .lead strong{color:var(--fg); font-weight:600}
+
+  /* ---- shots ---- */
+  .shots{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));
+    gap:28px; margin:52px 0 8px; align-items:start;
+  }
+  .shot{min-width:0}
+  .shot img{
+    display:block; width:100%; height:auto; border-radius:20px;
+    border:1px solid var(--outline); background:var(--surface);
+  }
+  .shot figcaption{
+    font:400 12.5px/1.5 var(--mono); color:var(--muted);
+    margin-top:12px; letter-spacing:.02em;
+  }
+
+  /* ---- sections ---- */
+  section{padding:64px 0 0}
+  h2{
+    font-family:var(--display); font-weight:700; text-transform:uppercase;
+    font-size:clamp(26px,4.5vw,38px); line-height:1.05;
+    margin:0 0 8px; letter-spacing:.02em;
+  }
+  .sub{color:var(--muted); margin:0 0 30px; max-width:56ch}
+
+  .steps{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));
+    gap:18px; margin:0;
+  }
+  .step{
+    min-width:0; background:var(--surface); border:1px solid var(--outline);
+    border-radius:18px; padding:22px 22px 24px;
+  }
+  .step .n{
+    font:600 11px/1 var(--mono); letter-spacing:.18em;
+    color:var(--primary); text-transform:uppercase; display:block; margin-bottom:14px;
+  }
+  .step h3{
+    font-family:var(--display); font-weight:700; text-transform:uppercase;
+    font-size:22px; line-height:1.1; margin:0 0 8px; letter-spacing:.02em;
+  }
+  .step p{margin:0; color:var(--muted); font-size:15px; line-height:1.6}
+
+  /* ---- honesty panel ---- */
+  .honest{
+    background:var(--surface-2); border:1px solid var(--outline);
+    border-left:3px solid var(--primary);
+    border-radius:0 18px 18px 0; padding:26px 26px 28px; margin-top:8px;
+  }
+  .honest h2{margin-bottom:14px}
+  .honest ul{margin:0; padding-left:20px}
+  .honest li{margin:9px 0; color:var(--muted); font-size:15.5px}
+  .honest li strong{color:var(--fg); font-weight:600}
+  .tag{
+    display:inline-block; font:500 11px/1 var(--mono);
+    letter-spacing:.12em; text-transform:uppercase;
+    padding:5px 9px; border-radius:7px; margin-right:4px;
+    border:1px solid var(--warn); color:var(--warn);
+  }
+
+  /* ---- status ---- */
+  .status{
+    display:flex; gap:14px; align-items:flex-start;
+    background:var(--surface); border:1px solid var(--outline);
+    border-radius:18px; padding:22px 24px; margin-top:20px;
+  }
+  .status .dot{
+    width:9px; height:9px; border-radius:50%; background:var(--good);
+    flex:none; margin-top:9px;
+  }
+  .status p{margin:0; color:var(--muted); font-size:15px}
+  .status strong{color:var(--fg)}
+
+  /* ---- en ---- */
+  .en{
+    margin-top:56px; padding-top:26px; border-top:1px solid var(--outline);
+    color:var(--muted); font-size:14.5px; max-width:60ch;
+  }
+  .en b{color:var(--fg); font-weight:600}
+
+  footer{
+    margin-top:56px; padding:26px 0 60px; border-top:1px solid var(--outline);
+    display:flex; gap:10px 26px; flex-wrap:wrap; align-items:center;
+    font:400 13px/1.6 var(--mono); color:var(--muted);
+  }
+  footer a{color:var(--primary); text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  .spacer{flex:1 1 auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <span class="wordmark">barrapp</span>
+    <nav class="toplinks">
+      <a href="privacidad.html">Privacidad</a>
+      <a href="eliminar-cuenta.html">Eliminar cuenta</a>
+      <a href="mailto:dratencia@gmail.com">Contacto</a>
+    </nav>
+  </div>
+
+  <header class="hero">
+    <span class="eyebrow">Calistenia · medición</span>
+    <h1>Graba la serie.<br><span class="accent">Mira los números.</span></h1>
+    <p class="lead">
+      Grabas una serie con el móvil. barrapp reconoce el movimiento, cuenta las
+      repeticiones, puntúa cada una y te señala qué falló —
+      <strong>y en qué segundo</strong>.
+    </p>
+    <p class="lead">
+      Es una herramienta de medición, no un entrenador que te anima. Si una
+      repetición no se puede leer, lo dice.
+    </p>
+  </header>
+
+  <div class="shots">
+    <figure class="shot">
+      <img src="img/pantalla-inicio.png"
+           alt="Pantalla de inicio de barrapp: nivel, racha, misión del día de 8 dominadas, la semana con tres días completados y la última sesión con su calidad media.">
+      <figcaption>El día, la racha y la última sesión medida.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="img/pantalla-analisis.png"
+           alt="Pantalla de análisis de barrapp: puntuación 71 para una dominada, errores detectados con el número de repeticiones afectadas, y una tarjeta por repetición con su puntuación y sus segundos.">
+      <figcaption>Cada repetición, con su puntuación y sus segundos.</figcaption>
+    </figure>
+  </div>
+
+  <section>
+    <h2>Cómo funciona</h2>
+    <p class="sub">
+      Tres pasos. No hace falta ningún sensor, ni una cinta, ni un reloj: solo la
+      cámara que ya llevas encima.
+    </p>
+    <div class="steps">
+      <div class="step">
+        <span class="n">Paso 01</span>
+        <h3>Graba</h3>
+        <p>
+          Eliges un clip de tu serie desde el selector del sistema. barrapp no
+          pide permiso de cámara ni acceso a toda tu galería: solo recibe el
+          vídeo que tú eliges.
+        </p>
+      </div>
+      <div class="step">
+        <span class="n">Paso 02</span>
+        <h3>Mide</h3>
+        <p>
+          El clip se analiza en el servidor: se estima la pose, se reconoce el
+          movimiento, se separan las repeticiones y se mide cada una — recorrido,
+          tiempos y los errores de técnica del ejercicio.
+        </p>
+      </div>
+      <div class="step">
+        <span class="n">Paso 03</span>
+        <h3>Lee</h3>
+        <p>
+          Vuelven los números: una puntuación por repetición, los errores con el
+          número de reps afectadas, y el histórico para ver si mejoras o solo
+          entrenas más.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="honest">
+      <h2>Lo que no hace</h2>
+      <ul>
+        <li>
+          <strong>No inventa una medición que no tiene.</strong> Cuando la pose
+          no se lee en una repetición, esa repetición sale marcada
+          <span class="tag">Sin medir</span> en vez de recibir una nota
+          inventada.
+        </li>
+        <li>
+          <strong>No es un médico ni un fisioterapeuta.</strong> Mide cómo se
+          movió tu cuerpo en un vídeo. No diagnostica lesiones ni sustituye a un
+          profesional.
+        </li>
+        <li>
+          <strong>No ve el peso.</strong> Una pose en dos dimensiones no sabe
+          cuánto hay en la barra; esa parte la declaras tú.
+        </li>
+        <li>
+          <strong>No es una red social.</strong> Tu clip no se comparte con otros
+          usuarios. No hay muro, ni likes, ni publicidad.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Estado</h2>
+    <div class="status">
+      <span class="dot"></span>
+      <p>
+        <strong>En pruebas internas.</strong> barrapp todavía no está publicada
+        de forma abierta en Google Play. Si quieres probarla, escribe a
+        <a href="mailto:dratencia@gmail.com" style="color:var(--primary)">dratencia@gmail.com</a>
+        y te añado a la lista de testers.
+      </p>
+    </div>
+
+    <p class="en">
+      <b>In English:</b> barrapp measures calisthenics reps from a video you
+      record. It recognises the movement, counts the reps, scores each one and
+      flags the technique faults it found — and says plainly when a rep could not
+      be read rather than guessing. It is a measurement tool, not a coach, and
+      not a substitute for a professional. Currently in internal testing; email
+      <a href="mailto:dratencia@gmail.com" style="color:var(--primary)">dratencia@gmail.com</a>
+      to join.
+    </p>
+  </section>
+
+  <footer>
+    <span>barrapp — alektebel, España</span>
+    <span class="spacer"></span>
+    <a href="privacidad.html">Política de Privacidad</a>
+    <a href="eliminar-cuenta.html">Eliminar cuenta y datos</a>
+    <a href="mailto:dratencia@gmail.com">dratencia@gmail.com</a>
+  </footer>
+
+</div>
+</body>
+</html>
