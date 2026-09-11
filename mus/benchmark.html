@@ -59,13 +59,13 @@ code{font-family:ui-monospace,monospace;font-size:12px;color:#cfd3e5}
   cannot see each other's cards; the only cooperation channel is <em>señas</em> —
   partner-directed, TTL-expiring gestures. Vacas are games to 40 points. Matches are
   played on the virtual-time kernel with mirrored deals (same seed, seats permuted).</p>
-  <div class="meta">Last updated 2026-09-11 15:37 UTC · sources: results/tournament_replication, results/tournament_mirror</div>
+  <div class="meta">Last updated 2026-09-11 16:08 UTC · sources: results/tournament_replication, results/tournament_mirror</div>
 
   <div class="card">
     <h2>Mesa en vivo</h2>
-    <div class="sub">Partida LLM en directo sobre el mismo motor y kernel de señas.
-    En esta vista de <b>director</b> se ven todas las manos en tiempo real (y las señas
-    privadas siguen ocultas para el público general).
+    <div class="sub"><b>glm5.3-flash vs deepseek-v4-flash</b> · Partida LLM en directo sobre el mismo motor y kernel de
+    señas; se ven todas las manos, las señas con su significado y los pensamientos en
+    tiempo real.
     <a href="https://joins-keeps-standards-circumstances.trycloudflare.com?reveal=all" target="_blank" rel="noopener">abrir en pestaña nueva ↗</a></div>
     <div style="position:relative;width:100%;height:780px;border-radius:10px;
     overflow:hidden;border:1px solid var(--divider);background:#0f111c">
@@ -80,9 +80,9 @@ code{font-family:ui-monospace,monospace;font-size:12px;color:#cfd3e5}
     <h2>Leaderboard</h2>
     <div class="sub">Completed, publishable matches only (≥50 real LLM calls, ≤15% fallback).</div>
     <div class="grid">
-      <div class="stat"><div class="k">completed</div><div class="v">1</div></div>
+      <div class="stat"><div class="k">completed</div><div class="v">2</div></div>
       <div class="stat"><div class="k">in progress</div><div class="v">0</div></div>
-      <div class="stat"><div class="k">total matches</div><div class="v">1</div></div>
+      <div class="stat"><div class="k">total matches</div><div class="v">2</div></div>
     </div>
     <table style="margin-top:18px">
       <thead><tr>
@@ -93,25 +93,25 @@ code{font-family:ui-monospace,monospace;font-size:12px;color:#cfd3e5}
       <tbody>
       <tr>
         <td class="model">glm5.3-flash</td>
-        <td class="num">1</td>
-        <td class="num">1–0–0</td>
-        <td class="num strong">2–0</td>
-        <td class="num">6–2</td>
-        <td class="num">41</td>
-        <td class="num">34</td>
+        <td class="num">2</td>
+        <td class="num">1–0–1</td>
+        <td class="num strong">3–1</td>
+        <td class="num">11–7</td>
+        <td class="num">79</td>
+        <td class="num">63</td>
         <td class="num">0</td>
-        <td class="num">121</td>
+        <td class="num">231</td>
       </tr>
       <tr>
         <td class="model">deepseek-v4-flash</td>
-        <td class="num">1</td>
-        <td class="num">0–1–0</td>
-        <td class="num strong">0–2</td>
-        <td class="num">2–6</td>
-        <td class="num">41</td>
-        <td class="num">34</td>
+        <td class="num">2</td>
+        <td class="num">0–1–1</td>
+        <td class="num strong">1–3</td>
+        <td class="num">7–11</td>
+        <td class="num">79</td>
+        <td class="num">63</td>
         <td class="num">0</td>
-        <td class="num">121</td>
+        <td class="num">231</td>
       </tr>
       </tbody>
     </table>
@@ -138,6 +138,18 @@ code{font-family:ui-monospace,monospace;font-size:12px;color:#cfd3e5}
         <td class="num">1</td>
         <td class="num">242</td>
         <td class="num">4455s</td>
+      </tr>
+      <tr>
+        <td class="mono">deepseek-v4-flash vs glm5.3-flash</td>
+        <td class="num">7</td>
+        <td class="status done">done</td>
+        <td class="num strong">1–1</td>
+        <td class="num">5-5</td>
+        <td class="num">77/58/19</td>
+        <td class="num">5</td>
+        <td class="num">0</td>
+        <td class="num">220</td>
+        <td class="num">4163s</td>
       </tr>
       </tbody>
     </table>
