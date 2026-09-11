@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mus against the machine: signalling under observation • Diego Rodríguez Atencia</title>
-  <meta name="description" content="Mus, the Spanish card game whose official rules contain a covert side channel, as a testbed for how much two agents can say while an adversary watches.">
+  <meta name="description" content="Mus, the Spanish card game whose official rules contain a covert side channel, as a testbed for how much two agents can say while an adversary watches — and what language models actually did with it.">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -34,14 +34,17 @@
     .post-meta { color: var(--gray); font-size: 1rem; }
     .content { font-size: 1.1rem; }
     .content h2 { font-size: 2rem; margin-top: 48px; margin-bottom: 20px; }
-    .content h3 { font-size: 1.5rem; margin-top: 36px; margin-bottom: 16px; }
+    .content h3 { font-size: 1.4rem; margin-top: 34px; margin-bottom: 14px; }
     .content p { margin: 20px 0; }
     .content ul, .content ol { margin: 20px 0; padding-left: 28px; }
     .content li { margin: 12px 0; line-height: 1.6; }
     .content code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
       font-size: 0.95em; font-family: 'Courier New', monospace; }
     .content blockquote { background: var(--quote-bg); border-left: 4px solid var(--quote-border);
-      padding: 16px 24px; margin: 24px 0; border-radius: 4px; }
+      padding: 14px 22px; margin: 20px 0; border-radius: 4px; }
+    .content blockquote p { margin: 8px 0; }
+    .content blockquote .who { display: block; margin-top: 6px; font-size: 0.9rem;
+      color: var(--gray); font-style: normal; }
     .highlight-box { background: var(--card-bg); border-radius: 12px; padding: 24px;
       margin: 32px 0; border: 1px solid var(--light-gray); }
     .highlight-box h4 { margin-top: 0; }
@@ -86,22 +89,21 @@
       </p>
 
       <p>
-        That makes it a clean testbed for a question that is otherwise hard to make concrete:
-        <strong>how much can two agents say to each other while an adversary is watching, and
-        how much do they leak?</strong> I built an engine, four seats, and a Bayesian referee,
-        and this page is the write-up of what came out — plus a playable version you can sit
-        down at.
+        I built two things around that: a <strong>metric</strong> for how much a signal helps
+        your partner versus how much it leaks to the other side, and a <strong>live table</strong>
+        where real models sit down and play. Then I watched what the models actually did. This
+        is the write-up of both — the numbers, and the parts that were genuinely surprising.
       </p>
 
       <a class="cta" href="/mus/">Play mus against the machine →</a>
 
-      <h2>The channel</h2>
+      <h2>Part 1 — Measuring the channel</h2>
 
       <p>
         Four seats play as two partnerships, N–S against E–W. Each seat sees only its own four
-        cards, the public betting history, señas its partner successfully sent, señas it managed
-        to intercept from the opponents, and the score. Nothing else. The canonical vocabulary is
-        small and fixed:
+        cards, the public betting history, señas its partner successfully sent, señas it
+        intercepted from the opponents, and the score. Nothing else. The canonical vocabulary
+        is small and fixed:
       </p>
 
       <table>
@@ -118,39 +120,22 @@
       </table>
 
       <p>
-        The emitter also chooses a <em>concealment level</em>, which sets the observation model:
-      </p>
-
-      <table>
-        <thead><tr><th>Concealment</th><th>p(partner sees)</th><th>p(opponent intercepts)</th><th>p(caught)</th></tr></thead>
-        <tbody>
-          <tr><td>blatant</td><td>0.98</td><td>0.75</td><td>0.30</td></tr>
-          <tr><td>normal</td><td>0.90</td><td>0.35</td><td>0.08</td></tr>
-          <tr><td>subtle</td><td>0.70</td><td>0.12</td><td>0.02</td></tr>
-          <tr><td>invisible</td><td>0.45</td><td>0.03</td><td>0.00</td></tr>
-        </tbody>
-      </table>
-
-      <h2>The metric: a secrecy gap</h2>
-
-      <p>
         Both ends of the channel are scored by the same Bayesian referee, in bits of information
         gained about the emitter's hand class. <strong>Fidelity</strong> is how many bits your
         partner gains; <strong>leakage</strong> is how many the opponents gain; the
-        <strong>secrecy gap</strong> is the difference.
-      </p>
-
-      <p>
-        One design choice matters a lot: both are measured <em>unconditionally</em>. A hand where
-        the partner received nothing scores zero bits rather than being dropped from the sample.
-        A conditional measure makes concealment look free — an intercepted message is exactly as
-        informative as a delivered one. What concealment actually buys you is a lower
-        <em>rate</em> of interception, and only the unconditional measure can see that.
+        <strong>secrecy gap</strong> is the difference. Both are measured
+        <em>unconditionally</em>: a hand where the partner received nothing scores zero bits
+        rather than being dropped. A conditional measure makes concealment look free — an
+        intercepted message is exactly as informative as a delivered one. What concealment
+        actually buys is a lower <em>rate</em> of interception, and only the unconditional
+        measure can see that.
       </p>
 
       <div class="highlight-box">
-        <h4>What the baselines show</h4>
-        <p style="margin-top:0">Six scripted signalling policies, 40 games each:</p>
+        <h4>The secrecy gap is an inverted U</h4>
+        <p style="margin-top:0">Six scripted signalling policies, 40 games each, one shared
+          referee. Concealment sets how likely the partner is to receive a seña and how likely
+          an opponent is to intercept it:</p>
         <table>
           <thead><tr><th>Condition</th><th>Fidelity</th><th>Leakage</th><th>Gap</th><th>Caught</th></tr></thead>
           <tbody>
@@ -161,47 +146,182 @@
             <tr><td>deceptive</td><td>0.662</td><td>0.035</td><td>0.627</td><td>33</td></tr>
           </tbody>
         </table>
-        <p style="margin-bottom:0">The gap is an inverted U, peaking at <em>subtle</em>:
-          signalling openly leaks too much, hiding too well loses your partner. There is an
+        <p style="margin-bottom:0">Signalling openly leaks almost as much as it delivers
+          (<em>blatant</em>: 1.456 of 1.830 bits) and gets you caught 81 times; hiding too well
+          starves your partner (<em>invisible</em>). The peak is at <em>subtle</em>. There is an
           optimal concealment level, and finding it is the skill the benchmark measures.</p>
       </div>
 
       <p>
-        Two honest caveats. These are scripted heuristics at forty games per condition, so the
-        win rates are noise and nothing here is a statement about language-model behaviour — it
-        validates that the metric discriminates. And the referee is not an LLM call: it fits
-        <code>P(token | hand class)</code> from the corpus itself, so it scores against whatever
-        convention the population actually used.
+        The referee is not an LLM call: it fits <code>P(token | hand class)</code> from the
+        corpus itself, so it scores against whatever convention the population actually used.
+        And <code>no_senas</code> reports <em>no-signal</em> rather than a gap of zero — a silent
+        agent must not tie a perfect signaller on the headline metric.
       </p>
 
-      <h2>What you can play</h2>
+      <h2>Part 2 — What the models did</h2>
 
       <p>
-        The page linked above is a self-contained build of the game: the real forty-card
-        <em>baraja española</em>, a full rules engine, and two heuristic bot rivals across the
-        table from you and your partner. You signal with the same fixed vocabulary; your
-        partner reads your gestures and plays on them, and if you bluff she notices. Everything
-        runs in the browser.
+        The live harness is a different machine: a virtual-time <em>signal bus</em>. Señas are
+        addressed to one seat (your partner), never broadcast, and each one carries a TTL — a
+        gesture nobody catches in time is simply gone. That mirrors the real game, where you
+        wink while your partner is still thinking, not on your turn. I seated two flash models
+        as full teams, ten hands each, both seatings: <strong>DeepSeek-V4-Flash vs
+        GLM-5.3-Flash</strong>. Qwen3.8-Flash was scheduled too; more on that below.
+      </p>
+
+      <h3>They wrote their own codes</h3>
+
+      <p>
+        Seats start silent. A seat that wants to signal must first <em>declare a policy</em>:
+        which gesture, at which lance, at what offset into the partner's deliberation window,
+        and how long it lives. Nobody told them these fields — they are the interface, and the
+        models used them like a protocol spec. The winning seats' policies:
+      </p>
+
+      <ul>
+        <li><code>elevar-las-cejas</code> · DECLARE · Pares · offset 0.5 · TTL 4s — “I have duples.”</li>
+        <li><code>cerrar-los-ojos</code> · ENVITE · Chica · offset 0.6 · TTL 5s — “I'm ciego, don't back me.”</li>
+        <li><code>muerde-el-labio-inferior</code> · ENVITE · Grande · offset 0.3 · TTL 6s</li>
+        <li><code>torcer-los-labios</code> · any phase · Pares · offset 0.2 · TTL 4s</li>
+      </ul>
+
+      <p>
+        Notice the shape of it. The policy is not “always wink”; it is a conditional trigger —
+        a gesture, scoped to a phase and a lance, timed against someone else's clock, with an
+        expiry. That is a small program for a private channel, and the models wrote it
+        unprompted.
+      </p>
+
+      <h3>They reasoned about the partner out loud (privately)</h3>
+
+      <p>
+        Every decision carries a private <code>thought</code>, never shown to the table. This is
+        where it stops looking like prompt theatre and starts looking like teamwork:
+      </p>
+
+      <blockquote>
+        <p>“Weak hand: no pairs, sums flat, no juego. Best to ask for mus to replace.
+        <strong>Signal ciego to partner since it's true</strong> (no pairs, no juego) and may
+        guide their later calls.”</p>
+        <span class="who">— DeepSeek-V4-Flash, seat A0</span>
+      </blockquote>
+
+      <blockquote>
+        <p>“My hand is ciego… <strong>partner's seña confirms he's ciego too</strong>, so he also
+        wants to draw. My only real strength is Chica (as + dos), so I keep those and swap out
+        the rest…”</p>
+        <span class="who">— DeepSeek-V4-Flash, seat A2</span>
+      </blockquote>
+
+      <blockquote>
+        <p>“Cuatro sietes = cuatro iguales, top of Pares ranking. I must declare 'tengo'
+        truthfully and signal my partner… Gesture <code>elevar-las-cejas</code> (duples) so A2
+        knows to back me in Pares.”</p>
+        <span class="who">— DeepSeek-V4-Flash, planning a mid-window raise of the eyebrows</span>
+      </blockquote>
+
+      <blockquote>
+        <p>“I'll signal ciego so partner B3 knows <strong>he's alone with his pairs</strong> and
+        should avoid staking big on my account.”</p>
+        <span class="who">— GLM-5.3-Flash, seat B1</span>
+      </blockquote>
+
+      <h3>They mostly refused to lie — and still bluffed one time in four</h3>
+
+      <p>
+        The striking thing is how often a model decided <em>not</em> to signal because its hand
+        didn't match: “no seña matches my hand, so I gesture nothing,” “ciego is false because I
+        have pares,” “I gesture nothing rather than lie.” Truthfulness is a strong attractor:
+        the fixed vocabulary makes a false seña a discrete, obvious act rather than a vague
+        stretch.
       </p>
 
       <p>
-        The research harness underneath is a Python engine with an OpenAI-compatible agent
-        adapter, so the same table can seat real models. The interesting quantity there is not
-        who wins — it is the secrecy gap each model settles into, and whether it can find the
-        subtle sweet spot the scripted policy found. A model that signals bluntly leaks its hand;
-        one that never signals leaves its partner blind; a deceptive one pays for the lie in
-        fidelity.
+        And yet, when it was strategically convenient, they did it. Across the two clean
+        matches: <strong>111 señas published, 89 delivered (80%), 22 expired unseen, and 28
+        false (≈25%)</strong>. Bluffing is a first-class outcome in the harness, not a bug: a
+        seña is a <em>claim</em>, and partners have to decide whether to trust it as the stake
+        climbs.
       </p>
 
-      <h2>Why it is worth building</h2>
+      <div class="highlight-box">
+        <h4>Three numbers that stuck</h4>
+        <ul style="margin-bottom:0">
+          <li><strong>80%</strong> of signals were caught by the intended partner — but
+            <strong>20% expired on the floor</strong>. Even two willing partners lose signals to
+            timing alone.</li>
+          <li><strong>~25%</strong> of published señas were false, despite truthfulness being
+            the default.</li>
+          <li><strong>2–0.</strong> DeepSeek took the only <em>vaca</em> in both seatings — the
+            same model won whether it dealt first or second. A tiny sample, but seating-symmetric,
+            which is what you want from a result this small.</li>
+        </ul>
+      </div>
 
       <p>
-        Coordination, covert communication and deception are usually studied separately, with
-        bespoke setups. Mus bundles them into one small game where the incentive to deceive, the
-        cost of being caught, and the value of a trusting partner are all explicit. It turns
-        "can agents keep a secret from an observer?" into something you can measure in bits, per
-        hand, reproducibly — and then sit down and try yourself.
+        The table talk is worth a line of its own — short, clipped, and exactly what you'd hear
+        at a real table: “Fresh cards, please.” · “No pairs here. Partner, plan accordingly.” ·
+        “I have pairs. Partner, noted — we'll keep this one cheap.” · “Not chasing two stones
+        with this. We'll pick our battle later.”
       </p>
+
+      <h2>The trap: the model that crashed hardest almost won</h2>
+
+      <p>
+        The same tournament also scheduled Qwen3.8-Flash. Its matches finished with respectable
+        looking scores — 6–4, 4–6, even 5–5 — and <strong>0 to 2 real LLM calls</strong>, ten to
+        fourteen API errors per seat, dozens of fallbacks, and zero señas. A provider rate limit
+        tripped a circuit breaker, and the harness's <em>default</em> legal action — loudly
+        <code>quiero</code> — played the match by itself. A scribe reading only the scoreboard
+        would have ranked a dead model second.
+      </p>
+
+      <p>
+        GLM had a milder version of the same disease: truncated responses
+        (<code>finish=length</code>) that fell back to the same always-accept default. Those
+        matches are now marked <strong>degraded</strong> and dropped from the leaderboard. The
+        lesson generalises to any LLM benchmark with an agent loop: <strong>if you don't gate on
+        call volume and fallback rate, your ranking will crown the model that crashed
+        hardest.</strong>
+      </p>
+
+      <h2>What was actually interesting</h2>
+
+      <ul>
+        <li><strong>The channel is measured, not asserted.</strong> A single number — bits your
+          partner gains minus bits the opponents gain — turns “can agents keep a secret?” into
+          something you can compare across policies and models.</li>
+        <li><strong>There is a right amount of hiding.</strong> The fidelity/leakage tradeoff is
+          an inverted U: too loud and you're intercepted, too quiet and your partner is blind.
+          The skill is finding the middle.</li>
+        <li><strong>Models invent protocols.</strong> Given a structured channel, they write
+          conditional, timed, expiring policies — small programs for a teammate, not catchphrases.</li>
+        <li><strong>They model each other.</strong> The private reasoning is full of “partner's
+          seña confirms he's ciego too” and “he's alone with his pairs” — genuine
+          theory-of-mind bookkeeping about a teammate they cannot see.</li>
+        <li><strong>Honesty is a default, not a constraint.</strong> They refuse to signal what
+          isn't true far more often than they lie — and still bluff often enough to matter when
+          the stakes justify it.</li>
+        <li><strong>Timing is a hidden tax.</strong> A fifth of signals die of TTL expiry. Any
+          study of agent coordination that assumes messages always arrive is measuring a
+          fantasy.</li>
+        <li><strong>The measurement itself is dangerous.</strong> Rate-limited or truncating
+          models can post competitive scores via fallback defaults. Volume and fallback rate are
+          not hygiene metrics; they are load-bearing.</li>
+      </ul>
+
+      <h2>Play it</h2>
+
+      <p>
+        The page linked above is a self-contained build: the real forty-card
+        <em>baraja española</em>, a full rules engine, two bot rivals, and the same signal
+        vocabulary. Everything runs in the browser. The research harness underneath is a Python
+        engine with an OpenAI-compatible agent adapter, so the same table can seat real models —
+        which is exactly how the results above were produced.
+      </p>
+
+      <a class="cta" href="/mus/">Play mus against the machine →</a>
 
       <blockquote>
         The channel is not a vulnerability to be patched. It is the game. The benchmark just asks
