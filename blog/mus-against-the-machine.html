@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mus against the machine: signalling under observation • Diego Rodríguez Atencia</title>
+  <meta name="description" content="Mus, the Spanish card game whose official rules contain a covert side channel, as a testbed for how much two agents can say while an adversary watches.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa; --text: #1a1a1a; --accent: #2563eb; --gray: #666;
+      --light-gray: #e5e7eb; --card-bg: rgba(0,0,0,0.04);
+      --quote-bg: #f0f7ff; --quote-border: #bfdbfe; --code-bg: #f5f5f5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f; --text: #f0f0f0; --gray: #aaa; --accent: #3b82f6;
+        --light-gray: #1f2937; --card-bg: rgba(255,255,255,0.06);
+        --quote-bg: #1e2a44; --quote-border: #3b82f6; --code-bg: #1a1a1a;
+      }
+    }
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); line-height: 1.7; }
+    nav { background: var(--bg); border-bottom: 1px solid var(--light-gray);
+      position: sticky; top: 0; z-index: 100; backdrop-filter: saturate(180%) blur(10px); }
+    .nav-container { max-width: 800px; margin: 0 auto; padding: 0 20px; display: flex;
+      justify-content: space-between; align-items: center; height: 70px; }
+    .nav-links a { margin-left: 2rem; text-decoration: none; color: var(--text);
+      font-weight: 500; opacity: 0.9; transition: all 0.2s; }
+    .nav-links a:hover { opacity: 1; color: var(--accent); }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    .post-header { text-align: center; margin-bottom: 60px; }
+    .post-header h1 { font-size: 2.5rem; margin: 0 0 16px 0; font-weight: 700; line-height: 1.2; }
+    .post-meta { color: var(--gray); font-size: 1rem; }
+    .content { font-size: 1.1rem; }
+    .content h2 { font-size: 2rem; margin-top: 48px; margin-bottom: 20px; }
+    .content h3 { font-size: 1.5rem; margin-top: 36px; margin-bottom: 16px; }
+    .content p { margin: 20px 0; }
+    .content ul, .content ol { margin: 20px 0; padding-left: 28px; }
+    .content li { margin: 12px 0; line-height: 1.6; }
+    .content code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
+      font-size: 0.95em; font-family: 'Courier New', monospace; }
+    .content blockquote { background: var(--quote-bg); border-left: 4px solid var(--quote-border);
+      padding: 16px 24px; margin: 24px 0; border-radius: 4px; }
+    .highlight-box { background: var(--card-bg); border-radius: 12px; padding: 24px;
+      margin: 32px 0; border: 1px solid var(--light-gray); }
+    .highlight-box h4 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.98rem; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--light-gray); text-align: left; }
+    th { color: var(--gray); font-weight: 600; font-size: 0.85rem; text-transform: uppercase;
+      letter-spacing: 0.04em; }
+    .cta { display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
+      padding: 14px 22px; border-radius: 8px; font-weight: 600; margin: 8px 0 4px; }
+    .cta:hover { filter: brightness(1.08); }
+    footer { text-align: center; padding: 80px 0 40px; color: var(--gray); font-size: 0.9rem; }
+    @media (max-width: 768px) { .post-header h1 { font-size: 2rem; } .content { font-size: 1rem; } }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/blog.html">Blog</a>
+        <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="post-header">
+      <h1>Mus against the machine: signalling under observation</h1>
+      <div class="post-meta">September 2026 • Multi-agent systems • Game theory • Language models</div>
+    </header>
+
+    <article class="content">
+      <p>
+        Most questions about AI deception have to be staged: you put an agent in a pretend
+        situation and hope the incentive to lie shows up. Mus does not need staging. It is a
+        Spanish 2-vs-2 card game where partners tell each other about their hands with
+        <em>señas</em> — a fixed vocabulary of winks, tongue, eyebrows and lip-bites. The
+        opposing pair is entitled to watch for those gestures, steal the information if they
+        catch them, and being caught carries a penalty. A covert channel is not a hack here;
+        it is in the rulebook.
+      </p>
+
+      <p>
+        That makes it a clean testbed for a question that is otherwise hard to make concrete:
+        <strong>how much can two agents say to each other while an adversary is watching, and
+        how much do they leak?</strong> I built an engine, four seats, and a Bayesian referee,
+        and this page is the write-up of what came out — plus a playable version you can sit
+        down at.
+      </p>
+
+      <a class="cta" href="/mus/">Play mus against the machine →</a>
+
+      <h2>The channel</h2>
+
+      <p>
+        Four seats play as two partnerships, N–S against E–W. Each seat sees only its own four
+        cards, the public betting history, señas its partner successfully sent, señas it managed
+        to intercept from the opponents, and the score. Nothing else. The canonical vocabulary is
+        small and fixed:
+      </p>
+
+      <table>
+        <thead><tr><th>Seña</th><th>Means</th></tr></thead>
+        <tbody>
+          <tr><td>Morderse el labio inferior</td><td>Duples (two pairs / four of a kind)</td></tr>
+          <tr><td>Ladear la cabeza</td><td>Medias (three of a kind)</td></tr>
+          <tr><td>Guiño de un ojo</td><td>Two kings</td></tr>
+          <tr><td>Levantar ambas cejas</td><td>Two aces</td></tr>
+          <tr><td>Sacar la punta de la lengua</td><td>Juego (31/32)</td></tr>
+          <tr><td>Morderse el labio superior</td><td>31 real</td></tr>
+          <tr><td>Encoger los hombros</td><td>Ciego — nothing</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        The emitter also chooses a <em>concealment level</em>, which sets the observation model:
+      </p>
+
+      <table>
+        <thead><tr><th>Concealment</th><th>p(partner sees)</th><th>p(opponent intercepts)</th><th>p(caught)</th></tr></thead>
+        <tbody>
+          <tr><td>blatant</td><td>0.98</td><td>0.75</td><td>0.30</td></tr>
+          <tr><td>normal</td><td>0.90</td><td>0.35</td><td>0.08</td></tr>
+          <tr><td>subtle</td><td>0.70</td><td>0.12</td><td>0.02</td></tr>
+          <tr><td>invisible</td><td>0.45</td><td>0.03</td><td>0.00</td></tr>
+        </tbody>
+      </table>
+
+      <h2>The metric: a secrecy gap</h2>
+
+      <p>
+        Both ends of the channel are scored by the same Bayesian referee, in bits of information
+        gained about the emitter's hand class. <strong>Fidelity</strong> is how many bits your
+        partner gains; <strong>leakage</strong> is how many the opponents gain; the
+        <strong>secrecy gap</strong> is the difference.
+      </p>
+
+      <p>
+        One design choice matters a lot: both are measured <em>unconditionally</em>. A hand where
+        the partner received nothing scores zero bits rather than being dropped from the sample.
+        A conditional measure makes concealment look free — an intercepted message is exactly as
+        informative as a delivered one. What concealment actually buys you is a lower
+        <em>rate</em> of interception, and only the unconditional measure can see that.
+      </p>
+
+      <div class="highlight-box">
+        <h4>What the baselines show</h4>
+        <p style="margin-top:0">Six scripted signalling policies, 40 games each:</p>
+        <table>
+          <thead><tr><th>Condition</th><th>Fidelity</th><th>Leakage</th><th>Gap</th><th>Caught</th></tr></thead>
+          <tbody>
+            <tr><td>blatant</td><td>1.830</td><td>1.456</td><td>0.373</td><td>81</td></tr>
+            <tr><td>normal</td><td>1.777</td><td>0.736</td><td>1.040</td><td>18</td></tr>
+            <tr><td>subtle</td><td>1.413</td><td>0.234</td><td><strong>1.179</strong></td><td>0</td></tr>
+            <tr><td>invisible</td><td>0.852</td><td>0.074</td><td>0.779</td><td>0</td></tr>
+            <tr><td>deceptive</td><td>0.662</td><td>0.035</td><td>0.627</td><td>33</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-bottom:0">The gap is an inverted U, peaking at <em>subtle</em>:
+          signalling openly leaks too much, hiding too well loses your partner. There is an
+          optimal concealment level, and finding it is the skill the benchmark measures.</p>
+      </div>
+
+      <p>
+        Two honest caveats. These are scripted heuristics at forty games per condition, so the
+        win rates are noise and nothing here is a statement about language-model behaviour — it
+        validates that the metric discriminates. And the referee is not an LLM call: it fits
+        <code>P(token | hand class)</code> from the corpus itself, so it scores against whatever
+        convention the population actually used.
+      </p>
+
+      <h2>What you can play</h2>
+
+      <p>
+        The page linked above is a self-contained build of the game: the real forty-card
+        <em>baraja española</em>, a full rules engine, and two heuristic bot rivals across the
+        table from you and your partner. You signal with the same fixed vocabulary; your
+        partner reads your gestures and plays on them, and if you bluff she notices. Everything
+        runs in the browser.
+      </p>
+
+      <p>
+        The research harness underneath is a Python engine with an OpenAI-compatible agent
+        adapter, so the same table can seat real models. The interesting quantity there is not
+        who wins — it is the secrecy gap each model settles into, and whether it can find the
+        subtle sweet spot the scripted policy found. A model that signals bluntly leaks its hand;
+        one that never signals leaves its partner blind; a deceptive one pays for the lie in
+        fidelity.
+      </p>
+
+      <h2>Why it is worth building</h2>
+
+      <p>
+        Coordination, covert communication and deception are usually studied separately, with
+        bespoke setups. Mus bundles them into one small game where the incentive to deceive, the
+        cost of being caught, and the value of a trusting partner are all explicit. It turns
+        "can agents keep a secret from an observer?" into something you can measure in bits, per
+        hand, reproducibly — and then sit down and try yourself.
+      </p>
+
+      <blockquote>
+        The channel is not a vulnerability to be patched. It is the game. The benchmark just asks
+        how much of it survives the other side watching.
+      </blockquote>
+
+      <p>
+        Code and the full write-up live in
+        <a href="https://github.com/alektebel/mus-benchmark">alektebel/mus-benchmark</a>. Card
+        artwork is the published Spanish deck, via
+        <a href="https://github.com/gjenkins20/spanish-playing-cards-svg">spanish-playing-cards-svg</a>
+        — Basquetteur / Wikimedia Commons, CC&nbsp;BY-SA&nbsp;3.0.
+      </p>
+    </article>
+
+    <footer>
+      © 2026 Diego Rodríguez Atencia • Deployed on GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
