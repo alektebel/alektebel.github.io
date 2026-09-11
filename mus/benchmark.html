@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mus_bench · LLM results · Diego Rodríguez Atencia</title>
+<meta name="description" content="Live results from mus_bench: two-player LLM teams playing mus under partial observability, with partner-directed señas.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#161826;--surface:#232532;--text:#e9e9ed;--accent:#9184d9;
+--divider:color-mix(in srgb,#e9e9ed 16%,transparent);--muted:#9397ab;
+--heading:"Inter",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--heading);font-size:14px;line-height:1.5;color:var(--text);
+background:radial-gradient(120% 80% at 15% -10%,#1d2036 0%,var(--bg) 55%)}
+a{color:#b5abfc;text-decoration:none}a:hover{color:#e7e5fe}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 24px}
+.top{display:flex;gap:16px;align-items:baseline;margin-bottom:8px}
+.eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#b5abfc}
+h1{font-size:clamp(30px,4.5vw,48px);font-weight:500;letter-spacing:-.02em;margin:8px 0 12px}
+p.lede{color:#cfd3e5;max-width:62ch;font-size:15px}
+.meta{color:var(--muted);font-size:12px;margin-top:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em;
+text-transform:uppercase;padding:4px 10px;border-radius:6px;background:#423a6a;color:#e7e5fe}
+.card{background:var(--surface);border-radius:14px;padding:22px;margin:28px 0}
+.card h2{font-size:16px;font-weight:600;margin:0 0 4px}
+.card .sub{color:var(--muted);font-size:12px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.06em;
+text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--divider);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid color-mix(in srgb,#e9e9ed 7%,transparent)}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.model,.mono{font-family:ui-monospace,monospace;font-size:12px}
+.strong{font-weight:600;color:#e7e5fe}
+.status{font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.status.done,.status.finished{color:#9ee6b4}
+.status.degraded,.status.failed{color:#c98a8a}
+.status.running,.status.queued{color:#b5abfc}
+.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:6px}
+.stat{background:color-mix(in srgb,#e9e9ed 4%,transparent);border-radius:10px;padding:14px}
+.stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stat .v{font-size:22px;font-weight:600;margin-top:4px}
+footer{border-top:1px solid var(--divider);margin-top:40px;padding-top:18px;color:var(--muted);font-size:12px}
+code{font-family:ui-monospace,monospace;font-size:12px;color:#cfd3e5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <span class="pill">mus_bench</span>
+    <span class="meta">LLM cooperation under partial observability</span>
+  </div>
+  <h1>mus contra la máquina — LLM benchmark</h1>
+  <p class="lede">Two frontier models each fill a full mus team (seats 0+2 vs 1+3). Partners
+  cannot see each other's cards; the only cooperation channel is <em>señas</em> —
+  partner-directed, TTL-expiring gestures. Vacas are games to 40 points. Matches are
+  played on the virtual-time kernel with mirrored deals (same seed, seats permuted).</p>
+  <div class="meta">Last updated 2026-09-11 15:14 UTC · sources: results/tournament_replication, results/tournament_mirror</div>
+
+  <div class="card">
+    <h2>Leaderboard</h2>
+    <div class="sub">Completed, publishable matches only (≥50 real LLM calls, ≤15% fallback).</div>
+    <div class="grid">
+      <div class="stat"><div class="k">completed</div><div class="v">1</div></div>
+      <div class="stat"><div class="k">in progress</div><div class="v">0</div></div>
+      <div class="stat"><div class="k">total matches</div><div class="v">1</div></div>
+    </div>
+    <table style="margin-top:18px">
+      <thead><tr>
+        <th>model</th><th class="num">M</th><th class="num">W–L–T</th>
+        <th class="num">vacas</th><th class="num">hands</th><th class="num">señas pub</th>
+        <th class="num">caught</th><th class="num">fallbacks</th><th class="num">calls</th>
+      </tr></thead>
+      <tbody>
+      <tr>
+        <td class="model">glm5.3-flash</td>
+        <td class="num">1</td>
+        <td class="num">1–0–0</td>
+        <td class="num strong">2–0</td>
+        <td class="num">6–2</td>
+        <td class="num">41</td>
+        <td class="num">34</td>
+        <td class="num">0</td>
+        <td class="num">121</td>
+      </tr>
+      <tr>
+        <td class="model">deepseek-v4-flash</td>
+        <td class="num">1</td>
+        <td class="num">0–1–0</td>
+        <td class="num strong">0–2</td>
+        <td class="num">2–6</td>
+        <td class="num">41</td>
+        <td class="num">34</td>
+        <td class="num">0</td>
+        <td class="num">121</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Completed matches</h2>
+    <div class="sub">vacas A–B · hands · señas published/caught/missed · bluffs · fallbacks · calls</div>
+    <table>
+      <thead><tr>
+        <th>match</th><th class="num">seed</th><th>status</th><th class="num">vacas</th>
+        <th class="num">hands</th><th class="num">señas p/c/m</th><th class="num">bluffs</th>
+        <th class="num">fb</th><th class="num">calls</th><th class="num">wall</th>
+      </tr></thead>
+      <tbody>
+      <tr>
+        <td class="mono">deepseek-v4-flash vs glm5.3-flash</td>
+        <td class="num">6</td>
+        <td class="status done">done</td>
+        <td class="num strong">0–2</td>
+        <td class="num">2-6</td>
+        <td class="num">83/68/15</td>
+        <td class="num">0</td>
+        <td class="num">1</td>
+        <td class="num">242</td>
+        <td class="num">4455s</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>In progress / queued</h2>
+    <table>
+      <thead><tr>
+        <th>match</th><th class="num">seed</th><th>status</th><th class="num">vacas</th>
+        <th class="num">hands</th><th class="num">señas p/c/m</th><th class="num">bluffs</th>
+        <th class="num">fb</th><th class="num">calls</th><th class="num">wall</th>
+      </tr></thead>
+      <tbody>
+      <tr><td colspan="10" class="muted">none</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Generated automatically from <code>summary.json</code> by <code>mus_bench/publish/render_results.py</code>.
+    Vacas are games to 40 points. Señas are private to the partner; opponents never see them.
+    <a href="index.html">← back to the table</a> · <a href="../index.html">home</a>
+  </footer>
+</div>
+</body>
+</html>
