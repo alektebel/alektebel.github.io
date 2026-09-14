@@ -1020,7 +1020,7 @@ function syncDiscardBtn(){
 
 /* ---------- send ---------- */
 function sendAction(obj){
-  fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},
+  fetch('https://mus-table.fly.dev/api/action',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({token:TOKEN, ...obj})})
    .then(r => r.json()).then(d => { if(!d.ok) flash(d.error || 'error'); });
 }
@@ -1028,14 +1028,14 @@ function flash(t){ const e = $('errbanner'); e.style.display = 'block'; e.textCo
   setTimeout(() => { e.style.display = 'none'; }, 4000); }
 $('sendchat').onclick = () => {
   const v = $('chatinput').value.trim(); if(!v) return;
-  fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+  fetch('https://mus-table.fly.dev/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({token:TOKEN, text:v})}).then(() => $('chatinput').value = '');
 };
 $('chatinput').addEventListener('keydown', e => { if(e.key === 'Enter') $('sendchat').onclick(); });
 $('newmatch').onclick = () => {
   const hands = prompt('¿Cuántas manos?', String((S.config && S.config.hands) || 12));
   if(!hands) return;
-  fetch('/api/new',{method:'POST',headers:{'Content-Type':'application/json'},
+  fetch('https://mus-table.fly.dev/api/new',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({token:TOKEN, hands:parseInt(hands,10)})});
 };
 
@@ -1046,7 +1046,7 @@ function renderSenas(){
     const b = document.createElement('button'); b.className = 'sena-btn';
     b.innerHTML = '<span class="g">' + esc(g2) + '</span><span class="m">' + esc(m) + '</span>';
     b.onclick = () => {
-      fetch('/api/sena',{method:'POST',headers:{'Content-Type':'application/json'},
+      fetch('https://mus-table.fly.dev/api/sena',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({token:TOKEN, gesture:g2})})
        .then(r => r.json()).then(d => { if(!d.ok) flash(d.error); });
     };
@@ -1071,7 +1071,7 @@ function renderSenas(){
 let benchData = null;
 let benchTimer = null;
 function loadBench(){
-  return fetch('/api/results',{cache:'no-store'}).then(r => r.json()).then(d => {
+  return fetch('https://mus-table.fly.dev/api/results',{cache:'no-store'}).then(r => r.json()).then(d => {
     benchData = d; renderBench();
   }).catch(() => {});
 }
@@ -1234,14 +1234,14 @@ function applySnapshot(data){
   if(data && data.version !== lastVersion){ S = data; lastVersion = data.version; render(); }
 }
 function connect(){
-  const es = new EventSource('/events' + (Q ? ('?' + Q) : ''));
+  const es = new EventSource('https://mus-table.fly.dev/events' + (Q ? ('?' + Q) : ''));
   es.onmessage = m => { try { applySnapshot(JSON.parse(m.data)); } catch(e){} };
   es.onerror = () => { $('status').textContent = 'reconectando…'; };
 }
 connect();
 // Some proxies (e.g. Cloudflare quick tunnels) buffer SSE; poll /snapshot as a fallback.
 setInterval(() => {
-  fetch('/snapshot' + (Q ? ('?' + Q) : '')).then(r => r.json())
+  fetch('https://mus-table.fly.dev/snapshot' + (Q ? ('?' + Q) : '')).then(r => r.json())
     .then(applySnapshot).catch(() => {});
 }, 2000);
 </script>
