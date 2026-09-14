@@ -208,12 +208,13 @@ footer.pagefoot{border-top:1px solid var(--divider);padding:var(--s6);text-align
   <div>
     <div class="eyebrow">Baraja española · 4 jugadores · 40 piedras</div>
     <h1>Grande, chica,<br>pares y juego.<br>Contra la máquina.</h1>
-    <p>Te sientas de mano con Nerea de compañera. Enfrente, dos bots que envidan,
-      cantan órdago y te contestan. Explora el canal de señas: tu compañera lee tus
-      gestos, los rivales pueden interceptarlos. Todo el juego corre en tu navegador,
-      con los naipes reales de la baraja española.</p>
+    <p>Te sientas de mano con GLM-5.3 de compañero. Enfrente, DeepSeek-V4 y
+      Qwen3.8 envidan, cantan órdago y te contestan. Explora el canal de señas: tu
+      compañero lee tus gestos, los rivales pueden interceptarlos. Todo el juego corre
+      en tu navegador, con los naipes reales de la baraja española.</p>
     <div class="hero-cta">
       <button class="btn btn-primary" id="hero-deal" type="button">Repartir</button>
+      <a href="/mus/play/" class="btn btn-primary">Jugar contra los modelos de verdad →</a>
       <a href="#reglas" class="btn btn-ghost">Cómo se juega</a>
     </div>
   </div>
@@ -252,7 +253,7 @@ footer.pagefoot{border-top:1px solid var(--divider);padding:var(--s6);text-align
         <div id="feed"></div>
       </div>
       <div>
-        <div class="card-kicker" style="margin-bottom:var(--s2)">Señas a Nerea</div>
+        <div class="card-kicker" style="margin-bottom:var(--s2)">Señas a GLM-5.3</div>
         <div class="sena-grid" id="senagrid"></div>
       </div>
       <div>
@@ -439,7 +440,7 @@ function sendSena(id){
   const truth=senaTruth(id);
   push('Tú','haces la seña de '+S.label.toLowerCase()+'.','sena');
   G.says[2]=truth?'visto: '+S.label.toLowerCase():'¿seguro?';
-  push('Nerea', truth?'te ha visto.':'te ha visto, pero no lo tienes.','sena');
+  push('GLM-5.3', truth?'te ha visto.':'te ha visto, pero no lo tienes.','sena');
   render();
 }
 
@@ -448,9 +449,9 @@ let G=null, resolver=null, discardResolver=null, selected=new Set();
 function reset(){
   G={ players:[
       {name:'Tú',human:true,team:0},
-      {name:'Patxi',team:1,persona:'un farolero de pueblo: envida con nada y pica al rival'},
-      {name:'Nerea',team:0,persona:'la compañera: prudente, seca, de pocas palabras'},
-      {name:'Iñaki',team:1,persona:'un contador de cartas frío: sólo apuesta con ventaja'}
+      {name:'DeepSeek-V4',team:1,persona:'farolero: envida con nada y pica al rival'},
+      {name:'GLM-5.3',team:0,persona:'el compañero: prudente, seco, de pocas palabras'},
+      {name:'Qwen3.8',team:1,persona:'contador de cartas frío: sólo apuesta con ventaja'}
     ],
     scores:[0,0], mano:0, hands:[[],[],[],[]], deck:[], log:[], lance:null, bet:null,
     phase:'idle', ui:null, reveal:false, thinking:-1, says:['','','',''],

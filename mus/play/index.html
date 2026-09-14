@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mus contra la máquina — juega contra LLMs</title>
+<meta name="description" content="Siéntate a una mesa de mus contra tres modelos de lenguaje. Tu compañero te habla por señas; los rivales intentan leerlas.">
+<style>
+:root{
+  --bg:#161826; --surface:#232532; --surface-2:#1b1d2a; --text:#e9e9ed;
+  --muted:#9397ab; --dim:#75798c; --accent:#9184d9; --accent-soft:#b5abfc;
+  --ok:#8ec07c; --warn:#c9a86a; --danger:#c98a8a;
+  --divider:color-mix(in srgb,#e9e9ed 14%,transparent);
+  --font:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 72px}
+h1,h2{font-weight:500;margin:0;line-height:1.15;letter-spacing:-.02em}
+h1{font-size:clamp(32px,5.5vw,54px)}
+h2{font-size:20px;margin:0 0 12px}
+a{color:var(--accent-soft)}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:14px}
+.lede{color:var(--muted);max-width:60ch;margin:18px 0 0;font-size:16px}
+
+.status{display:inline-flex;align-items:center;gap:9px;margin:24px 0 0;
+  padding:7px 14px;border-radius:999px;border:1px solid var(--divider);
+  background:var(--surface);font-size:13px;font-family:var(--mono)}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
+.status.up .dot{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+.status.down .dot{background:var(--danger)}
+.status.warn .dot{background:var(--warn)}
+
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin:26px 0 0}
+button,.btn{font:inherit;font-size:15px;color:var(--text);cursor:pointer;
+  background:var(--surface);border:1px solid var(--divider);border-radius:8px;
+  padding:11px 22px;text-decoration:none;display:inline-block;
+  transition:border-color .15s,background .15s}
+button:hover,.btn:hover{border-color:var(--accent)}
+.btn-primary{background:color-mix(in srgb,var(--accent) 24%,transparent);
+  border-color:var(--accent)}
+
+.frame{margin:30px 0 0;border:1px solid var(--divider);border-radius:14px;
+  overflow:hidden;background:var(--surface);min-height:200px}
+.frame iframe{width:100%;height:min(1500px,168vh);border:0;display:block}
+.placeholder{padding:52px 24px;text-align:center;color:var(--muted)}
+.placeholder p{max-width:52ch;margin:0 auto 20px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;margin:44px 0 0}
+.card{background:var(--surface);border:1px solid var(--divider);
+  border-radius:12px;padding:18px 20px}
+.card h3{margin:0 0 7px;font-size:14px;font-weight:500}
+.card p{margin:0;color:var(--muted);font-size:13.5px}
+.note{margin:34px 0 0;padding:14px 18px;border-radius:10px;
+  border:1px solid color-mix(in srgb,var(--warn) 34%,transparent);
+  background:color-mix(in srgb,var(--warn) 8%,transparent);
+  color:var(--muted);font-size:13.5px}
+footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--divider);
+  color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Baraja española · 4 jugadores · 40 piedras</div>
+  <h1>Mus contra la máquina.</h1>
+  <p class="lede">
+    Te sientas en el asiento 0 de una mesa de mus. Los otros tres son modelos de
+    lenguaje: envidan, cantan órdago y hablan mientras lo hacen. Tu compañero
+    juega enfrente y sólo puede comunicarse contigo <strong>por señas</strong> —
+    y los rivales están mirando.
+  </p>
+
+  <div class="status" id="status"><span class="dot"></span><span id="statusText">comprobando la mesa…</span></div>
+
+  <div class="cta">
+    <button class="btn-primary" id="play">Jugar una partida</button>
+    <a class="btn" href="/mus/benchmark.html">Ver el benchmark</a>
+    <a class="btn" href="/mus/viewer/">Ver una partida grabada</a>
+  </div>
+
+  <div class="frame" id="frame">
+    <div class="placeholder">
+      <p>La mesa se abre aquí. Se inicia sólo cuando pulsas jugar: así el
+         servidor duerme —y no gasta— mientras nadie está jugando.</p>
+      <button id="play2">Abrir la mesa</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Señas de verdad</h3>
+      <p>Las siete señas del reglamento Fournier, con su significado fijo.
+         Morderse el labio son dos reyes; guiñar un ojo son treinta y una.
+         Tienen caducidad: si tu compañero no la ve a tiempo, se pierde.</p>
+    </div>
+    <div class="card">
+      <h3>Los modelos razonan</h3>
+      <p>Cada decisión sale de una llamada real a un modelo, con su cadena de
+         razonamiento privada. No hay guion: si cantan órdago, es porque han
+         decidido que les conviene.</p>
+    </div>
+    <div class="card">
+      <h3>Partidas cortas</h3>
+      <p>Cuatro manos por partida. Cada turno cuesta créditos de API de verdad,
+         así que la mesa tiene un presupuesto diario y un límite por visitante.</p>
+    </div>
+  </div>
+
+  <div class="note" id="offlineNote" hidden>
+    <strong>Mesa en modo offline.</strong>
+    <span id="offlineWhy">El presupuesto diario se ha agotado.</span>
+    Puedes jugar igualmente: los tres asientos se reparten con las políticas
+    heurísticas del motor en lugar de modelos.
+  </div>
+
+  <footer>
+    Motor y harness: <a href="https://github.com/alektebel/mus-benchmark">alektebel/mus-benchmark</a> ·
+    Naipes de Basquetteur vía Wikimedia Commons, CC BY-SA 3.0 ·
+    <a href="/mus/benchmark.html">resultados del benchmark</a> · <a href="/mus/viewer/">trazas</a>
+  </footer>
+</div>
+
+<script>
+// The API host. Change this one line if the backend moves.
+const API = "https://mus-table.fly.dev";
+
+const statusEl = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+
+// Status is fetched on load, but it is a cheap endpoint that does NOT deal a
+// game, so it never wakes the machine into spending anything.
+fetch(API + "/api/status", {mode: "cors"})
+  .then(r => r.json())
+  .then(s => {
+    const b = s.budget || {};
+    if (b.exhausted) {
+      statusEl.className = "status warn";
+      statusText.textContent = "mesa abierta · presupuesto agotado (modo offline)";
+      showOffline("El presupuesto diario se ha agotado.");
+    } else {
+      statusEl.className = "status up";
+      const free = Math.max(0, (s.max_llm_sessions || 0) - (s.llm_sessions || 0));
+      statusText.textContent =
+        `mesa abierta · ${free} sitio${free === 1 ? "" : "s"} con modelos · ` +
+        `${b.remaining ?? "?"} jugadas de API hoy`;
+      if (free === 0) showOffline("Todas las mesas con modelos están ocupadas.");
+    }
+  })
+  .catch(() => {
+    statusEl.className = "status down";
+    statusText.textContent = "la mesa no responde ahora mismo";
+  });
+
+function showOffline(why) {
+  document.getElementById('offlineWhy').textContent = why;
+  document.getElementById('offlineNote').hidden = false;
+}
+
+function openTable() {
+  const frame = document.getElementById('frame');
+  frame.innerHTML = '';
+
+  const waiting = document.createElement('div');
+  waiting.className = 'placeholder';
+  waiting.textContent = 'despertando la mesa… (la primera vez tarda unos segundos)';
+  frame.appendChild(waiting);
+
+  const iframe = document.createElement('iframe');
+  iframe.title = 'Mesa de mus';
+  iframe.hidden = true;
+  iframe.addEventListener('load', () => {
+    waiting.remove();
+    iframe.hidden = false;
+  });
+  iframe.src = API + '/';
+  frame.appendChild(iframe);
+
+  // A stopped Fly machine can take a while to boot; if it never loads, hand
+  // the visitor a direct link rather than leaving them on a dead placeholder.
+  setTimeout(() => {
+    if (iframe.hidden) {
+      waiting.innerHTML = 'La mesa está tardando más de lo normal. ' +
+        '<a href="' + API + '/" target="_blank" rel="noopener">Ábrela en una pestaña nueva</a>.';
+    }
+  }, 20000);
+
+  frame.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+document.getElementById('play').onclick = openTable;
+document.getElementById('play2').onclick = openTable;
+</script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mus benchmark — match trace viewer</title>
+<meta name="description" content="Turn-by-turn replay of an LLM vs LLM mus match: every prompt, every reply, and the señas partners smuggle past the opponents.">
+<style>
+:root{
+  --bg:#161826; --surface:#232532; --surface-2:#1b1d2a; --text:#e9e9ed;
+  --muted:#9397ab; --dim:#75798c; --accent:#9184d9; --accent-soft:#b5abfc;
+  --teamA:#7aa2f7; --teamB:#e0a978; --danger:#c98a8a; --warn:#c9a86a;
+  --ok:#8ec07c; --divider:color-mix(in srgb,#e9e9ed 14%,transparent);
+  --radius-sm:4px; --radius-md:8px; --radius-lg:14px;
+  --font:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-weight:500;margin:0;line-height:1.2}
+a{color:var(--accent-soft)}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 20px 64px}
+
+/* ---- header ---- */
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;
+  justify-content:space-between;margin-bottom:20px}
+.title h1{font-size:22px;letter-spacing:-.01em}
+.title p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+  padding:4px 9px;border-radius:999px;border:1px solid var(--divider);
+  color:var(--muted);white-space:nowrap}
+.badge.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+
+/* ---- scoreboard ---- */
+.scorebar{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;
+  background:var(--surface);border:1px solid var(--divider);
+  border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px}
+.team{display:flex;align-items:center;gap:12px;min-width:0}
+.team.b{justify-content:flex-end}
+.team .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.team.a .dot{background:var(--teamA)} .team.b .dot{background:var(--teamB)}
+.team .nm{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-family:var(--mono)}
+.team .pts{font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+.vacas{display:flex;gap:4px;align-items:center}
+.vaca{width:8px;height:14px;border-radius:2px;background:var(--divider)}
+.team.a .vaca.on{background:var(--teamA)} .team.b .vaca.on{background:var(--teamB)}
+.handchip{text-align:center;font-size:11px;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.06em}
+.handchip b{display:block;font-size:18px;color:var(--text);
+  font-variant-numeric:tabular-nums;letter-spacing:0}
+
+/* ---- layout ---- */
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px}
+@media(max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--divider);
+  border-radius:var(--radius-lg);overflow:hidden;min-width:0}
+.panel > h3{padding:12px 16px;font-size:12px;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--divider)}
+
+/* ---- table ---- */
+.table{position:relative;padding:16px;display:grid;gap:10px;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);
+  grid-template-areas:". s2 ." "s3 mid s1" ". s0 .";}
+@media(max-width:620px){.table{grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"s2" "s3" "mid" "s1" "s0";}}
+.seat{border:1px solid var(--divider);border-radius:var(--radius-md);
+  padding:10px 12px;background:var(--surface-2);transition:border-color .2s,box-shadow .2s}
+.seat.s0{grid-area:s0} .seat.s1{grid-area:s1}
+.seat.s2{grid-area:s2} .seat.s3{grid-area:s3}
+.seat.dim{opacity:.62}
+.seat.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 22px -6px var(--accent)}
+.seat-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.seat-head .sd{width:8px;height:8px;border-radius:50%;flex:none}
+.seat.tA .sd{background:var(--teamA)} .seat.tB .sd{background:var(--teamB)}
+.seat-head .who{font-size:12px;font-family:var(--mono);color:var(--text)}
+.seat-head .mdl{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.seat-head .mano{font-size:10px;color:var(--warn);border:1px solid
+  color-mix(in srgb,var(--warn) 40%,transparent);border-radius:999px;padding:1px 6px}
+.cards{display:flex;gap:5px}
+.cards img{width:40px;height:auto;border-radius:3px;display:block;
+  background:#f4eee1;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.mid{grid-area:mid;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:8px;border-radius:var(--radius-md);background:var(--surface-2);
+  border:1px solid var(--divider)}
+.lance{font-size:22px;font-weight:500;letter-spacing:-.01em}
+.lance small{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.08em;font-weight:400;text-align:center;margin-top:2px}
+.stake{font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+/* action + thought bubbles */
+.act{margin-top:8px;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:999px;
+  background:color-mix(in srgb,var(--accent) 18%,transparent);
+  border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);color:var(--accent-soft)}
+.pill.fb{background:color-mix(in srgb,var(--danger) 15%,transparent);
+  border-color:color-mix(in srgb,var(--danger) 45%,transparent);color:var(--danger)}
+.thought{margin-top:7px;font-size:12px;color:var(--muted);font-style:italic;
+  border-left:2px solid var(--divider);padding-left:9px;display:none}
+.seat.active .thought{display:block}
+.senas{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.sena{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:999px;
+  border:1px dashed color-mix(in srgb,var(--ok) 50%,transparent);color:var(--ok)}
+.sena.miss{border-color:color-mix(in srgb,var(--danger) 50%,transparent);
+  color:var(--danger);text-decoration:line-through}
+.sena.bluff{border-style:solid;border-color:var(--warn);color:var(--warn)}
+
+/* ---- transport ---- */
+.transport{display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-top:1px solid var(--divider);flex-wrap:wrap}
+button{font-family:inherit;font-size:13px;color:var(--text);cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--divider);
+  border-radius:var(--radius-sm);padding:6px 12px;transition:border-color .15s}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:color-mix(in srgb,var(--accent) 22%,transparent);
+  border-color:var(--accent)}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+select{font-family:inherit;font-size:12px;background:var(--surface-2);color:var(--text);
+  border:1px solid var(--divider);border-radius:var(--radius-sm);padding:5px 8px}
+.tcount{font-family:var(--mono);font-size:12px;color:var(--muted);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---- inspector ---- */
+.tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--divider)}
+.tab{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;
+  color:var(--dim);padding:10px 12px;font-size:12px;text-transform:uppercase;
+  letter-spacing:.06em}
+.tab:hover{border-color:transparent;color:var(--text)}
+.tab.on{color:var(--text);border-bottom-color:var(--accent)}
+.io{padding:14px 16px;max-height:560px;overflow:auto}
+.io pre{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.65;
+  white-space:pre-wrap;word-break:break-word;color:var(--muted)}
+.io pre .hl{color:var(--accent-soft)}
+.io pre .fact{color:var(--text)}
+.io .empty{color:var(--dim);font-style:italic}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12px;
+  font-family:var(--mono);margin-bottom:14px}
+.kv dt{color:var(--dim)} .kv dd{margin:0;color:var(--text)}
+
+/* ---- signal lane ---- */
+.lane{padding:12px 16px}
+.lane-row{display:flex;align-items:center;gap:8px;font-size:11px;
+  font-family:var(--mono);padding:4px 0;border-bottom:1px solid var(--divider)}
+.lane-row:last-child{border-bottom:none}
+.lane-row .arrow{color:var(--dim)}
+.lane-row.now{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--dim);
+  padding:10px 16px;border-top:1px solid var(--divider)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:2px;display:block}
+footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--divider);
+  color:var(--dim);font-size:12px}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="title">
+    <h1>Mus benchmark — match trace</h1>
+    <p>Every decision two LLM teams made across one match: the exact prompt each seat
+       received, the reply it sent back, its private reasoning, and the <em>señas</em>
+       partners flashed at each other on a virtual clock.</p>
+  </div>
+  <div class="badges" id="badges"></div>
+</header>
+
+<div class="scorebar">
+  <div class="team a">
+    <span class="dot"></span>
+    <div>
+      <div class="nm" id="nameA">—</div>
+      <div class="pts" id="ptsA">0</div>
+    </div>
+    <div class="vacas" id="vacasA"></div>
+  </div>
+  <div class="handchip">hand<b id="handNo">—</b></div>
+  <div class="team b">
+    <div class="vacas" id="vacasB"></div>
+    <div style="text-align:right">
+      <div class="nm" id="nameB">—</div>
+      <div class="pts" id="ptsB">0</div>
+    </div>
+    <span class="dot"></span>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <h3>The table</h3>
+    <div class="table" id="tbl"><div class="loading">Loading trace…</div></div>
+    <div class="transport">
+      <button id="back" title="Previous turn">‹</button>
+      <button class="primary" id="play">▶ Play</button>
+      <button id="fwd" title="Next turn">›</button>
+      <input type="range" id="scrub" min="0" value="0">
+      <span class="tcount" id="tcount">—</span>
+      <select id="speed">
+        <option value="1400">0.5×</option>
+        <option value="700" selected>1×</option>
+        <option value="350">2×</option>
+        <option value="140">5×</option>
+      </select>
+      <select id="jump"><option value="">jump to hand…</option></select>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>What the model saw and said</h3>
+    <div class="tabs">
+      <button class="tab on" data-t="prompt">Input prompt</button>
+      <button class="tab" data-t="raw">Raw output</button>
+      <button class="tab" data-t="ctx">Decision context</button>
+      <button class="tab" data-t="senas">Señas</button>
+      <button class="tab" data-t="notes">Vaca notes</button>
+    </div>
+    <div class="io" id="io"><div class="empty">Press play.</div></div>
+    <div class="legend">
+      <span><i style="background:var(--ok)"></i>caught</span>
+      <span><i style="background:var(--danger)"></i>missed / expired</span>
+      <span><i style="background:var(--warn)"></i>false gesture (bluff)</span>
+      <span><i style="background:var(--teamA)"></i>team A</span>
+      <span><i style="background:var(--teamB)"></i>team B</span>
+    </div>
+  </div>
+</div>
+
+<footer id="foot"></footer>
+</div>
+
+<script>
+const SUIT={oros:'coins',copas:'cups',espadas:'swords',bastos:'clubs'};
+const RANK={as:'01',dos:'02',tres:'03',cuatro:'04',cinco:'05',seis:'06',
+  siete:'07',sota:'10',caballo:'11',rey:'12'};
+const cardSrc=n=>{const m=String(n).match(/^(\w+) de (\w+)$/);
+  return m&&SUIT[m[2]]&&RANK[m[1]]?`cards/card_${SUIT[m[2]]}_${RANK[m[1]]}.svg`:null;};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+
+let T=null, i=0, timer=null, tab='prompt';
+
+fetch('traces/seed6.json').then(r=>r.json()).then(t=>{T=t;boot();})
+  .catch(e=>{$('tbl').innerHTML='<div class="loading">Could not load trace: '+esc(e.message)+'</div>';});
+
+function boot(){
+  const m=T.meta,s=T.score;
+  $('nameA').textContent=m.models[0]; $('nameB').textContent=m.models[1];
+  $('badges').innerHTML=[
+    `<span class="badge">seed ${T.slug.replace(/\D/g,'')||'—'}</span>`,
+    `<span class="badge">${T.turns.length} decisions</span>`,
+    `<span class="badge">${T.signals.published} señas</span>`,
+    `<span class="badge ${m.status!=='done'?'warn':''}">${esc(m.status)} · ${m.hands_completed}/${m.hands_requested} hands</span>`
+  ].join('');
+  $('scrub').max=T.turns.length-1;
+  const m0=location.hash.match(/t=(\d+)/);
+  if(m0) i=Math.max(0,Math.min(T.turns.length-1,+m0[1]));
+  $('jump').innerHTML='<option value="">jump to hand…</option>'+
+    T.hands.map(h=>`<option value="${h.hand}">hand ${h.hand} — ${h.gain_a}:${h.gain_b}</option>`).join('');
+  $('foot').innerHTML=`Trace <code>${esc(T.slug)}</code> · ${esc(m.models[0])} (seats 0+2) vs `+
+    `${esc(m.models[1])} (seats 1+3) · ${m.hands_completed} hands · `+
+    `${(T.usage.tokens_in/1e6).toFixed(2)}M tokens in / ${(T.usage.tokens_out/1e6).toFixed(2)}M out · `+
+    `${T.usage.calls} API calls. Card artwork CC BY-SA 3.0 — see <code>cards/ATTRIBUTION.txt</code>.`;
+  render();
+}
+
+const handOf = n => T.hands.find(h=>h.hand===n);
+
+function render(){
+  const d=T.turns[i], h=handOf(d.hand);
+  $('ptsA').textContent=d.points_a; $('ptsB').textContent=d.points_b;
+  $('handNo').textContent=d.hand;
+  $('vacasA').innerHTML=[0,1].map(k=>`<span class="vaca ${k<d.vacas_a?'on':''}"></span>`).join('');
+  $('vacasB').innerHTML=[0,1].map(k=>`<span class="vaca ${k<d.vacas_b?'on':''}"></span>`).join('');
+  $('tcount').textContent=`${i+1}/${T.turns.length} · t=${d.t}`;
+  $('scrub').value=i;
+
+  // señas this seat had caught by now
+  const caught=(d.seen||[]).map(x=>typeof x==='string'?x:(x.gesture||JSON.stringify(x)));
+
+  $('tbl').innerHTML=[0,1,2,3].map(seat=>{
+    const act = seat===d.seat ? d : lastActionFor(seat,i);
+    const cards=(h&&h.dealt&&h.dealt[String(seat)])||[];
+    const team=seat%2===0?'A':'B';
+    const on=seat===d.seat;
+    return `<div class="seat s${seat} t${team} ${on?'active':'dim'}">
+      <div class="seat-head"><span class="sd"></span>
+        <span class="who">${team}${seat}</span>
+        <span class="mdl">${esc(T.meta.models[seat])}</span>
+        ${h&&h.mano===seat?'<span class="mano">mano</span>':''}</div>
+      <div class="cards">${cards.map(c=>{const src=cardSrc(c);
+        return src?`<img src="${src}" alt="${esc(c)}" title="${esc(c)}" loading="lazy">`
+                  :`<span class="pill">${esc(c)}</span>`;}).join('')}</div>
+      ${act?`<div class="act"><span class="pill ${act.fallback?'fb':''}">${esc(act.action)}${act.fallback?' · fallback':''}</span></div>
+        ${on&&caught.length?`<div class="senas">${caught.map(g=>`<span class="sena">&#128065; ${esc(g)}</span>`).join('')}</div>`:''}
+        ${act.thought?`<div class="thought">${esc(act.thought)}</div>`:''}`:''}
+    </div>`;
+  }).join('') + `<div class="mid">
+      <div class="lance">${esc(d.lance||d.phase.replace(/_/g,' '))}
+        <small>${esc(d.lance?d.phase.replace(/_/g,' '):'no lance')}</small></div>
+      <div class="stake">stake ${d.stake} &middot; prev ${d.previous}${d.facing_bet?' &middot; facing a bet':''}</div>
+    </div>`;
+
+  renderIO(d);
+}
+
+function lastActionFor(seat,upto){
+  for(let k=upto;k>=0;k--){
+    if(T.turns[k].seat===seat&&T.turns[k].hand===T.turns[upto].hand) return T.turns[k];
+  }
+  return null;
+}
+
+function renderIO(d){
+  const el=$('io');
+  if(tab==='prompt'){
+    if(!d.prompt){el.innerHTML='<div class="empty">'+(d.fallback
+      ? 'No reply: the model failed to return a usable action here, so the engine forced <b>'
+        +esc(d.action)+'</b>.'
+      : 'No prompt recorded for this turn.')+'</div>';return;}
+    const txt=d.prompt.map(ix=>T.lines[ix]).join('\n');
+    el.innerHTML='<pre>'+txt.split('\n').map(l=>{
+      if(/^(Phase|SCORE|You are)/.test(l)) return `<span class="hl">${esc(l)}</span>`;
+      if(/^(HAND FACTS|YOUR CARDS|LEGAL|SEÑAS|SENAS)/.test(l)) return `<span class="fact">${esc(l)}</span>`;
+      return esc(l);
+    }).join('\n')+'</pre>';
+  } else if(tab==='raw'){
+    el.innerHTML=d.raw?`<pre>${esc(d.raw)}</pre>`:'<div class="empty">No raw reply recorded.</div>';
+  } else if(tab==='ctx'){
+    el.innerHTML=`<dl class="kv">
+      <dt>hand / turn</dt><dd>${d.hand} / ${d.turn}</dd>
+      <dt>virtual t</dt><dd>${d.t}</dd>
+      <dt>seat</dt><dd>${d.name} (seat ${d.seat}, team ${d.team===0?'A':'B'})</dd>
+      <dt>model</dt><dd>${esc(d.model)}</dd>
+      <dt>phase</dt><dd>${esc(d.phase)}</dd>
+      <dt>lance</dt><dd>${esc(d.lance||'—')}</dd>
+      <dt>legal moves</dt><dd>${d.legal.map(esc).join(', ')||'—'}</dd>
+      <dt>chose</dt><dd>${esc(d.action)}${d.fallback?' <span class="pill fb">fallback</span>':''}</dd>
+      <dt>rejections</dt><dd>${d.rejections}</dd>
+      <dt>stake / prev</dt><dd>${d.stake} / ${d.previous}</dd>
+      <dt>score</dt><dd>${d.points_a}–${d.points_b} · vacas ${d.vacas_a}–${d.vacas_b}</dd>
+    </dl>`+(d.thought?`<pre>${esc(d.thought)}</pre>`:'');
+  } else if(tab==='notes'){
+    el.innerHTML=(T.notes&&T.notes.length)?T.notes.map(n=>
+      `<dl class="kv"><dt>seat</dt><dd>${n.seat} &middot; ${esc(n.model)}</dd>
+        <dt>t</dt><dd>${n.t}</dd></dl><pre>${esc(n.raw||'')}</pre><hr style="border:none;
+        border-top:1px solid var(--divider);margin:14px 0">`).join('')
+      :'<div class="empty">No vaca notes in this match.</div>';
+  } else {
+    const ev=T.signal_events.filter(e=>e.hand===d.hand);
+    el.innerHTML='<div class="lane">'+(ev.length?ev.map(e=>{
+      const live=e.t_pub<=d.t&&(e.delivered_at==null||e.delivered_at<=d.t);
+      const cls=e.expired||e.delivered_at==null?'miss':(e.truthful?'':'bluff');
+      return `<div class="lane-row ${live?'now':''}">
+        <span class="sena ${cls}">${esc(e.gesture)}</span>
+        <span class="arrow">seat ${e.from} → ${e.to}</span>
+        <span style="color:var(--dim)">pub t=${e.t_pub}${e.delivered_at!=null?` · seen t=${e.delivered_at}`:' · never seen'}</span>
+        ${e.truthful?'':'<span style="color:var(--warn)">false</span>'}
+      </div>`;}).join(''):'<div class="empty">No señas in this hand.</div>')+'</div>';
+  }
+}
+
+/* ---- controls ---- */
+function go(n){i=Math.max(0,Math.min(T.turns.length-1,n));render();
+  history.replaceState(null,'','#t='+i);}
+$('back').onclick=()=>go(i-1);
+$('fwd').onclick=()=>go(i+1);
+$('scrub').oninput=e=>go(+e.target.value);
+$('jump').onchange=e=>{if(!e.target.value)return;
+  const n=+e.target.value;const k=T.turns.findIndex(t=>t.hand===n);if(k>=0)go(k);};
+$('play').onclick=()=>{
+  if(timer){clearInterval(timer);timer=null;$('play').textContent='▶ Play';return;}
+  $('play').textContent='❚❚ Pause';
+  const tick=()=>{if(i>=T.turns.length-1){clearInterval(timer);timer=null;
+    $('play').textContent='▶ Play';return;} go(i+1);};
+  timer=setInterval(tick,+$('speed').value);
+};
+$('speed').onchange=()=>{if(timer){clearInterval(timer);
+  timer=setInterval(()=>{if(i>=T.turns.length-1){clearInterval(timer);timer=null;
+    $('play').textContent='▶ Play';return;}go(i+1);},+$('speed').value);}};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');tab=b.dataset.t;renderIO(T.turns[i]);});
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight')go(i+1); else if(e.key==='ArrowLeft')go(i-1);
+  else if(e.key===' '){e.preventDefault();$('play').click();}});
+</script>
+</body>
+</html>
