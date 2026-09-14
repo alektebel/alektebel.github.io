@@ -11,7 +11,8 @@ Env vars (set by SAM template):
   LLM_MODEL      model id, e.g. "qwen3.6"
   LLM_API_KEY    (optional) raw key — for local testing only
   SECRET_ARN     (preferred) Secrets Manager ARN holding {"api_key": "..."}
-  ALLOWED_ORIGIN CORS origin, e.g. "https://alektebel.github.io"
+  ALLOWED_ORIGIN comma-separated CORS origins, e.g.
+                 "https://diegoatencia.dev,https://alektebel.github.io"
 """
 
 import json
@@ -122,10 +123,18 @@ def call_openai(api_key, model, question, spanish, base_url=None):
     return answer.strip()[:1200]
 
 
+DEFAULT_ORIGINS = "https://diegoatencia.dev,https://www.diegoatencia.dev,https://alektebel.github.io"
+
+
 def _cors(origin):
-    allowed = os.environ.get("ALLOWED_ORIGIN", "https://alektebel.github.io")
+    allowed = [
+        o.strip()
+        for o in os.environ.get("ALLOWED_ORIGIN", DEFAULT_ORIGINS).split(",")
+        if o.strip()
+    ]
     return {
-        "Access-Control-Allow-Origin": allowed if origin == allowed else allowed,
+        "Access-Control-Allow-Origin": origin if origin in allowed else allowed[0],
+        "Vary": "Origin",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "OPTIONS,POST",
     }

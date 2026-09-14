@@ -2,7 +2,7 @@
 # The deploy IAM user lacks permission on the Serverless transform, so this
 # template uses raw resources: Secret + Role + Function + FunctionUrl.
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Ask-this-site backend for alektebel.github.io (bilingual ES/EN portfolio Q&A)
+Description: Ask-this-site backend for diegoatencia.dev (bilingual ES/EN portfolio Q&A)
 
 Parameters:
   CodeBucket:
@@ -24,7 +24,8 @@ Parameters:
     Description: LLM API key, stored in Secrets Manager (never in env vars).
   AllowedOrigin:
     Type: String
-    Default: https://alektebel.github.io
+    Description: Comma-separated list of allowed CORS origins.
+    Default: https://diegoatencia.dev,https://www.diegoatencia.dev,https://alektebel.github.io
 
 Resources:
   ApiKeySecret:
