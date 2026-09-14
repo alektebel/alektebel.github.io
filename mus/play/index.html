@@ -549,7 +549,7 @@ footer.pagefoot{border-top:1px solid var(--color-divider);padding:var(--space-6)
         <div id="phase">—</div>
         <div id="lance">esperando…</div>
         <div id="enviteline"></div>
-        <div class="deckpile" aria-hidden="true"><img src="/cards/card_back.svg" alt=""></div>
+        <div class="deckpile" aria-hidden="true"><img src="/mus/cards/card_back.svg" alt=""></div>
         <div id="caughtline"></div>
       </div>
     </div></div>
@@ -706,13 +706,13 @@ let lastSena = {};       // seat -> recent sena bubble
 const SUIT_FILE = {oros:'coins', copas:'cups', espadas:'swords', bastos:'clubs'};
 const RANK_FILE = {as:'01',dos:'02',tres:'03',cuatro:'04',cinco:'05',seis:'06',
   siete:'07',sota:'10',caballo:'11',rey:'12'};
-const CARD_BACK = '/cards/card_back.svg';
+const CARD_BACK = '/mus/cards/card_back.svg';
 const SUIT_EN = {oros:'oros', copas:'copas', espadas:'espadas', bastos:'bastos'};
 
 function cardSrc(name){
   const m = String(name).match(/^(\w+) de (\w+)$/); if(!m) return null;
   const s = SUIT_FILE[m[2]], r = RANK_FILE[m[1]];
-  return (s && r) ? ('/cards/card_' + s + '_' + r + '.svg') : null;
+  return (s && r) ? ('/mus/cards/card_' + s + '_' + r + '.svg') : null;
 }
 function cardImgHtml(name){
   const src = cardSrc(name);
@@ -761,7 +761,7 @@ const RANKS_ES = [['as','01'],['dos','02'],['tres','03'],['cuatro','04'],
   ['rey','12']];
 function srcFor(suitId, rankEs){
   const s = SUIT_FILE[suitId], r = RANK_FILE[rankEs];
-  return (s && r) ? ('/cards/card_' + s + '_' + r + '.svg') : null;
+  return (s && r) ? ('/mus/cards/card_' + s + '_' + r + '.svg') : null;
 }
 function deckCardEl(suitId, rankEs){
   const src = srcFor(suitId, rankEs);
