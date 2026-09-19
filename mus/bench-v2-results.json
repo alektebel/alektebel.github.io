@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-19T19:17:30.751214+00:00",
-  "rules": "v2: explicit amounts, corrido sin se\u00f1as hand 1, CoT \u00b7 8 hands \u00b7 both seatings",
+  "generated": "2026-09-19T19:28:19.376006+00:00",
+  "rules": "v2: explicit amounts, corrido sin se\u00f1as hand 1, CoT \u00b7 8 hands \u00b7 seeds 0-3 \u00b7 both seatings",
   "matches": [
     {
       "team_a": "deepseek-v4-flash",
@@ -613,72 +613,120 @@
       "hands": 8,
       "calls": 218,
       "fallbacks": 7
+    },
+    {
+      "team_a": "glm5.3-flash",
+      "team_b": "gemma4",
+      "seed": 3,
+      "vacas_a": 1,
+      "vacas_b": 2,
+      "piedras_a": 100,
+      "piedras_b": 151,
+      "hands": 8,
+      "calls": 230,
+      "fallbacks": 7
+    },
+    {
+      "team_a": "gemma4",
+      "team_b": "glm5.3-flash",
+      "seed": 3,
+      "vacas_a": 4,
+      "vacas_b": 3,
+      "piedras_a": 260,
+      "piedras_b": 215,
+      "hands": 8,
+      "calls": 249,
+      "fallbacks": 6
+    },
+    {
+      "team_a": "typesafe:jev-latest",
+      "team_b": "deepseek-v4-flash",
+      "seed": 3,
+      "vacas_a": 5,
+      "vacas_b": 2,
+      "piedras_a": 260,
+      "piedras_b": 86,
+      "hands": 8,
+      "calls": 153,
+      "fallbacks": 0
+    },
+    {
+      "team_a": "deepseek-v4-flash",
+      "team_b": "typesafe:jev-latest",
+      "seed": 3,
+      "vacas_a": 1,
+      "vacas_b": 0,
+      "piedras_a": 77,
+      "piedras_b": 50,
+      "hands": 8,
+      "calls": 156,
+      "fallbacks": 1
     }
   ],
   "leaderboard": [
     {
       "model": "typesafe:jev-latest",
-      "matches": 6,
-      "wins": 5,
-      "losses": 1,
+      "matches": 8,
+      "wins": 6,
+      "losses": 2,
       "ties": 0,
-      "vacas_for": 30,
-      "vacas_against": 16,
-      "piedras_for": 1783,
-      "piedras_against": 1029,
-      "hands": 48,
-      "vaca_delta": 14,
-      "piedras_per_hand": 15.708,
+      "vacas_for": 35,
+      "vacas_against": 19,
+      "piedras_for": 2093,
+      "piedras_against": 1192,
+      "hands": 64,
+      "vaca_delta": 16,
+      "piedras_per_hand": 14.078,
       "vaca_ci": [
-        -0.17,
-        4.67
+        0.0,
+        3.88
       ],
       "piedra_ci": [
-        4.58,
-        27.9
+        4.7,
+        24.03
       ],
       "vaca_sig": false,
       "piedra_sig": true,
-      "faroles": 63,
-      "aggressive": 188,
-      "bluff_rate": 0.3351063829787234,
-      "aggression_rate": 0.8744186046511628,
-      "bluff_success": 0.8857142857142857,
-      "fold_equity": 267,
+      "faroles": 80,
+      "aggressive": 243,
+      "bluff_rate": 0.3292181069958848,
+      "aggression_rate": 0.8868613138686131,
+      "bluff_success": 0.8846153846153846,
+      "fold_equity": 274,
       "fallbacks": 0,
-      "rejections": 50
+      "rejections": 64
     },
     {
       "model": "glm5.3-flash",
-      "matches": 22,
+      "matches": 24,
       "wins": 12,
-      "losses": 7,
+      "losses": 9,
       "ties": 3,
-      "vacas_for": 59,
-      "vacas_against": 48,
-      "piedras_for": 3569,
-      "piedras_against": 3153,
-      "hands": 176,
-      "vaca_delta": 11,
-      "piedras_per_hand": 2.364,
+      "vacas_for": 63,
+      "vacas_against": 54,
+      "piedras_for": 3884,
+      "piedras_against": 3564,
+      "hands": 192,
+      "vaca_delta": 9,
+      "piedras_per_hand": 1.667,
       "vaca_ci": [
-        -0.27,
-        1.27
+        -0.33,
+        1.08
       ],
       "piedra_ci": [
-        -1.91,
-        6.61
+        -2.3,
+        5.63
       ],
       "vaca_sig": false,
       "piedra_sig": false,
-      "faroles": 58,
-      "aggressive": 348,
-      "bluff_rate": 0.16666666666666666,
-      "aggression_rate": 0.37100213219616207,
-      "bluff_success": 0.5833333333333334,
-      "fold_equity": -71,
+      "faroles": 50,
+      "aggressive": 359,
+      "bluff_rate": 0.1392757660167131,
+      "aggression_rate": 0.37513061650992685,
+      "bluff_success": 0.5454545454545454,
+      "fold_equity": -77,
       "fallbacks": 25,
-      "rejections": 276
+      "rejections": 279
     },
     {
       "model": "qwen3.6",
@@ -703,96 +751,96 @@
       ],
       "vaca_sig": false,
       "piedra_sig": false,
-      "faroles": 209,
+      "faroles": 198,
       "aggressive": 610,
-      "bluff_rate": 0.34262295081967215,
+      "bluff_rate": 0.32459016393442625,
       "aggression_rate": 0.9228441754916793,
-      "bluff_success": 0.527027027027027,
-      "fold_equity": -963,
+      "bluff_success": 0.5319148936170213,
+      "fold_equity": -909,
       "fallbacks": 6,
       "rejections": 176
     },
     {
       "model": "gemma4",
-      "matches": 21,
-      "wins": 8,
+      "matches": 23,
+      "wins": 10,
       "losses": 9,
       "ties": 4,
-      "vacas_for": 93,
-      "vacas_against": 100,
-      "piedras_for": 5343,
-      "piedras_against": 5255,
-      "hands": 168,
-      "vaca_delta": -7,
-      "piedras_per_hand": 0.524,
+      "vacas_for": 99,
+      "vacas_against": 104,
+      "piedras_for": 5754,
+      "piedras_against": 5570,
+      "hands": 184,
+      "vaca_delta": -5,
+      "piedras_per_hand": 1.0,
       "vaca_ci": [
-        -1.24,
-        0.57
+        -1.04,
+        0.61
       ],
       "piedra_ci": [
-        -5.81,
-        6.8
+        -4.88,
+        6.6
       ],
       "vaca_sig": false,
       "piedra_sig": false,
-      "faroles": 201,
-      "aggressive": 591,
-      "bluff_rate": 0.3401015228426396,
-      "aggression_rate": 0.6848203939745076,
+      "faroles": 196,
+      "aggressive": 603,
+      "bluff_rate": 0.3250414593698176,
+      "aggression_rate": 0.6867881548974943,
       "bluff_success": 0.5769230769230769,
-      "fold_equity": -391,
-      "fallbacks": 234,
-      "rejections": 1267
+      "fold_equity": -397,
+      "fallbacks": 236,
+      "rejections": 1281
     },
     {
       "model": "deepseek-v4-flash",
-      "matches": 30,
-      "wins": 10,
-      "losses": 16,
+      "matches": 32,
+      "wins": 11,
+      "losses": 17,
       "ties": 4,
-      "vacas_for": 71,
-      "vacas_against": 86,
-      "piedras_for": 4391,
-      "piedras_against": 5724,
-      "hands": 240,
-      "vaca_delta": -15,
-      "piedras_per_hand": -5.554,
+      "vacas_for": 74,
+      "vacas_against": 91,
+      "piedras_for": 4554,
+      "piedras_against": 6034,
+      "hands": 256,
+      "vaca_delta": -17,
+      "piedras_per_hand": -5.781,
       "vaca_ci": [
-        -1.33,
-        0.3
+        -1.38,
+        0.25
       ],
       "piedra_ci": [
-        -9.86,
-        -1.62
+        -10.02,
+        -1.94
       ],
       "vaca_sig": false,
       "piedra_sig": true,
-      "faroles": 135,
-      "aggressive": 507,
-      "bluff_rate": 0.26627218934911245,
-      "aggression_rate": 0.4148936170212766,
-      "bluff_success": 0.5306122448979592,
-      "fold_equity": -120,
-      "fallbacks": 9,
-      "rejections": 250
+      "faroles": 130,
+      "aggressive": 527,
+      "bluff_rate": 0.24667931688804554,
+      "aggression_rate": 0.4053846153846154,
+      "bluff_success": 0.5106382978723404,
+      "fold_equity": -126,
+      "fallbacks": 10,
+      "rejections": 269
     }
   ],
   "head_to_head": [
     {
       "a": "typesafe:jev-latest",
       "b": "deepseek-v4-flash",
-      "matches": 6,
-      "vacas": "30\u201316",
-      "delta": 14,
-      "piedra_delta": 754
+      "matches": 8,
+      "vacas": "35\u201319",
+      "delta": 16,
+      "piedra_delta": 901
     },
     {
       "a": "glm5.3-flash",
       "b": "gemma4",
-      "matches": 6,
-      "vacas": "23\u201314",
-      "delta": 9,
-      "piedra_delta": 397
+      "matches": 8,
+      "vacas": "27\u201320",
+      "delta": 7,
+      "piedra_delta": 301
     },
     {
       "a": "deepseek-v4-flash",
@@ -837,34 +885,34 @@
   ],
   "scorecard": {
     "deepseek-v4-flash": {
-      "decisions": 2419,
+      "decisions": 2566,
       "seats": [
         0,
         1,
         2,
         3
       ],
-      "fallbacks": 9,
-      "rejections": 250,
+      "fallbacks": 10,
+      "rejections": 269,
       "senas_caught": 0,
-      "aggressive": 507,
-      "bet_chances": 1222,
-      "bluffs": 135,
-      "value_bets": 237,
-      "aggression_rate": 0.4148936170212766,
-      "bluff_rate": 0.26627218934911245,
-      "weak_hand_bet_rate": 0.30337078651685395,
-      "avg_strength_when_betting": 0.626,
-      "value_bet_rate": 0.46745562130177515,
-      "bluff_success": 0.5306122448979592,
-      "value_bet_fold_rate": 0.4387755102040816,
-      "fold_equity": -120,
-      "stake_won_folds": 296,
+      "aggressive": 527,
+      "bet_chances": 1300,
+      "bluffs": 130,
+      "value_bets": 248,
+      "aggression_rate": 0.4053846153846154,
+      "bluff_rate": 0.24667931688804554,
+      "weak_hand_bet_rate": 0.2826086956521739,
+      "avg_strength_when_betting": 0.627,
+      "value_bet_rate": 0.47058823529411764,
+      "bluff_success": 0.5106382978723404,
+      "value_bet_fold_rate": 0.42574257425742573,
+      "fold_equity": -126,
+      "stake_won_folds": 290,
       "stake_lost_called_bluffs": 416,
-      "faced_winning": 343,
-      "fold_error_rate": 0.46355685131195334,
-      "faced_losing": 363,
-      "payoff_rate": 0.43526170798898073,
+      "faced_winning": 368,
+      "fold_error_rate": 0.4782608695652174,
+      "faced_losing": 386,
+      "payoff_rate": 0.41450777202072536,
       "read_win_n": 0,
       "read_win_brier": null,
       "read_win_logloss": null,
@@ -879,34 +927,34 @@
       "calibration_win": [],
       "by_lance": {
         "Chica": {
-          "aggressive": 241,
-          "bluff_rate": 0.35684647302904565
+          "aggressive": 253,
+          "bluff_rate": 0.35177865612648224
         },
         "Grande": {
-          "aggressive": 85,
-          "bluff_rate": 0.23529411764705882
+          "aggressive": 88,
+          "bluff_rate": 0.23863636363636365
         },
         "Juego": {
-          "aggressive": 58,
-          "bluff_rate": 0.15517241379310345
+          "aggressive": 60,
+          "bluff_rate": 0.15
         },
         "Pares": {
-          "aggressive": 123,
-          "bluff_rate": 0.16260162601626016
+          "aggressive": 126,
+          "bluff_rate": 0.0873015873015873
         }
       },
       "by_position": {
         "ahead": {
           "aggressive": 56,
-          "bluff_rate": 0.23214285714285715
+          "bluff_rate": 0.21428571428571427
         },
         "behind": {
-          "aggressive": 217,
-          "bluff_rate": 0.2903225806451613
+          "aggressive": 234,
+          "bluff_rate": 0.2606837606837607
         },
         "level": {
-          "aggressive": 234,
-          "bluff_rate": 0.25213675213675213
+          "aggressive": 237,
+          "bluff_rate": 0.24050632911392406
         }
       },
       "read_win_learning": null,
@@ -925,18 +973,18 @@
       "senas_caught": 0,
       "aggressive": 610,
       "bet_chances": 661,
-      "bluffs": 209,
+      "bluffs": 198,
       "value_bets": 195,
       "aggression_rate": 0.9228441754916793,
-      "bluff_rate": 0.34262295081967215,
-      "weak_hand_bet_rate": 0.9047619047619048,
+      "bluff_rate": 0.32459016393442625,
+      "weak_hand_bet_rate": 0.908256880733945,
       "avg_strength_when_betting": 0.543,
       "value_bet_rate": 0.319672131147541,
-      "bluff_success": 0.527027027027027,
+      "bluff_success": 0.5319148936170213,
       "value_bet_fold_rate": 0.5503355704697986,
-      "fold_equity": -963,
-      "stake_won_folds": 470,
-      "stake_lost_called_bluffs": 1433,
+      "fold_equity": -909,
+      "stake_won_folds": 414,
+      "stake_lost_called_bluffs": 1323,
       "faced_winning": 113,
       "fold_error_rate": 0.07079646017699115,
       "faced_losing": 152,
@@ -968,55 +1016,55 @@
         },
         "Pares": {
           "aggressive": 111,
-          "bluff_rate": 0.44144144144144143
+          "bluff_rate": 0.34234234234234234
         }
       },
       "by_position": {
         "ahead": {
           "aggressive": 122,
-          "bluff_rate": 0.3360655737704918
+          "bluff_rate": 0.3114754098360656
         },
         "behind": {
           "aggressive": 63,
-          "bluff_rate": 0.3492063492063492
+          "bluff_rate": 0.31746031746031744
         },
         "level": {
           "aggressive": 425,
-          "bluff_rate": 0.34352941176470586
+          "bluff_rate": 0.32941176470588235
         }
       },
       "read_win_learning": null,
       "read_fold_learning": null
     },
     "gemma4": {
-      "decisions": 1902,
+      "decisions": 1940,
       "seats": [
         0,
         1,
         2,
         3
       ],
-      "fallbacks": 234,
-      "rejections": 1267,
+      "fallbacks": 236,
+      "rejections": 1281,
       "senas_caught": 0,
-      "aggressive": 591,
-      "bet_chances": 863,
-      "bluffs": 201,
-      "value_bets": 225,
-      "aggression_rate": 0.6848203939745076,
-      "bluff_rate": 0.3401015228426396,
-      "weak_hand_bet_rate": 0.659016393442623,
-      "avg_strength_when_betting": 0.569,
-      "value_bet_rate": 0.38071065989847713,
+      "aggressive": 603,
+      "bet_chances": 878,
+      "bluffs": 196,
+      "value_bets": 231,
+      "aggression_rate": 0.6867881548974943,
+      "bluff_rate": 0.3250414593698176,
+      "weak_hand_bet_rate": 0.6599326599326599,
+      "avg_strength_when_betting": 0.57,
+      "value_bet_rate": 0.38308457711442784,
       "bluff_success": 0.5769230769230769,
-      "value_bet_fold_rate": 0.648854961832061,
-      "fold_equity": -391,
-      "stake_won_folds": 515,
+      "value_bet_fold_rate": 0.6518518518518519,
+      "fold_equity": -397,
+      "stake_won_folds": 509,
       "stake_lost_called_bluffs": 906,
-      "faced_winning": 207,
-      "fold_error_rate": 0.057971014492753624,
-      "faced_losing": 256,
-      "payoff_rate": 0.9453125,
+      "faced_winning": 212,
+      "fold_error_rate": 0.05660377358490566,
+      "faced_losing": 259,
+      "payoff_rate": 0.9459459459459459,
       "read_win_n": 0,
       "read_win_brier": null,
       "read_win_logloss": null,
@@ -1031,41 +1079,41 @@
       "calibration_win": [],
       "by_lance": {
         "Chica": {
-          "aggressive": 215,
-          "bluff_rate": 0.3581395348837209
+          "aggressive": 219,
+          "bluff_rate": 0.3607305936073059
         },
         "Grande": {
-          "aggressive": 191,
-          "bluff_rate": 0.3089005235602094
+          "aggressive": 195,
+          "bluff_rate": 0.3076923076923077
         },
         "Juego": {
-          "aggressive": 69,
-          "bluff_rate": 0.34782608695652173
+          "aggressive": 71,
+          "bluff_rate": 0.3380281690140845
         },
         "Pares": {
-          "aggressive": 116,
-          "bluff_rate": 0.35344827586206895
+          "aggressive": 118,
+          "bluff_rate": 0.2796610169491525
         }
       },
       "by_position": {
         "ahead": {
-          "aggressive": 136,
-          "bluff_rate": 0.27941176470588236
+          "aggressive": 143,
+          "bluff_rate": 0.26573426573426573
         },
         "behind": {
           "aggressive": 61,
-          "bluff_rate": 0.2786885245901639
+          "bluff_rate": 0.26229508196721313
         },
         "level": {
-          "aggressive": 394,
-          "bluff_rate": 0.37055837563451777
+          "aggressive": 399,
+          "bluff_rate": 0.3558897243107769
         }
       },
       "read_win_learning": null,
       "read_fold_learning": null
     },
     "glm5.3-flash": {
-      "decisions": 2061,
+      "decisions": 2101,
       "seats": [
         0,
         1,
@@ -1073,26 +1121,26 @@
         3
       ],
       "fallbacks": 25,
-      "rejections": 276,
+      "rejections": 279,
       "senas_caught": 0,
-      "aggressive": 348,
-      "bet_chances": 938,
-      "bluffs": 58,
-      "value_bets": 183,
-      "aggression_rate": 0.37100213219616207,
-      "bluff_rate": 0.16666666666666666,
-      "weak_hand_bet_rate": 0.17956656346749225,
-      "avg_strength_when_betting": 0.682,
-      "value_bet_rate": 0.5258620689655172,
-      "bluff_success": 0.5833333333333334,
-      "value_bet_fold_rate": 0.5862068965517241,
-      "fold_equity": -71,
-      "stake_won_folds": 48,
+      "aggressive": 359,
+      "bet_chances": 957,
+      "bluffs": 50,
+      "value_bets": 189,
+      "aggression_rate": 0.37513061650992685,
+      "bluff_rate": 0.1392757660167131,
+      "weak_hand_bet_rate": 0.15772870662460567,
+      "avg_strength_when_betting": 0.684,
+      "value_bet_rate": 0.5264623955431755,
+      "bluff_success": 0.5454545454545454,
+      "value_bet_fold_rate": 0.5573770491803278,
+      "fold_equity": -77,
+      "stake_won_folds": 42,
       "stake_lost_called_bluffs": 119,
-      "faced_winning": 269,
-      "fold_error_rate": 0.38661710037174724,
-      "faced_losing": 247,
-      "payoff_rate": 0.41700404858299595,
+      "faced_winning": 271,
+      "fold_error_rate": 0.3837638376383764,
+      "faced_losing": 254,
+      "payoff_rate": 0.421259842519685,
       "read_win_n": 0,
       "read_win_brier": null,
       "read_win_logloss": null,
@@ -1107,41 +1155,41 @@
       "calibration_win": [],
       "by_lance": {
         "Chica": {
-          "aggressive": 113,
-          "bluff_rate": 0.1592920353982301
+          "aggressive": 116,
+          "bluff_rate": 0.16379310344827586
         },
         "Grande": {
-          "aggressive": 99,
-          "bluff_rate": 0.1919191919191919
+          "aggressive": 103,
+          "bluff_rate": 0.18446601941747573
         },
         "Juego": {
-          "aggressive": 49,
-          "bluff_rate": 0.20408163265306123
+          "aggressive": 51,
+          "bluff_rate": 0.19607843137254902
         },
         "Pares": {
-          "aggressive": 87,
-          "bluff_rate": 0.12643678160919541
+          "aggressive": 89,
+          "bluff_rate": 0.02247191011235955
         }
       },
       "by_position": {
         "ahead": {
           "aggressive": 58,
-          "bluff_rate": 0.20689655172413793
+          "bluff_rate": 0.15517241379310345
         },
         "behind": {
-          "aggressive": 99,
-          "bluff_rate": 0.20202020202020202
+          "aggressive": 107,
+          "bluff_rate": 0.18691588785046728
         },
         "level": {
-          "aggressive": 191,
-          "bluff_rate": 0.13612565445026178
+          "aggressive": 194,
+          "bluff_rate": 0.10824742268041238
         }
       },
       "read_win_learning": null,
       "read_fold_learning": null
     },
     "jev-latest": {
-      "decisions": 435,
+      "decisions": 565,
       "seats": [
         0,
         1,
@@ -1149,26 +1197,26 @@
         3
       ],
       "fallbacks": 0,
-      "rejections": 50,
+      "rejections": 64,
       "senas_caught": 0,
-      "aggressive": 188,
-      "bet_chances": 215,
-      "bluffs": 63,
-      "value_bets": 61,
-      "aggression_rate": 0.8744186046511628,
-      "bluff_rate": 0.3351063829787234,
-      "weak_hand_bet_rate": 0.8513513513513513,
-      "avg_strength_when_betting": 0.554,
-      "value_bet_rate": 0.324468085106383,
-      "bluff_success": 0.8857142857142857,
-      "value_bet_fold_rate": 0.8461538461538461,
-      "fold_equity": 267,
-      "stake_won_folds": 343,
-      "stake_lost_called_bluffs": 76,
-      "faced_winning": 48,
+      "aggressive": 243,
+      "bet_chances": 274,
+      "bluffs": 80,
+      "value_bets": 80,
+      "aggression_rate": 0.8868613138686131,
+      "bluff_rate": 0.3292181069958848,
+      "weak_hand_bet_rate": 0.8888888888888888,
+      "avg_strength_when_betting": 0.55,
+      "value_bet_rate": 0.3292181069958848,
+      "bluff_success": 0.8846153846153846,
+      "value_bet_fold_rate": 0.8867924528301887,
+      "fold_equity": 274,
+      "stake_won_folds": 389,
+      "stake_lost_called_bluffs": 115,
+      "faced_winning": 53,
       "fold_error_rate": 0.0,
-      "faced_losing": 63,
-      "payoff_rate": 0.9682539682539683,
+      "faced_losing": 75,
+      "payoff_rate": 0.9733333333333334,
       "read_win_n": 0,
       "read_win_brier": null,
       "read_win_logloss": null,
@@ -1183,34 +1231,34 @@
       "calibration_win": [],
       "by_lance": {
         "Chica": {
-          "aggressive": 70,
-          "bluff_rate": 0.34285714285714286
+          "aggressive": 91,
+          "bluff_rate": 0.34065934065934067
         },
         "Grande": {
-          "aggressive": 55,
-          "bluff_rate": 0.36363636363636365
+          "aggressive": 72,
+          "bluff_rate": 0.3472222222222222
         },
         "Juego": {
-          "aggressive": 24,
-          "bluff_rate": 0.25
+          "aggressive": 33,
+          "bluff_rate": 0.2727272727272727
         },
         "Pares": {
-          "aggressive": 39,
-          "bluff_rate": 0.3333333333333333
+          "aggressive": 47,
+          "bluff_rate": 0.3191489361702128
         }
       },
       "by_position": {
         "ahead": {
-          "aggressive": 80,
-          "bluff_rate": 0.3625
+          "aggressive": 117,
+          "bluff_rate": 0.3162393162393162
         },
         "behind": {
-          "aggressive": 6,
+          "aggressive": 9,
           "bluff_rate": 0.3333333333333333
         },
         "level": {
-          "aggressive": 102,
-          "bluff_rate": 0.3137254901960784
+          "aggressive": 117,
+          "bluff_rate": 0.3418803418803419
         }
       },
       "read_win_learning": null,

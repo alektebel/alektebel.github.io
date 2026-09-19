@@ -19,8 +19,8 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06
 </style></head><body><div class=wrap>
 <span class=pill>mus_bench</span>
 <h1>mus_bench — vacas &amp; faroles (rules v2)</h1>
-<p class=lede>Rules v2 (explicit envite amounts 2..39 + ordago, first hand corrido y sin señas) with chain-of-thought. qwen3.6, DeepSeek-V4-Flash, GLM-5.3-Flash and Gemma 4 round robin plus Jev vs DeepSeek; a larger seed sweep (seeds 1-3, 42 matches) is running and this page refreshes automatically when it completes. A farol is an envite raised from the bottom tercile of hand strength for that lance. Δ 95% CI is a cluster bootstrap over matches; treat ↯ with care (decisions cluster within matches).</p>
-<p class=muted>Rules: v2: explicit amounts, corrido sin señas hand 1, CoT · 8 hands · both seatings · result dirs: results/bench_v2, results/bench_v2b, results/jev_v2, results/sweep</p>
+<p class=lede>Round robin under rules v2 (explicit envite amounts 2..39 + ordago, first hand corrido y sin señas) with chain-of-thought: qwen3.6, DeepSeek-V4-Flash, GLM-5.3-Flash and Gemma 4 play each other across several seeds, both seatings; then Jev (typesafe:jev-latest) vs DeepSeek-V4-Flash. A farol is an envite raised from the bottom tercile of hand strength for that lance. Δ 95% CI is a cluster bootstrap over matches.</p>
+<p class=muted>Rules: v2: explicit amounts, corrido sin señas hand 1, CoT · 8 hands · seeds 0-3 · both seatings · result dirs: results/bench_v2, results/bench_v2b, results/jev_v2, results/sweep</p>
 
 <div class=card><h2>Scoreboard — vacas &amp; faroles</h2>
 <div class=sub>A <b>farol</b> is an envite raised from the bottom tercile of hand strength for
@@ -34,93 +34,93 @@ within matches).</div>
 <th class=num>bluff win</th><th class=num>fold eq</th><th class=num>piedras/hand</th>
 <th class=num>piedras CI</th><th class=num>fb</th><th class=num>rej</th></tr></thead><tbody>
 <tr><td class=model>jev-latest</td>
-<td class=num>6</td>
-<td class=num>5–1–0</td>
-<td class="num strong">30–16</td>
-<td class=num>+14</td>
-<td class=num>[-0.2,+4.7]</td>
-<td class=num><b>63</b></td>
-<td class=num>33.5%</td>
-<td class=num>188</td>
-<td class=num>87.4%</td>
-<td class=num>88.6%</td>
-<td class=num>+267</td>
-<td class=num>15.708</td>
-<td class=num>[+4.6,+27.9] <b>↯</b></td>
-<td class=num>0</td><td class=num>50</td></tr>
+<td class=num>8</td>
+<td class=num>6–2–0</td>
+<td class="num strong">35–19</td>
+<td class=num>+16</td>
+<td class=num>[+0.0,+3.9]</td>
+<td class=num><b>80</b></td>
+<td class=num>32.9%</td>
+<td class=num>243</td>
+<td class=num>88.7%</td>
+<td class=num>88.5%</td>
+<td class=num>+274</td>
+<td class=num>14.078</td>
+<td class=num>[+4.7,+24.0] <b>↯</b></td>
+<td class=num>0</td><td class=num>64</td></tr>
 <tr><td class=model>glm5.3-flash</td>
-<td class=num>22</td>
-<td class=num>12–7–3</td>
-<td class="num strong">59–48</td>
-<td class=num>+11</td>
-<td class=num>[-0.3,+1.3]</td>
-<td class=num><b>58</b></td>
-<td class=num>16.7%</td>
-<td class=num>348</td>
-<td class=num>37.1%</td>
-<td class=num>58.3%</td>
-<td class=num>-71</td>
-<td class=num>2.364</td>
-<td class=num>[-1.9,+6.6]</td>
-<td class=num>25</td><td class=num>276</td></tr>
+<td class=num>24</td>
+<td class=num>12–9–3</td>
+<td class="num strong">63–54</td>
+<td class=num>+9</td>
+<td class=num>[-0.3,+1.1]</td>
+<td class=num><b>50</b></td>
+<td class=num>13.9%</td>
+<td class=num>359</td>
+<td class=num>37.5%</td>
+<td class=num>54.5%</td>
+<td class=num>-77</td>
+<td class=num>1.667</td>
+<td class=num>[-2.3,+5.6]</td>
+<td class=num>25</td><td class=num>279</td></tr>
 <tr><td class=model>qwen3.6</td>
 <td class=num>23</td>
 <td class=num>9–11–3</td>
 <td class="num strong">103–106</td>
 <td class=num>-3</td>
 <td class=num>[-1.2,+1.0]</td>
-<td class=num><b>209</b></td>
-<td class=num>34.3%</td>
+<td class=num><b>198</b></td>
+<td class=num>32.5%</td>
 <td class=num>610</td>
 <td class=num>92.3%</td>
-<td class=num>52.7%</td>
-<td class=num>-963</td>
+<td class=num>53.2%</td>
+<td class=num>-909</td>
 <td class=num>0.408</td>
 <td class=num>[-5.2,+6.2]</td>
 <td class=num>6</td><td class=num>176</td></tr>
 <tr><td class=model>gemma4</td>
-<td class=num>21</td>
-<td class=num>8–9–4</td>
-<td class="num strong">93–100</td>
-<td class=num>-7</td>
-<td class=num>[-1.2,+0.6]</td>
-<td class=num><b>201</b></td>
-<td class=num>34.0%</td>
-<td class=num>591</td>
-<td class=num>68.5%</td>
+<td class=num>23</td>
+<td class=num>10–9–4</td>
+<td class="num strong">99–104</td>
+<td class=num>-5</td>
+<td class=num>[-1.0,+0.6]</td>
+<td class=num><b>196</b></td>
+<td class=num>32.5%</td>
+<td class=num>603</td>
+<td class=num>68.7%</td>
 <td class=num>57.7%</td>
-<td class=num>-391</td>
-<td class=num>0.524</td>
-<td class=num>[-5.8,+6.8]</td>
-<td class=num>234</td><td class=num>1267</td></tr>
+<td class=num>-397</td>
+<td class=num>1.0</td>
+<td class=num>[-4.9,+6.6]</td>
+<td class=num>236</td><td class=num>1281</td></tr>
 <tr><td class=model>deepseek-v4-flash</td>
-<td class=num>30</td>
-<td class=num>10–16–4</td>
-<td class="num strong">71–86</td>
-<td class=num>-15</td>
-<td class=num>[-1.3,+0.3]</td>
-<td class=num><b>135</b></td>
-<td class=num>26.6%</td>
-<td class=num>507</td>
-<td class=num>41.5%</td>
-<td class=num>53.1%</td>
-<td class=num>-120</td>
-<td class=num>-5.554</td>
-<td class=num>[-9.9,-1.6] <b>↯</b></td>
-<td class=num>9</td><td class=num>250</td></tr>
+<td class=num>32</td>
+<td class=num>11–17–4</td>
+<td class="num strong">74–91</td>
+<td class=num>-17</td>
+<td class=num>[-1.4,+0.2]</td>
+<td class=num><b>130</b></td>
+<td class=num>24.7%</td>
+<td class=num>527</td>
+<td class=num>40.5%</td>
+<td class=num>51.1%</td>
+<td class=num>-126</td>
+<td class=num>-5.781</td>
+<td class=num>[-10.0,-1.9] <b>↯</b></td>
+<td class=num>10</td><td class=num>269</td></tr>
 </tbody></table></div>
 
 <div class=card><h2>Head-to-head (both seatings pooled)</h2>
 <table><thead><tr><th>matchup</th><th class=num>matches</th><th class=num>vacas</th>
 <th class=num>Δ vacas</th><th class=num>Δ piedras</th></tr></thead><tbody>
 <tr><td class=model>jev-latest vs deepseek-v4-flash</td>
-<td class=num>6</td><td class=num>30–16</td>
-<td class=num strong>+14</td>
-<td class=num>+754</td></tr>
+<td class=num>8</td><td class=num>35–19</td>
+<td class=num strong>+16</td>
+<td class=num>+901</td></tr>
 <tr><td class=model>glm5.3-flash vs gemma4</td>
-<td class=num>6</td><td class=num>23–14</td>
-<td class=num strong>+9</td>
-<td class=num>+397</td></tr>
+<td class=num>8</td><td class=num>27–20</td>
+<td class=num strong>+7</td>
+<td class=num>+301</td></tr>
 <tr><td class=model>deepseek-v4-flash vs qwen3.6</td>
 <td class=num>8</td><td class=num>26–21</td>
 <td class=num strong>+5</td>
