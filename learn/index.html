@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>learn from scratch — build the systems, pass the checks</title>
+<meta name="description" content="Interactive from-scratch implementations with graded checks: AWS, compilers, LLMs, Dynamo, context caching and production debugging. Write the code, run the checker in your browser.">
+<meta property="og:title" content="learn from scratch">
+<meta property="og:description" content="Build AWS, compilers, LLMs and distributed systems from scratch — run the graded checks in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='2' y='13' font-family='monospace' font-size='12' fill='%23ff3b1f'%3E%3E_%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f2ed;
+    --panel: #efece4;
+    --ink: #111110;
+    --body: #3c3a35;
+    --muted: #6b6862;
+    --faint: #9a958b;
+    --line: #111110;
+    --soft-line: #ddd8cb;
+    --accent: #ff3b1f;
+    --green: #1f7a3d;
+    --yellow: #a8720a;
+    --code-bg: #171714;
+    --code-ink: #e9e6dd;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body { color: var(--ink); font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.55; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+  .label { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 0; background: var(--ink); color: var(--bg); padding: 10px 16px; z-index: 50; }
+
+  /* top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+    padding: 12px 22px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
+  .topbar .title { font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
+  .topbar .title .dot { color: var(--accent); }
+  .topbar .grow { flex: 1 1 auto; }
+  .topbar .actions { display: flex; align-items: center; gap: 14px; }
+  .topbar .actions a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
+  .pill {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 5px 10px; border: 1px solid var(--soft-line); color: var(--muted); white-space: nowrap;
+  }
+  .pill.ready { color: var(--green); border-color: #bcd7c4; }
+  .pill.busy { color: var(--accent); border-color: #f1c2b8; }
+  .pill.error { color: var(--accent); border-color: var(--accent); }
+
+  .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); max-width: 1400px; margin: 0 auto; }
+  /* track nav */
+  .tracks { border-right: 1px solid var(--line); padding: 22px 18px 40px; position: sticky; top: 61px; align-self: start; max-height: calc(100vh - 61px); overflow: auto; }
+  .tracks .label { margin-bottom: 12px; }
+  .tracks button {
+    display: block; width: 100%; text-align: left;
+    padding: 10px 10px; margin-bottom: 3px;
+    border: 1px solid transparent; background: none; cursor: pointer;
+    font-family: inherit; font-size: 13.5px; color: var(--body);
+  }
+  .tracks button:hover { border-color: var(--soft-line); color: var(--ink); }
+  .tracks button.active { background: var(--ink); color: var(--bg); }
+  .tracks button .t-prog { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); margin-top: 3px; }
+  .tracks button.active .t-prog { color: #b3aea3; }
+
+  main { min-width: 0; padding: 34px 34px 80px; }
+  h1 { font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.03; margin: 8px 0 0; }
+  .lede { max-width: 66ch; color: var(--body); font-size: 15px; text-wrap: pretty; }
+  .lede code, .code-inline { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--panel); padding: 1px 5px; }
+
+  /* home cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; margin-top: 26px; }
+  .card {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 18px 18px 16px; background: var(--panel); border: 1px solid var(--soft-line);
+    cursor: pointer; text-align: left; font: inherit; color: inherit;
+    transition: border-color 0.16s, transform 0.16s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); color: var(--ink); }
+  .card .c-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .card h3 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+  .card .c-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); text-align: right; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--body); text-wrap: pretty; }
+  .card .c-foot { margin-top: auto; padding-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+
+  /* track */
+  .track-head { border-bottom: 1px solid var(--line); padding-bottom: 22px; }
+  .track-head .meta { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 18px; }
+  .track-head .meta a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
+  .progress { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+  .btn {
+    padding: 9px 16px; border: 1px solid var(--line); background: var(--ink); color: var(--bg);
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+  }
+  .btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+  .btn:disabled { opacity: 0.5; cursor: wait; }
+  .btn.ghost { background: var(--bg); color: var(--ink); }
+  .btn.ghost:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+
+  .track-body { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 26px; margin-top: 24px; align-items: start; }
+  .checks { border-top: 1px solid var(--soft-line); }
+  .file-group { border-bottom: 1px solid var(--soft-line); padding: 12px 0 8px; }
+  .file-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .file-name .f-count { font-size: 10.5px; color: var(--faint); font-weight: 400; }
+  .check-row {
+    display: flex; gap: 10px; align-items: baseline; width: 100%;
+    padding: 7px 8px; border: 1px solid transparent; background: none; cursor: pointer;
+    font: inherit; font-size: 13px; color: var(--body); text-align: left;
+  }
+  .check-row:hover { background: var(--panel); color: var(--ink); }
+  .check-row.sel { border-color: var(--line); background: var(--panel); color: var(--ink); }
+  .check-row .badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; width: 1.3em; flex: none; color: var(--faint); }
+  .check-row[data-st="PASS"] .badge { color: var(--green); }
+  .check-row[data-st="FAIL"] .badge { color: var(--accent); }
+  .check-row[data-st="TODO"] .badge { color: var(--yellow); }
+  .check-row .c-num { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); flex: none; }
+
+  .work { min-width: 0; }
+  .work-head { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .work-head .wf { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
+  .work-head a { font-family: 'IBM Plex Mono', monospace; font-size: 11px; border-bottom: 1px solid #c9c4b8; }
+  .hint { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; text-wrap: pretty; }
+  #editor {
+    width: 100%; height: 460px; resize: vertical;
+    padding: 14px 16px; border: 1px solid var(--line);
+    background: var(--code-bg); color: var(--code-ink);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6;
+    tab-size: 4; white-space: pre; overflow: auto;
+  }
+  .work-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+  #output {
+    margin: 0; min-height: 120px; max-height: 420px; overflow: auto;
+    padding: 14px 16px; border: 1px solid var(--soft-line); background: var(--panel);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word; color: var(--body);
+  }
+  #output .oline { min-height: 1.2em; }
+  #output .oline.ok { color: var(--green); }
+  #output .oline.bad { color: var(--accent); }
+  #output .oline.todo { color: var(--yellow); }
+  #output .oline.sum { color: var(--ink); font-weight: 600; margin-top: 4px; }
+  #output.busy { opacity: 0.7; }
+
+  .links { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; }
+  .links .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; margin-top: 14px; }
+  .links a { display: block; padding: 12px 14px; border: 1px solid var(--soft-line); background: var(--panel); }
+  .links a:hover { border-color: var(--accent); color: var(--ink); }
+  .links .l-title { font-size: 14.5px; font-weight: 600; }
+  .links .l-blurb { font-size: 12.5px; color: var(--body); margin-top: 4px; }
+  .links .l-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+
+  .how { margin-top: 34px; border-top: 1px solid var(--soft-line); padding-top: 20px; }
+  .how ol { margin: 12px 0 0; padding-left: 20px; color: var(--body); font-size: 14px; max-width: 70ch; }
+  .how li { margin-bottom: 6px; }
+  .how code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--panel); padding: 1px 5px; }
+
+  footer.colophon { margin-top: 50px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
+
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .tracks { position: static; border-right: none; border-bottom: 1px solid var(--line); max-height: none; }
+    .track-body { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="brand" href="/">← diegoatencia.dev</a>
+  <div class="title">learn<span class="dot">·</span>from scratch</div>
+  <span class="grow"></span>
+  <div class="actions">
+    <span class="pill" id="runner-pill">python runner idle</span>
+    <a href="https://github.com/alektebel/learn-stuff-from-scratch" target="_blank" rel="noopener">repo ↗</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="tracks" id="track-nav" aria-label="Tracks"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+"use strict";
+const RAW = "https://raw.githubusercontent.com/alektebel/learn-stuff-from-scratch/main/";
+const PYODIDE_VERSION = "v0.26.4";
+const PYODIDE_BASE = "https://cdn.jsdelivr.net/pyodide/" + PYODIDE_VERSION + "/full/";
+
+const state = {
+  catalog: null,
+  view: { name: "home" },
+  track: null,
+  sel: null,              // { file, index }
+  files: {},              // "dir/name" -> fetched text
+  buffers: {},            // "dir/name" -> edited text
+  status: {},             // "trackId:index" -> PASS|FAIL|TODO
+  py: null,
+  pyLoading: false,
+  outBuf: ""
+};
+
+const mainEl = document.getElementById("main");
+const navEl = document.getElementById("track-nav");
+const pillEl = document.getElementById("runner-pill");
+
+function setPill(text, cls) {
+  pillEl.textContent = text;
+  pillEl.className = "pill" + (cls ? " " + cls : "");
+}
+function stripAnsi(s) { return s.replace(/\x1b\[[0-9;]*m/g, ""); }
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function byId(id) { return document.getElementById(id); }
+
+/* ── status persistence ── */
+function loadStatus(track) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("lfs:status:" + track.id) || "{}");
+    for (const k in saved) state.status[track.id + ":" + k] = saved[k];
+  } catch (e) { /* ignore */ }
+}
+function persistStatus(track) {
+  const out = {};
+  track.checks.forEach((c, i) => {
+    const st = state.status[track.id + ":" + (i + 1)];
+    if (st) out[i + 1] = st;
+  });
+  try { localStorage.setItem("lfs:status:" + track.id, JSON.stringify(out)); } catch (e) { /* ignore */ }
+}
+function passedCount(track) {
+  let n = 0;
+  track.checks.forEach((c, i) => { if (state.status[track.id + ":" + (i + 1)] === "PASS") n++; });
+  return n;
+}
+
+/* ── buffers ── */
+function bufKey(track, file) { return track.dir + "/" + file; }
+function bufferFor(track, file) {
+  const k = bufKey(track, file);
+  if (state.buffers[k] == null) {
+    let stored = null;
+    try { stored = localStorage.getItem("lfs:buf:" + k); } catch (e) { /* ignore */ }
+    state.buffers[k] = stored != null ? stored : state.files[k];
+  }
+  return state.buffers[k];
+}
+function saveBuffer(track, file, text) {
+  const k = bufKey(track, file);
+  state.buffers[k] = text;
+  try { localStorage.setItem("lfs:buf:" + k, text); } catch (e) { /* quota */ }
+}
+
+/* ── files ── */
+async function ensureFiles(track) {
+  const need = track.files.concat([track.entry]);
+  await Promise.all(need.map(async (name) => {
+    const key = track.dir + "/" + name;
+    if (state.files[key] != null) return;
+    const r = await fetch(RAW + track.dir + "/" + name, { cache: "no-cache" });
+    if (!r.ok) throw new Error("could not fetch " + name + " (HTTP " + r.status + ")");
+    state.files[key] = await r.text();
+  }));
+}
+
+/* ── pyodide ── */
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = res;
+    s.onerror = () => rej(new Error("failed to load " + src));
+    document.head.appendChild(s);
+  });
+}
+async function ensurePy() {
+  if (state.py) return state.py;
+  if (state.pyLoading) {
+    while (state.pyLoading) await new Promise((r) => setTimeout(r, 100));
+    return state.py;
+  }
+  state.pyLoading = true;
+  setPill("loading python…", "busy");
+  try {
+    if (!window.loadPyodide) await loadScript(PYODIDE_BASE + "pyodide.js");
+    const py = await window.loadPyodide({ indexURL: PYODIDE_BASE });
+    // Pyodide batches stdout per line and hands it over WITHOUT the newline,
+    // so put it back; without this every printed line runs into the next one
+    // and the checker's `✓ 1. file` rows cannot be parsed.
+    const line = (s) => appendOut(/\n$/.test(s) ? s : s + "\n");
+    py.setStdout({ batched: line });
+    py.setStderr({ batched: line });
+    state.py = py;
+    return py;
+  } finally {
+    state.pyLoading = false;
+  }
+}
+
+/* ── output ── */
+function appendOut(s) { state.outBuf += s; renderOut(); }
+function renderOut() {
+  const out = byId("output");
+  if (!out) return;
+  out.innerHTML = "";
+  stripAnsi(state.outBuf).split("\n").forEach((line) => {
+    const div = document.createElement("div");
+    div.className = "oline";
+    const t = line.replace(/\s+$/, "");
+    if (t.indexOf("✓") !== -1) div.classList.add("ok");
+    else if (t.indexOf("✗") !== -1) div.classList.add("bad");
+    else if (t.indexOf("·") !== -1) div.classList.add("todo");
+    else if (/passing|failing|to write/.test(t)) div.classList.add("sum");
+    div.textContent = t;
+    out.appendChild(div);
+  });
+}
+function parseStatuses(track, text) {
+  stripAnsi(text).split("\n").forEach((line) => {
+    const m = line.match(/^\s*([✓·✗])\s+(\d+)\./);
+    if (!m) return;
+    const idx = parseInt(m[2], 10);
+    state.status[track.id + ":" + idx] = m[1] === "✓" ? "PASS" : m[1] === "·" ? "TODO" : "FAIL";
+  });
+  persistStatus(track);
+  updateBadges(track);
+  updateProgress(track);
+}
+
+/* ── run ── */
+async function run(track, index) {
+  const out = byId("output");
+  if (out) { out.classList.add("busy"); }
+  state.outBuf = "";
+  renderOut();
+  const runBtn = byId("run-all");
+  if (runBtn) runBtn.disabled = true;
+  try {
+    await ensureFiles(track);
+    const py = await ensurePy();
+    setPill("running…", "busy");
+    const dir = "/work/" + track.dir;
+    try { py.FS.mkdirTree(dir); } catch (e) { /* exists */ }
+    track.files.concat([track.entry]).forEach((name) => {
+      const key = track.dir + "/" + name;
+      const text = state.buffers[key] != null ? state.buffers[key] : state.files[key];
+      py.FS.writeFile(dir + "/" + name, text);
+    });
+    const args = index == null ? '["--all"]' : '["' + index + '"]';
+    const code = [
+      "import os, sys, importlib.util",
+      "os.chdir(" + JSON.stringify(dir) + ")",
+      "sys.path.insert(0, os.getcwd())",
+      'spec = importlib.util.spec_from_file_location("checkmod", "check.py")',
+      "mod = importlib.util.module_from_spec(spec)",
+      "spec.loader.exec_module(mod)",
+      "mod.main(" + args + ")"
+    ].join("\n");
+    await py.runPythonAsync(code);
+    parseStatuses(track, state.outBuf);
+    setPill("runner ready", "ready");
+  } catch (err) {
+    let msg = err && err.message ? err.message : String(err);
+    if (/HTTP 404/.test(msg) || /could not fetch/.test(msg)) {
+      msg += "\n\nThis track is not on main yet. Push its directory to " +
+             "alektebel/learn-stuff-from-scratch (branch main) and the runner will pick it up.";
+    }
+    appendOut("\n" + msg);
+    setPill("runner error", "error");
+  } finally {
+    if (out) out.classList.remove("busy");
+    if (runBtn) runBtn.disabled = false;
+  }
+}
+
+/* ── DOM: update helpers ── */
+function badge(st) {
+  if (st === "PASS") return "✓";
+  if (st === "FAIL") return "✗";
+  if (st === "TODO") return "·";
+  return "○";
+}
+function updateBadges(track) {
+  track.checks.forEach((c, i) => {
+    const row = document.querySelector('.check-row[data-id="' + (i + 1) + '"]');
+    if (!row) return;
+    const st = state.status[track.id + ":" + (i + 1)] || "";
+    row.setAttribute("data-st", st);
+    const b = row.querySelector(".badge");
+    if (b) b.textContent = badge(st);
+  });
+}
+function updateProgress(track) {
+  const el = byId("progress");
+  if (el) el.textContent = passedCount(track) + " / " + track.checks.length + " passing";
+}
+
+/* ── render: home ── */
+function renderHome() {
+  state.view = { name: "home" };
+  const c = state.catalog;
+  const cards = c.tracks.map((t) => {
+    loadStatus(t);
+    const p = passedCount(t);
+    return '<button class="card" data-nav="track" data-id="' + t.id + '">' +
+      '<div class="c-top"><h3>' + esc(t.title) + '</h3><span class="c-tag">' + esc(t.tagline) + '</span></div>' +
+      '<p>' + esc(t.blurb) + '</p>' +
+      '<div class="c-foot"><span>open track →</span><span>' + p + ' / ' + t.checks.length + ' passing</span></div>' +
+      '</button>';
+  }).join("");
+  const links = c.links.map((l) =>
+    '<a href="https://github.com/' + c.repo + '/tree/' + c.ref + '/' + l.dir + '" target="_blank" rel="noopener">' +
+    '<div class="l-title">' + esc(l.title) + '</div>' +
+    '<div class="l-blurb">' + esc(l.blurb) + '</div>' +
+    '<div class="l-tag">' + esc(l.tag) + ' · source</div></a>').join("");
+
+  mainEl.innerHTML =
+    '<div class="label">from scratch · graded</div>' +
+    '<h1>Build the thing, then run the checker.</h1>' +
+    '<p class="lede">A from-scratch implementation is not finished when it runs — it is finished when the ' +
+    'checker says so. Each track gives you templates with <code>raise NotImplementedError</code>, a ' +
+    '<code>check.py</code> that grades <em>your</em> code and names the likely cause when it fails, and a ' +
+    'run button that executes the checker in your browser. No install.</p>' +
+    '<div class="cards">' + cards + '</div>' +
+    '<div class="how"><div class="label">how to work through a track</div><ol>' +
+    '<li>Open a check, read the docstring in the template — it names the design decision and the failure it avoids.</li>' +
+    '<li>Implement the function, hit <span class="code-inline">Run</span>. The checker tells you what to build next.</li>' +
+    '<li>When it is green, read <span class="code-inline">solutions/</span> and predict the numbers before you look.</li>' +
+    '</ol></div>' +
+    '<div class="links"><div class="label">more from-scratch tracks — source on github</div>' +
+    '<div class="grid">' + links + '</div></div>' +
+    '<footer class="colophon">Runs on Pyodide · checks fetched live from GitHub · nothing is uploaded</footer>';
+}
+
+/* ── render: track ── */
+function renderTrack(track) {
+  state.view = { name: "track", id: track.id };
+  state.track = track;
+  state.sel = null;
+  loadStatus(track);
+
+  const groups = [];
+  let current = null;
+  track.checks.forEach((c, i) => {
+    if (!current || current.file !== c.file) {
+      current = { file: c.file, rows: [] };
+      groups.push(current);
+    }
+    current.rows.push({ index: i + 1, title: c.title });
+  });
+
+  const checksHtml = groups.map((g) => {
+    const rows = g.rows.map((r) => {
+      const st = state.status[track.id + ":" + r.index] || "";
+      return '<button class="check-row" data-id="' + r.index + '" data-file="' + esc(g.file) + '" data-st="' + st + '">' +
+        '<span class="badge">' + badge(st) + '</span>' +
+        '<span class="c-num">' + r.index + '</span>' +
+        '<span>' + esc(r.title) + '</span></button>';
+    }).join("");
+    return '<div class="file-group"><div class="file-name"><span>' + esc(g.file) + '</span>' +
+      '<span class="f-count">' + g.rows.length + '</span></div>' + rows + '</div>';
+  }).join("");
+
+  mainEl.innerHTML =
+    '<div class="track-head">' +
+      '<div class="label">track</div>' +
+      '<h1>' + esc(track.title) + '</h1>' +
+      '<p class="lede">' + esc(track.blurb) + '</p>' +
+      '<div class="meta">' +
+        '<button class="btn" id="run-all">Run all checks</button>' +
+        '<a href="https://github.com/' + state.catalog.repo + '/tree/' + state.catalog.ref + '/' + track.dir + '" target="_blank" rel="noopener">readme &amp; source ↗</a>' +
+        '<span class="progress" id="progress">' + passedCount(track) + ' / ' + track.checks.length + ' passing</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="track-body">' +
+      '<aside class="checks" aria-label="Checks">' + checksHtml + '</aside>' +
+      '<section class="work">' +
+        '<div class="work-head"><span class="wf" id="work-file">select a check</span>' +
+        '<a id="work-gh" href="#" target="_blank" rel="noopener" hidden>view on github ↗</a></div>' +
+        '<p class="hint" id="work-hint">Pick a check on the left to open its template. ' +
+        'Then run just that check, or run the whole track.</p>' +
+        '<textarea id="editor" spellcheck="false" aria-label="Code editor" style="display:none"></textarea>' +
+        '<div class="work-actions" id="work-actions" style="display:none">' +
+          '<button class="btn" id="run-check">Run this check</button>' +
+          '<button class="btn ghost" id="reset-file">Reset file</button>' +
+          '<button class="btn ghost" id="load-sol">Load solution</button>' +
+        '</div>' +
+        '<pre id="output" aria-live="polite"></pre>' +
+      '</section>' +
+    '</div>';
+
+  byId("run-all").addEventListener("click", () => run(track, null));
+  document.querySelectorAll(".check-row").forEach((row) => {
+    row.addEventListener("click", () => selectCheck(track, row.getAttribute("data-file"), parseInt(row.getAttribute("data-id"), 10)));
+  });
+  byId("output").textContent = "Ready. The first run loads the Python runtime (about 10 MB, once).";
+}
+
+async function selectCheck(track, file, index) {
+  state.sel = { file: file, index: index };
+  document.querySelectorAll(".check-row").forEach((r) => r.classList.remove("sel"));
+  const row = document.querySelector('.check-row[data-id="' + index + '"]');
+  if (row) row.classList.add("sel");
+
+  const editor = byId("editor");
+  byId("work-file").textContent = file;
+  const hint = byId("work-hint");
+  hint.textContent = "Implement the function the checker points at in " + file + ". The docstring names the design decision and the failure it avoids.";
+
+  const gh = byId("work-gh");
+  gh.hidden = false;
+  gh.href = "https://github.com/" + state.catalog.repo + "/blob/" + state.catalog.ref + "/" + track.dir + "/" + file;
+
+  const runCheck = byId("run-check");
+  runCheck.onclick = () => run(track, index);
+  byId("reset-file").onclick = () => {
+    if (!confirm("Reset " + file + " to the template? Your edits to this file are lost.")) return;
+    const key = bufKey(track, file);
+    state.buffers[key] = state.files[key];
+    try { localStorage.removeItem("lfs:buf:" + key); } catch (e) { /* ignore */ }
+    editor.value = state.files[key];
+  };
+  byId("load-sol").onclick = async () => {
+    if (!confirm("Replace the editor with the complete solution in solutions/" + file + "? Try it yourself first.")) return;
+    try {
+      const r = await fetch(RAW + track.dir + "/solutions/" + file, { cache: "no-cache" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      editor.value = await r.text();
+      saveBuffer(track, file, editor.value);
+    } catch (err) {
+      hint.textContent = "No solution file available (" + (err.message || err) + ").";
+    }
+  };
+
+  // Load the template, then reveal the editor — never show an empty box while
+  // the source is still in flight, and keep the buttons live throughout.
+  try {
+    await ensureFiles(track);
+    editor.value = bufferFor(track, file) || "";
+  } catch (err) {
+    hint.textContent = "Could not load " + file + ": " + (err.message || err);
+    editor.value = "";
+  }
+  editor.oninput = () => saveBuffer(track, file, editor.value);
+  editor.style.display = "";
+  byId("work-actions").style.display = "";
+}
+
+/* ── render: nav ── */
+function renderNav(activeId) {
+  navEl.innerHTML = '<div class="label">tracks</div>' +
+    state.catalog.tracks.map((t) => {
+      loadStatus(t);
+      return '<button data-nav="track" data-id="' + t.id + '"' + (t.id === activeId ? ' class="active"' : "") + '>' +
+        esc(t.title) + '<span class="t-prog">' + passedCount(t) + ' / ' + t.checks.length + '</span></button>';
+    }).join("");
+}
+
+/* ── navigation (delegated) ── */
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-nav]");
+  if (!el) return;
+  if (el.getAttribute("data-nav") === "home") { history.replaceState(null, "", location.pathname); renderNav(); renderHome(); window.scrollTo(0, 0); return; }
+  const track = state.catalog.tracks.find((t) => t.id === el.getAttribute("data-id"));
+  if (!track) return;
+  renderNav(track.id);
+  renderTrack(track);
+  history.replaceState(null, "", "#" + track.id);
+  window.scrollTo(0, 0);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Tab" && e.target && e.target.id === "editor") {
+    e.preventDefault();
+    const t = e.target;
+    const s = t.selectionStart, en = t.selectionEnd;
+    t.value = t.value.slice(0, s) + "    " + t.value.slice(en);
+    t.selectionStart = t.selectionEnd = s + 4;
+    t.dispatchEvent(new Event("input"));
+  }
+});
+
+/* ── boot ── */
+(async function boot() {
+  try {
+    const r = await fetch("catalog.json", { cache: "no-cache" });
+    state.catalog = await r.json();
+  } catch (e) {
+    mainEl.innerHTML = "<h1>Could not load catalog.json</h1><p class=\"lede\">Serve this page over HTTP (not file://) so the catalog and the source files can be fetched.</p>";
+    return;
+  }
+  renderNav();
+  const initial = decodeURIComponent(location.hash.slice(1));
+  const initialTrack = initial && state.catalog.tracks.find((t) => t.id === initial);
+  if (initialTrack) { renderNav(initialTrack.id); renderTrack(initialTrack); }
+  else renderHome();
+})();
+</script>
+</body>
+</html>

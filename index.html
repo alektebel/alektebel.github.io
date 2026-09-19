@@ -275,6 +275,32 @@
   }
   .posts .p-title { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; }
   .posts .p-blurb { margin: 7px 0 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
+  /* Brain teasers */
+  .sec-lede { margin: 14px 0 0; font-size: 14px; color: var(--body); max-width: 56ch; text-wrap: pretty; }
+  .puzzles { display: grid; margin-top: 22px; border-top: 1px solid var(--soft-line); }
+  .puzzle { border-bottom: 1px solid var(--soft-line); }
+  .puzzle summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 15px 4px;
+    font-size: 15.5px; font-weight: 500; letter-spacing: -0.01em;
+    transition: color 0.16s, padding-left 0.16s;
+  }
+  .puzzle summary::-webkit-details-marker { display: none; }
+  .puzzle summary::before {
+    content: "?";
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--accent); flex: none;
+    transform: translateY(-1px);
+  }
+  .puzzle summary:hover { color: var(--accent); padding-left: 10px; }
+  .puzzle[open] summary::before { content: "\2192"; }
+  .puzzle .a {
+    margin: 0; padding: 0 4px 18px 28px;
+    font-size: 14px; color: var(--body); max-width: 64ch; text-wrap: pretty;
+  }
+  .puzzle .a b { color: var(--ink); font-weight: 600; }
   /* Questions (dark) */
   .dark-sec { background: var(--dark); color: var(--dark-ink); }
   .dark-sec .label { color: var(--dark-faint); }
@@ -340,6 +366,7 @@
       <a href="https://twitter.com/didacum333" target="_blank" rel="noopener">x</a>
       <a href="/blog/blog.html">blog</a>
       <a href="/skill-tree.html">ai skill tree</a>
+      <a href="/learn/">learn from scratch</a>
       <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
     </nav>
 
@@ -415,6 +442,7 @@
         <button type="button" data-q="Do you actually know regulatory reporting?">Do you actually know regulatory reporting?</button>
         <button type="button" data-q="How do you debug something nobody understands?">How do you debug something nobody understands?</button>
         <button type="button" data-q="What's the RL thesis about?">What&rsquo;s the RL thesis about?</button>
+        <button type="button" data-q="What's new with this chatbot?">What&rsquo;s new with this chatbot?</button>
       </div>
       <form id="ask-form" class="ask-row" autocomplete="off">
         <input id="ask-input" type="text" maxlength="500" placeholder="Ask anything about my work…"
@@ -459,6 +487,11 @@
           <span class="b-name">ai skill tree</span>
           <span class="b-what">Learning ML as a browsable tech tree, from linear algebra upward.</span>
           <span class="b-stack">interactive</span>
+        </a>
+        <a href="/learn/">
+          <span class="b-name">learn from scratch</span>
+          <span class="b-what">From-scratch AWS, compilers, LLMs and distributed systems with graded checks you can run in the browser.</span>
+          <span class="b-stack">interactive · python</span>
         </a>
         <a href="/mus/play/">
           <span class="b-name">mus vs the LLMs — live table</span>
@@ -536,9 +569,82 @@
       </div>
     </section>
 
-    <!-- 06 track -->
+    <!-- 06 brain teasers -->
+    <section aria-labelledby="h-puzzles">
+      <div class="label" id="h-puzzles">06 — brain teasers</div>
+      <p class="sec-lede">Problems I keep circling back to, mostly ones my own work walked me into. Open one to see how I think about it.</p>
+      <div class="puzzles">
+        <details class="puzzle">
+          <summary>A KAN swears any continuous function is sums of one-variable pieces. So why keep the layers?</summary>
+          <p class="a">Kolmogorov&ndash;Arnold gets you a depth-2 representation, but the inner functions it promises can be pathological &mdash; non-smooth and not something you can fit. A KAN keeps the idea and parameterises the univariate pieces (splines, or Taylor terms in my version) then stacks them, trading the theorem&rsquo;s exactness for something trainable. <b>The theorem says it exists; it says nothing about it being learnable.</b></p>
+        </details>
+        <details class="puzzle">
+          <summary>Five annotators are each right 70% of the time. Does majority vote get you to the truth?</summary>
+          <p class="a">Only if their errors are independent. Annotators who share a bias &mdash; same training, same reading of the rubric &mdash; fail together, so the errors stop cancelling and the vote plateaus no matter how many you add. That independence assumption is exactly what Dawid&ndash;Skene bakes in. Break it and you have to model the correlation, which is the whole difficulty in the consensus algorithm I&rsquo;m working on. <b>Correlation, not count, sets the ceiling.</b></p>
+        </details>
+        <details class="puzzle">
+          <summary>Can the Collatz map be read as linear algebra?</summary>
+          <p class="a">Not over the reals &mdash; it is affine and its two branches depend on parity, so no single matrix carries it. Its natural home is the 2-adic integers, where &ldquo;if even, halve&rdquo; is a shift and the whole iteration becomes a dynamical system on a tree. Linearising there buys you real structure, but nobody has closed the conjecture with it yet. <b>Right home, still no proof.</b></p>
+        </details>
+        <details class="puzzle">
+          <summary>Biggest sofa that rounds an L-shaped corner?</summary>
+          <p class="a">Hammersley&rsquo;s semicircular-ended shape gives about 2.2074 square units; Gerver&rsquo;s more elaborate construction pushes the record to roughly 2.2195, and that value is provably optimal only in the limit of an infinitely long corridor. The finite-width optimum is still open. It is a clean RL playground: continuous action space, a corridor, and a reward that only cares whether the sofa made it through. <b>A geometry problem you can point an agent at.</b></p>
+        </details>
+        <details class="puzzle">
+          <summary>Why does noisy gradient descent escape saddle points instead of parking on them?</summary>
+          <p class="a">A strict saddle has at least one direction of negative curvature, so it is a maximum along that axis. Noise, momentum, or even floating-point jitter nudges the iterate into it, and the gradient then pushes outward rather than back. Plain descent can crawl near one for a while, but in high dimensions saddle points vastly outnumber minima and every strict one is unstable. <b>The danger is plateaus, not peaks.</b></p>
+        </details>
+        <details class="puzzle">
+          <summary>What is the last digit of 19<sup>100</sup>?</summary>
+          <p class="a">Don&rsquo;t expand it. Only the last digit matters, and powers of 9 alternate: 9, 81, 729, 6561&hellip; &mdash; odd exponents end in 9, even ones in 1. Since 100 is even, the last digit is <b>1</b>. Same answer mod 10: 19 &equiv; &minus;1, so 19<sup>100</sup> &equiv; (&minus;1)<sup>100</sup> = 1. <b>The cycle is length two; you only need the parity of the exponent.</b></p>
+        </details>
+      </div>
+    </section>
+
+    <!-- 07 learn from scratch -->
+    <section aria-labelledby="h-learn">
+      <div class="built-head">
+        <div class="label" id="h-learn">07 — learn from scratch</div>
+        <a href="/learn/">open the platform →</a>
+      </div>
+      <p class="sec-lede">A repo of from-scratch implementations with graded checks. Pick a track, write the code, and the checker runs in the browser and tells you what to build next — the failure it names, not just that it failed.</p>
+      <div class="built-list">
+        <a href="/learn/#aws">
+          <span class="b-name">aws from scratch</span>
+          <span class="b-what">IAM, S3, SQS, DynamoDB, Lambda, SNS, KMS and VPC as toy implementations — 18 graded checks.</span>
+          <span class="b-stack">python · interactive</span>
+        </a>
+        <a href="/learn/#compiler">
+          <span class="b-name">compiler + virtual gpu</span>
+          <span class="b-what">One 32-bit ISA, a CPU and a SIMT warp that punishes branching. 12 checks.</span>
+          <span class="b-stack">python · interactive</span>
+        </a>
+        <a href="/learn/#llm">
+          <span class="b-name">llm from scratch</span>
+          <span class="b-what">Byte-pair encoding, attention, sampling, an exact KV cache and RoPE. 13 checks.</span>
+          <span class="b-stack">python · interactive</span>
+        </a>
+        <a href="/learn/#dynamo">
+          <span class="b-name">dynamo paper</span>
+          <span class="b-what">Quorums, vector clocks, sloppy quorum, Merkle anti-entropy and gossip. 17 checks.</span>
+          <span class="b-stack">python · interactive</span>
+        </a>
+        <a href="/learn/#context-caching">
+          <span class="b-name">context caching</span>
+          <span class="b-what">KV cache, prefix and radix caching, PagedAttention and copy-on-write. 16 checks.</span>
+          <span class="b-stack">python · interactive</span>
+        </a>
+        <a href="/learn/#deploy-and-debug">
+          <span class="b-name">deploy &amp; debug</span>
+          <span class="b-what">Capacity, percentile latency, SLO error budgets and root-cause diagnosis. 12 checks.</span>
+          <span class="b-stack">python · interactive</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 08 track -->
     <section aria-labelledby="h-track">
-      <div class="label" id="h-track">06 — track</div>
+      <div class="label" id="h-track">08 — track</div>
       <div class="track-list">
         <div class="track-row">
           <span class="track-when">2023 → now</span>
