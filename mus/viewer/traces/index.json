@@ -1,0 +1,186 @@
+{
+  "traces": [
+    {
+      "slug": "deepseekv4-vs-jevlatest-s0",
+      "label": "deepseek-v4-flash vs typesafe:jev-latest \u00b7 seed 0",
+      "models": [
+        "deepseek-v4-flash",
+        "typesafe:jev-latest"
+      ],
+      "seed": 0,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 165
+    },
+    {
+      "slug": "deepseekv4-vs-jevlatest-s1",
+      "label": "deepseek-v4-flash vs typesafe:jev-latest \u00b7 seed 1",
+      "models": [
+        "deepseek-v4-flash",
+        "typesafe:jev-latest"
+      ],
+      "seed": 1,
+      "vacas": [
+        1,
+        1
+      ],
+      "decisions": 159
+    },
+    {
+      "slug": "gemma4-vs-jevlatest-s0",
+      "label": "gemma4 vs typesafe:jev-latest \u00b7 seed 0",
+      "models": [
+        "gemma4",
+        "typesafe:jev-latest"
+      ],
+      "seed": 0,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 163
+    },
+    {
+      "slug": "gemma4-vs-jevlatest-s1",
+      "label": "gemma4 vs typesafe:jev-latest \u00b7 seed 1",
+      "models": [
+        "gemma4",
+        "typesafe:jev-latest"
+      ],
+      "seed": 1,
+      "vacas": [
+        1,
+        1
+      ],
+      "decisions": 136
+    },
+    {
+      "slug": "qwen38-vs-jevlatest-s0",
+      "label": "qwen3.8-flash vs typesafe:jev-latest \u00b7 seed 0",
+      "models": [
+        "qwen3.8-flash",
+        "typesafe:jev-latest"
+      ],
+      "seed": 0,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 173
+    },
+    {
+      "slug": "qwen38-vs-jevlatest-s1",
+      "label": "qwen3.8-flash vs typesafe:jev-latest \u00b7 seed 1",
+      "models": [
+        "qwen3.8-flash",
+        "typesafe:jev-latest"
+      ],
+      "seed": 1,
+      "vacas": [
+        1,
+        1
+      ],
+      "decisions": 150
+    },
+    {
+      "slug": "jevlatest-vs-deepseekv4-s0",
+      "label": "typesafe:jev-latest vs deepseek-v4-flash \u00b7 seed 0",
+      "models": [
+        "typesafe:jev-latest",
+        "deepseek-v4-flash"
+      ],
+      "seed": 0,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 164
+    },
+    {
+      "slug": "jevlatest-vs-deepseekv4-s1",
+      "label": "typesafe:jev-latest vs deepseek-v4-flash \u00b7 seed 1",
+      "models": [
+        "typesafe:jev-latest",
+        "deepseek-v4-flash"
+      ],
+      "seed": 1,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 156
+    },
+    {
+      "slug": "jevlatest-vs-gemma4-s0",
+      "label": "typesafe:jev-latest vs gemma4 \u00b7 seed 0",
+      "models": [
+        "typesafe:jev-latest",
+        "gemma4"
+      ],
+      "seed": 0,
+      "vacas": [
+        1,
+        1
+      ],
+      "decisions": 150
+    },
+    {
+      "slug": "jevlatest-vs-gemma4-s1",
+      "label": "typesafe:jev-latest vs gemma4 \u00b7 seed 1",
+      "models": [
+        "typesafe:jev-latest",
+        "gemma4"
+      ],
+      "seed": 1,
+      "vacas": [
+        0,
+        2
+      ],
+      "decisions": 143
+    },
+    {
+      "slug": "jevlatest-vs-qwen38-s0",
+      "label": "typesafe:jev-latest vs qwen3.8-flash \u00b7 seed 0",
+      "models": [
+        "typesafe:jev-latest",
+        "qwen3.8-flash"
+      ],
+      "seed": 0,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 170
+    },
+    {
+      "slug": "jevlatest-vs-qwen38-s1",
+      "label": "typesafe:jev-latest vs qwen3.8-flash \u00b7 seed 1",
+      "models": [
+        "typesafe:jev-latest",
+        "qwen3.8-flash"
+      ],
+      "seed": 1,
+      "vacas": [
+        1,
+        0
+      ],
+      "decisions": 165
+    },
+    {
+      "slug": "seed6",
+      "label": "reference: glm5.3-flash vs deepseek-v4-flash \u00b7 seed 6",
+      "models": [
+        "glm5.3-flash",
+        "deepseek-v4-flash"
+      ],
+      "seed": 6,
+      "vacas": [
+        2,
+        2
+      ],
+      "decisions": 344
+    }
+  ]
+}

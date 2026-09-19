@@ -1,0 +1,62 @@
+{
+  "slug": "deepseekv4-vs-jevlatest-s1",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 39,
+      "t": 40.5,
+      "hand": 3,
+      "seat": 3,
+      "name": "B3",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Chica",
+      "action": "ordago",
+      "noul": 0.63,
+      "label": "ordago",
+      "label_confidence": 0.99
+    },
+    {
+      "turn": 79,
+      "t": 80.0,
+      "hand": 5,
+      "seat": 1,
+      "name": "B1",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Pares",
+      "action": "ordago",
+      "noul": 0.6,
+      "label": "ordago",
+      "label_confidence": 0.99
+    },
+    {
+      "turn": 80,
+      "t": 81.5,
+      "hand": 5,
+      "seat": 2,
+      "name": "A2",
+      "model": "deepseek-v4-flash",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Pares",
+      "action": "quiero",
+      "noul": 0.56,
+      "label": "big_accept",
+      "label_confidence": 0.77
+    },
+    {
+      "turn": 78,
+      "t": 78.5,
+      "hand": 5,
+      "seat": 0,
+      "name": "A0",
+      "model": "deepseek-v4-flash",
+      "phase": "ENVITE",
+      "lance": "Pares",
+      "action": "envido",
+      "noul": 0.55,
+      "label": "routine",
+      "label_confidence": 0.59
+    }
+  ]
+}

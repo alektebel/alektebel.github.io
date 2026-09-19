@@ -1,0 +1,62 @@
+{
+  "slug": "seed6",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 19,
+      "t": 20.0,
+      "hand": 1,
+      "seat": 2,
+      "name": "A2",
+      "model": "glm5.3-flash",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Juego",
+      "action": "quiero",
+      "noul": 0.67,
+      "label": "big_accept",
+      "label_confidence": 0.85
+    },
+    {
+      "turn": 20,
+      "t": 22.0,
+      "hand": 2,
+      "seat": 1,
+      "name": "B1",
+      "model": "deepseek-v4-flash",
+      "phase": "MUS_REQUEST",
+      "lance": null,
+      "action": "mus",
+      "noul": 0.66,
+      "label": "big_accept",
+      "label_confidence": 0.84
+    },
+    {
+      "turn": 152,
+      "t": 155.0,
+      "hand": 8,
+      "seat": 0,
+      "name": "A0",
+      "model": "glm5.3-flash",
+      "phase": "ENVITE",
+      "lance": "Chica",
+      "action": "ordago",
+      "noul": 0.58,
+      "label": "ordago",
+      "label_confidence": 0.94
+    },
+    {
+      "turn": 153,
+      "t": 156.5,
+      "hand": 8,
+      "seat": 1,
+      "name": "B1",
+      "model": "deepseek-v4-flash",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Chica",
+      "action": "no-quiero",
+      "noul": 0.58,
+      "label": "ordago",
+      "label_confidence": 0.7
+    }
+  ]
+}

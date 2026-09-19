@@ -1,0 +1,62 @@
+{
+  "slug": "jevlatest-vs-deepseekv4-s1",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 12,
+      "t": 12.5,
+      "hand": 1,
+      "seat": 1,
+      "name": "B1",
+      "model": "deepseek-v4-flash",
+      "phase": "DECLARE",
+      "lance": "Juego",
+      "action": "tengo",
+      "noul": 0.41,
+      "label": "mistake",
+      "label_confidence": 0.97
+    },
+    {
+      "turn": 11,
+      "t": 12.0,
+      "hand": 1,
+      "seat": 0,
+      "name": "A0",
+      "model": "jev-latest",
+      "phase": "DECLARE",
+      "lance": "Juego",
+      "action": "no-tengo",
+      "noul": 0.37,
+      "label": "mistake",
+      "label_confidence": 0.97
+    },
+    {
+      "turn": 18,
+      "t": 18.0,
+      "hand": 2,
+      "seat": 1,
+      "name": "B1",
+      "model": "deepseek-v4-flash",
+      "phase": "ENVITE",
+      "lance": "Chica",
+      "action": "envido",
+      "noul": 0.37,
+      "label": "big_fold",
+      "label_confidence": 0.57
+    },
+    {
+      "turn": 153,
+      "t": 145.5,
+      "hand": 10,
+      "seat": 0,
+      "name": "A0",
+      "model": "jev-latest",
+      "phase": "DECLARE",
+      "lance": "Juego",
+      "action": "tengo",
+      "noul": 0.37,
+      "label": "routine",
+      "label_confidence": 0.55
+    }
+  ]
+}

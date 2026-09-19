@@ -1,0 +1,62 @@
+{
+  "slug": "jevlatest-vs-qwen38-s1",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 13,
+      "t": 14.0,
+      "hand": 1,
+      "seat": 1,
+      "name": "B1",
+      "model": "qwen3.8-flash",
+      "phase": "DECLARE",
+      "lance": "Juego",
+      "action": "tengo",
+      "noul": 0.43,
+      "label": "mistake",
+      "label_confidence": 0.97
+    },
+    {
+      "turn": 78,
+      "t": 78.5,
+      "hand": 5,
+      "seat": 2,
+      "name": "A2",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Pares",
+      "action": "quiero",
+      "noul": 0.43,
+      "label": "big_accept",
+      "label_confidence": 0.77
+    },
+    {
+      "turn": 147,
+      "t": 144.0,
+      "hand": 10,
+      "seat": 1,
+      "name": "B1",
+      "model": "qwen3.8-flash",
+      "phase": "MUS_REQUEST",
+      "lance": null,
+      "action": "mus",
+      "noul": 0.42,
+      "label": "routine",
+      "label_confidence": 0.62
+    },
+    {
+      "turn": 38,
+      "t": 39.5,
+      "hand": 3,
+      "seat": 0,
+      "name": "A0",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Chica",
+      "action": "quiero",
+      "noul": 0.41,
+      "label": "big_accept",
+      "label_confidence": 0.75
+    }
+  ]
+}

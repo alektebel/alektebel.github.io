@@ -154,6 +154,11 @@ select{font-family:inherit;font-size:12px;background:var(--surface-2);color:var(
 footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--divider);
   color:var(--dim);font-size:12px}
 .loading{padding:40px;text-align:center;color:var(--muted)}
+.tracebar{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:14px 0 4px;
+  padding:10px 14px;background:var(--surface-2);border:1px solid var(--divider);
+  border-radius:10px;font-size:12px;color:var(--dim)}
+.tracebar label{display:flex;align-items:center;gap:7px}
+.tracebar select{max-width:min(60vw,520px)}
 </style>
 </head>
 <body>
@@ -168,6 +173,11 @@ footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--divider);
   </div>
   <div class="badges" id="badges"></div>
 </header>
+
+<div class="tracebar">
+  <label>Match <select id="trace"></select></label>
+  <label>Highlights <select id="hl"><option value="">jump to highlight…</option></select></label>
+</div>
 
 <div class="scorebar">
   <div class="team a">
@@ -241,16 +251,42 @@ const cardSrc=n=>{const m=String(n).match(/^(\w+) de (\w+)$/);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id);
 
-let T=null, i=0, timer=null, tab='prompt';
+let T=null, i=0, timer=null, tab='prompt', MANIFEST=[];
 
-fetch('traces/seed6.json').then(r=>r.json()).then(t=>{T=t;boot();})
-  .catch(e=>{$('tbl').innerHTML='<div class="loading">Could not load trace: '+esc(e.message)+'</div>';});
+function loadTrace(slug){
+  $('tbl').innerHTML='<div class="loading">Loading trace…</div>';
+  fetch('traces/'+slug+'.json').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(t=>{T=t;i=0;if(timer){clearInterval(timer);timer=null;$('play').textContent='▶ Play';}
+      boot();loadHighlights(slug);})
+    .catch(e=>{$('tbl').innerHTML='<div class="loading">Could not load '+esc(slug)+': '+esc(e.message)+'</div>';});
+}
+function loadHighlights(slug){
+  const sel=$('hl'); sel.innerHTML='<option value="">jump to highlight…</option>';
+  fetch('traces/'+slug+'.highlights.json').then(r=>r.ok?r.json():null).then(h=>{
+    if(!h||!h.highlights||!h.highlights.length) return;
+    sel.innerHTML='<option value="">jump to highlight…</option>'+h.highlights.map((x,k)=>
+      `<option value="${x.turn}">${k+1}. H${x.hand} seat ${x.seat} ${esc(x.action)} — ${esc(x.label||'')}</option>`).join('');
+  }).catch(()=>{});
+}
+fetch('traces/index.json').then(r=>r.json()).then(m=>{
+  MANIFEST=(m&&m.traces)||[];
+  if(!MANIFEST.length) return loadTrace('seed6');
+  $('trace').innerHTML=MANIFEST.map(t=>`<option value="${esc(t.slug)}">${esc(t.label||t.slug)}</option>`).join('');
+  const q=new URLSearchParams(location.search).get('trace');
+  const first=(MANIFEST.find(t=>t.slug===q)||MANIFEST[0]).slug;
+  $('trace').value=first; loadTrace(first);
+}).catch(()=>loadTrace('seed6'));
+$('trace').onchange=e=>loadTrace(e.target.value);
+$('hl').onchange=e=>{if(!e.target.value)return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelector('[data-t="raw"]').classList.add('on');tab='raw';
+  go(+e.target.value);};
 
 function boot(){
   const m=T.meta,s=T.score;
   $('nameA').textContent=m.models[0]; $('nameB').textContent=m.models[1];
   $('badges').innerHTML=[
-    `<span class="badge">seed ${T.slug.replace(/\D/g,'')||'—'}</span>`,
+    `<span class="badge">seed ${(T.meta&&T.meta.seed)??'—'}</span>`,
     `<span class="badge">${T.turns.length} decisions</span>`,
     `<span class="badge">${T.signals.published} señas</span>`,
     `<span class="badge ${m.status!=='done'?'warn':''}">${esc(m.status)} · ${m.hands_completed}/${m.hands_requested} hands</span>`

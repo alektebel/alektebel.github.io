@@ -1,0 +1,62 @@
+{
+  "slug": "qwen38-vs-jevlatest-s1",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 39,
+      "t": 40.0,
+      "hand": 3,
+      "seat": 3,
+      "name": "B3",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Grande",
+      "action": "ordago",
+      "noul": 0.69,
+      "label": "ordago",
+      "label_confidence": 0.99
+    },
+    {
+      "turn": 40,
+      "t": 41.5,
+      "hand": 3,
+      "seat": 0,
+      "name": "A0",
+      "model": "qwen3.8-flash",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Grande",
+      "action": "quiero",
+      "noul": 0.6,
+      "label": "big_accept",
+      "label_confidence": 0.78
+    },
+    {
+      "turn": 68,
+      "t": 71.0,
+      "hand": 5,
+      "seat": 1,
+      "name": "B1",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Pares",
+      "action": "ordago",
+      "noul": 0.56,
+      "label": "ordago",
+      "label_confidence": 0.99
+    },
+    {
+      "turn": 69,
+      "t": 72.5,
+      "hand": 5,
+      "seat": 2,
+      "name": "A2",
+      "model": "qwen3.8-flash",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Pares",
+      "action": "quiero",
+      "noul": 0.54,
+      "label": "big_accept",
+      "label_confidence": 0.66
+    }
+  ]
+}

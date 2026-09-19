@@ -1,0 +1,20 @@
+{
+  "slug": "qwen38-vs-jevlatest-s0",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 62,
+      "t": 62.0,
+      "hand": 4,
+      "seat": 2,
+      "name": "A2",
+      "model": "qwen3.8-flash",
+      "phase": "ENVITE",
+      "lance": "Pares",
+      "action": "no-quiero",
+      "noul": 0.52,
+      "label": "routine",
+      "label_confidence": 0.18
+    }
+  ]
+}

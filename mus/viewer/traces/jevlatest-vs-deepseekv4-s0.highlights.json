@@ -1,0 +1,34 @@
+{
+  "slug": "jevlatest-vs-deepseekv4-s0",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 49,
+      "t": 47.0,
+      "hand": 4,
+      "seat": 1,
+      "name": "B1",
+      "model": "deepseek-v4-flash",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Grande",
+      "action": "no-quiero",
+      "noul": 0.62,
+      "label": "big_fold",
+      "label_confidence": 0.65
+    },
+    {
+      "turn": 48,
+      "t": 45.5,
+      "hand": 4,
+      "seat": 0,
+      "name": "A0",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Grande",
+      "action": "ordago",
+      "noul": 0.59,
+      "label": "ordago",
+      "label_confidence": 0.99
+    }
+  ]
+}

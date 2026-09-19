@@ -1,0 +1,62 @@
+{
+  "slug": "gemma4-vs-jevlatest-s0",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 136,
+      "t": 137.0,
+      "hand": 9,
+      "seat": 1,
+      "name": "B1",
+      "model": "jev-latest",
+      "phase": "ENVITE",
+      "lance": "Grande",
+      "action": "ordago",
+      "noul": 0.67,
+      "label": "ordago",
+      "label_confidence": 0.98
+    },
+    {
+      "turn": 54,
+      "t": 51.0,
+      "hand": 4,
+      "seat": 0,
+      "name": "A0",
+      "model": "gemma4",
+      "phase": "ENVITE",
+      "lance": "Pares",
+      "action": "ordago",
+      "noul": 0.66,
+      "label": "ordago",
+      "label_confidence": 0.99
+    },
+    {
+      "turn": 137,
+      "t": 138.5,
+      "hand": 9,
+      "seat": 2,
+      "name": "A2",
+      "model": "gemma4",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Grande",
+      "action": "no-quiero",
+      "noul": 0.64,
+      "label": "ordago",
+      "label_confidence": 0.79
+    },
+    {
+      "turn": 55,
+      "t": 52.5,
+      "hand": 4,
+      "seat": 1,
+      "name": "B1",
+      "model": "jev-latest",
+      "phase": "ORDAGO_RESPONSE",
+      "lance": "Pares",
+      "action": "no-quiero",
+      "noul": 0.63,
+      "label": "ordago",
+      "label_confidence": 0.99
+    }
+  ]
+}

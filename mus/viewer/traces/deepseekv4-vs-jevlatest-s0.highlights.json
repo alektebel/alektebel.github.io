@@ -1,0 +1,62 @@
+{
+  "slug": "deepseekv4-vs-jevlatest-s0",
+  "model": "jev-latest",
+  "highlights": [
+    {
+      "turn": 101,
+      "t": 99.5,
+      "hand": 6,
+      "seat": 2,
+      "name": "A2",
+      "model": "deepseek-v4-flash",
+      "phase": "ENVITE",
+      "lance": "Juego",
+      "action": "no-quiero",
+      "noul": 0.4,
+      "label": "big_fold",
+      "label_confidence": 0.42
+    },
+    {
+      "turn": 154,
+      "t": 152.5,
+      "hand": 10,
+      "seat": 2,
+      "name": "A2",
+      "model": "deepseek-v4-flash",
+      "phase": "ENVITE",
+      "lance": "Chica",
+      "action": "quiero",
+      "noul": 0.39,
+      "label": "big_accept",
+      "label_confidence": 0.42
+    },
+    {
+      "turn": 4,
+      "t": 5.0,
+      "hand": 1,
+      "seat": 2,
+      "name": "A2",
+      "model": "deepseek-v4-flash",
+      "phase": "ENVITE",
+      "lance": "Grande",
+      "action": "no-quiero",
+      "noul": 0.38,
+      "label": "big_fold",
+      "label_confidence": 0.63
+    },
+    {
+      "turn": 14,
+      "t": 14.0,
+      "hand": 1,
+      "seat": 2,
+      "name": "A2",
+      "model": "deepseek-v4-flash",
+      "phase": "DECLARE",
+      "lance": "Juego",
+      "action": "no-tengo",
+      "noul": 0.38,
+      "label": "routine",
+      "label_confidence": 0.45
+    }
+  ]
+}
