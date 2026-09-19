@@ -166,12 +166,47 @@
   .how li { margin-bottom: 6px; }
   .how code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--panel); padding: 1px 5px; }
 
+  /* guidelines + editor */
+  .guidelines { border: 1px solid var(--soft-line); border-left: 3px solid var(--accent); background: var(--panel); padding: 16px 18px; margin-bottom: 14px; }
+  .guidelines .g-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.1em; }
+  .guidelines .g-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; margin-top: 7px; line-height: 1.25; }
+  .guidelines .g-body { margin-top: 12px; }
+  .guidelines .g-body p { margin: 0 0 11px; font-size: 13.5px; color: var(--body); max-width: 74ch; white-space: pre-wrap; text-wrap: pretty; }
+  .guidelines .g-body p.g-decision { border-left: 2px solid var(--accent); padding-left: 11px; color: var(--ink); }
+  .guidelines .g-body p:last-child { margin-bottom: 0; }
+  .guidelines .g-link { display: inline-block; margin-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; border-bottom: 1px solid #c9c4b8; }
+
+  .editor-wrap { border: 1px solid var(--line); background: var(--code-bg); }
+  .editor-wrap .CodeMirror { height: 440px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6; padding: 6px 0; }
+  .editor-wrap .CodeMirror-linenumber { color: #5b5952; }
+  .editor-wrap textarea.fallback-editor { display: block; width: 100%; height: 440px; resize: vertical; padding: 14px 16px; border: 0; background: var(--code-bg); color: var(--code-ink); font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6; tab-size: 4; }
+
   footer.colophon { margin-top: 50px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
 
   @media (max-width: 980px) {
     .layout { grid-template-columns: 1fr; }
     .tracks { position: static; border-right: none; border-bottom: 1px solid var(--line); max-height: none; }
     .track-body { grid-template-columns: 1fr; }
+  }
+
+  /* phone-first: topics become a horizontal rail, the editor gets room, the
+     run bar stays under the thumb */
+  @media (max-width: 700px) {
+    main { padding: 20px 14px 80px; }
+    .topbar { padding: 10px 14px; }
+    .tracks { display: flex; gap: 8px; overflow-x: auto; padding: 12px 14px; -webkit-overflow-scrolling: touch; }
+    .tracks .label { display: none; }
+    .tracks button { flex: none; width: auto; white-space: nowrap; border: 1px solid var(--soft-line); margin: 0; padding: 8px 12px; }
+    .tracks button .t-prog { display: inline; margin-left: 6px; }
+    .track-head .meta { gap: 10px 14px; }
+    .track-head .meta .btn, .work-actions .btn { flex: 1 1 auto; text-align: center; }
+    .guidelines { padding: 14px 14px; }
+    .guidelines .g-title { font-size: 16px; }
+    .editor-wrap .CodeMirror { height: 54vh; min-height: 320px; font-size: 16px; line-height: 1.5; }
+    .editor-wrap .CodeMirror-linenumber { color: #6b6862; }
+    .editor-wrap textarea.fallback-editor { height: 54vh; min-height: 320px; font-size: 16px; }
+    .work-actions { position: sticky; bottom: 0; z-index: 12; background: var(--bg); padding: 10px 0; border-top: 1px solid var(--soft-line); }
+    #output { max-height: 50vh; }
   }
 </style>
 </head>
@@ -409,6 +444,7 @@ function updateProgress(track) {
 /* ── render: home ── */
 function renderHome() {
   state.view = { name: "home" };
+  state.cm = null; state.ta = null; state.editorReady = false;
   const c = state.catalog;
   const cards = c.tracks.map((t) => {
     loadStatus(t);
@@ -448,6 +484,8 @@ function renderTrack(track) {
   state.view = { name: "track", id: track.id };
   state.track = track;
   state.sel = null;
+  // the editor DOM is about to be replaced; drop the old CodeMirror instance
+  state.cm = null; state.ta = null; state.editorReady = false;
   loadStatus(track);
 
   const groups = [];
@@ -486,15 +524,16 @@ function renderTrack(track) {
     '<div class="track-body">' +
       '<aside class="checks" aria-label="Checks">' + checksHtml + '</aside>' +
       '<section class="work">' +
-        '<div class="work-head"><span class="wf" id="work-file">select a check</span>' +
-        '<a id="work-gh" href="#" target="_blank" rel="noopener" hidden>view on github ↗</a></div>' +
-        '<p class="hint" id="work-hint">Pick a check on the left to open its template. ' +
-        'Then run just that check, or run the whole track.</p>' +
-        '<textarea id="editor" spellcheck="false" aria-label="Code editor" style="display:none"></textarea>' +
-        '<div class="work-actions" id="work-actions" style="display:none">' +
-          '<button class="btn" id="run-check">Run this check</button>' +
-          '<button class="btn ghost" id="reset-file">Reset file</button>' +
-          '<button class="btn ghost" id="load-sol">Load solution</button>' +
+        '<div class="work-head"><span class="wf" id="work-file">select a topic</span>' +
+        '<a id="work-gh" href="#" target="_blank" rel="noopener" hidden>view source ↗</a></div>' +
+        '<p class="hint" id="work-hint">Pick a topic to open the guidelines and its editor. ' +
+        'Everything runs in the browser — nothing to install.</p>' +
+        '<div id="guidelines" class="guidelines" hidden></div>' +
+        '<div id="editor-wrap" class="editor-wrap" hidden></div>' +
+        '<div class="work-actions" id="work-actions" hidden>' +
+          '<button class="btn" id="run-check">Run checks</button>' +
+          '<button class="btn ghost" id="reset-file">Reset</button>' +
+          '<button class="btn ghost" id="load-sol">Solution</button>' +
         '</div>' +
         '<pre id="output" aria-live="polite"></pre>' +
       '</section>' +
@@ -513,10 +552,9 @@ async function selectCheck(track, file, index) {
   const row = document.querySelector('.check-row[data-id="' + index + '"]');
   if (row) row.classList.add("sel");
 
-  const editor = byId("editor");
+  const check = track.checks[index - 1] || { file: file, title: "" };
   byId("work-file").textContent = file;
-  const hint = byId("work-hint");
-  hint.textContent = "Implement the function the checker points at in " + file + ". The docstring names the design decision and the failure it avoids.";
+  byId("work-hint").hidden = true;
 
   const gh = byId("work-gh");
   gh.hidden = false;
@@ -529,32 +567,134 @@ async function selectCheck(track, file, index) {
     const key = bufKey(track, file);
     state.buffers[key] = state.files[key];
     try { localStorage.removeItem("lfs:buf:" + key); } catch (e) { /* ignore */ }
-    editor.value = state.files[key];
+    editorSet(state.files[key] || "");
   };
   byId("load-sol").onclick = async () => {
     if (!confirm("Replace the editor with the complete solution in solutions/" + file + "? Try it yourself first.")) return;
     try {
       const r = await fetch(RAW + track.dir + "/solutions/" + file, { cache: "no-cache" });
       if (!r.ok) throw new Error("HTTP " + r.status);
-      editor.value = await r.text();
-      saveBuffer(track, file, editor.value);
+      editorSet(await r.text());
     } catch (err) {
-      hint.textContent = "No solution file available (" + (err.message || err) + ").";
+      byId("work-hint").hidden = false;
+      byId("work-hint").textContent = "No solution file available (" + (err.message || err) + ").";
     }
   };
 
-  // Load the template, then reveal the editor — never show an empty box while
-  // the source is still in flight, and keep the buttons live throughout.
+  // Fetch the template first, then show guidelines + editor together, so a
+  // phone user never sees an empty box while the source is in flight.
+  let src = "";
   try {
     await ensureFiles(track);
-    editor.value = bufferFor(track, file) || "";
+    state.buffers[bufKey(track, file)] = bufferFor(track, file) || "";
+    src = state.buffers[bufKey(track, file)];
   } catch (err) {
-    hint.textContent = "Could not load " + file + ": " + (err.message || err);
-    editor.value = "";
+    byId("work-hint").hidden = false;
+    byId("work-hint").textContent = "Could not load " + file + ": " + (err.message || err);
   }
-  editor.oninput = () => saveBuffer(track, file, editor.value);
-  editor.style.display = "";
-  byId("work-actions").style.display = "";
+
+  renderGuidelines(index, file, check.title, extractDocstring(state.files[bufKey(track, file)] || ""));
+  byId("guidelines").hidden = false;
+  byId("editor-wrap").hidden = false;
+  byId("work-actions").hidden = false;
+  await mountEditor();
+  editorSet(src);
+
+  if (window.matchMedia("(max-width: 700px)").matches) {
+    setTimeout(() => { const g = byId("guidelines"); if (g) g.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  }
+}
+
+/* ── guidelines: the template docstring, above the code ── */
+function extractDocstring(src) {
+  const m = String(src).match(/^\s*("""|''')([\s\S]*?)\1/);
+  if (!m) return "";
+  return m[2]
+    .split("\n")
+    .filter((line) => !/Complete Solution/i.test(line))
+    .join("\n")
+    .replace(/^\s+|\s+$/g, "");
+}
+
+function renderGuidelines(index, file, title, doc) {
+  const box = byId("guidelines");
+  box.innerHTML = "";
+  const head = document.createElement("div");
+  head.className = "g-head";
+  head.textContent = "challenge " + index + " · " + file;
+  const h = document.createElement("div");
+  h.className = "g-title";
+  h.textContent = title || "Implement " + file;
+  box.append(head, h);
+
+  if (doc) {
+    const body = document.createElement("div");
+    body.className = "g-body";
+    doc.split(/\n\s*\n/).forEach((para) => {
+      const p = document.createElement("p");
+      if (/^\s*DESIGN DECISION/.test(para)) p.className = "g-decision";
+      p.textContent = para.replace(/^\s+|\s+$/g, "");
+      body.appendChild(p);
+    });
+    box.appendChild(body);
+  }
+  const link = document.createElement("a");
+  link.className = "g-link";
+  link.href = "https://github.com/" + state.catalog.repo + "/tree/" + state.catalog.ref + "/" + state.track.dir;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = "full readme on github ↗";
+  box.appendChild(link);
+}
+
+/* ── editor: CodeMirror 5 with a plain-textarea fallback ── */
+function addCss(href) {
+  const l = document.createElement("link");
+  l.rel = "stylesheet";
+  l.href = href;
+  document.head.appendChild(l);
+}
+async function mountEditor() {
+  if (state.editorReady) return;
+  const wrap = byId("editor-wrap");
+  try {
+    if (typeof window.CodeMirror === "undefined") {
+      addCss("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css");
+      addCss("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css");
+      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js");
+      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js");
+    }
+    state.cm = window.CodeMirror(wrap, {
+      value: "",
+      mode: "python",
+      theme: "material-darker",
+      lineNumbers: true,
+      indentUnit: 4,
+      tabSize: 4,
+      lineWrapping: window.matchMedia("(max-width: 700px)").matches,
+      extraKeys: { Tab: (cm) => cm.replaceSelection("    ") }
+    });
+    state.cm.on("change", () => {
+      if (state.sel) saveBuffer(state.track, state.sel.file, state.cm.getValue());
+    });
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.id = "editor";
+    ta.className = "fallback-editor";
+    ta.spellcheck = false;
+    ta.setAttribute("aria-label", "Code editor");
+    ta.addEventListener("input", () => { if (state.sel) saveBuffer(state.track, state.sel.file, ta.value); });
+    wrap.appendChild(ta);
+    state.ta = ta;
+  }
+  state.editorReady = true;
+}
+function editorGet() { return state.cm ? state.cm.getValue() : (state.ta ? state.ta.value : ""); }
+function editorSet(value) {
+  const v = value || "";
+  if (state.cm) state.cm.setValue(v);
+  else if (state.ta) state.ta.value = v;
+  if (state.sel) saveBuffer(state.track, state.sel.file, v);
 }
 
 /* ── render: nav ── */
