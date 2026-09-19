@@ -13,6 +13,10 @@ Env vars (set by SAM template):
   SECRET_ARN     (preferred) Secrets Manager ARN holding {"api_key": "..."}
   ALLOWED_ORIGIN comma-separated CORS origins, e.g.
                  "https://diegoatencia.dev,https://alektebel.github.io"
+
+Memory: backend/ask/memory.md is bundled with this file and appended to the
+system prompt on each cold start. Edit it to teach the bot new things; redeploy
+the Lambda package to publish.
 """
 
 import json
@@ -31,6 +35,49 @@ WRITING: posts on the RL master's thesis, KANs via Taylor expansion, and a Bayes
 OPEN QUESTIONS he likes talking about: whether a decentralized civilization is feasible; what is true versus what you are told; Collatz as linear algebra; the moving-sofa problem via RL.
 METHOD: owns processing pipelines end to end; debugs by disaggregating a system until each part is small enough to be obviously right or wrong; pushes systems to their physical limits and deletes the non-essential; uses AI heavily in development.
 OFF-KEYBOARD: hiking, rock climbing, chess, sci-fi novels. Contact: dratencia@gmail.com, github.com/alektebel."""
+
+MEMORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memory.md")
+MEMORY_MAX_CHARS = 8000
+_memory_cache = None
+
+
+def get_memory():
+    """Human-editable notes about this chatbot, loaded next to app.py.
+
+    Update backend/ask/memory.md and redeploy the package to publish a new
+    entry. Cached per cold start; a missing or empty file degrades to no memory.
+    """
+    global _memory_cache
+    if _memory_cache is None:
+        try:
+            with open(MEMORY_FILE, encoding="utf-8") as fh:
+                text = fh.read().strip()
+        except OSError:
+            text = ""
+        if len(text) > MEMORY_MAX_CHARS:
+            text = text[:MEMORY_MAX_CHARS].rsplit("\n", 1)[0]
+        _memory_cache = text
+    return _memory_cache
+
+
+def build_system(spanish):
+    """SYSTEM plus Diego's memory file plus the language directive."""
+    parts = [SYSTEM]
+    memory = get_memory()
+    if memory:
+        parts.append(
+            "\nMEMORY — Diego's own running notes on this chatbot and what he "
+            "has recently built with it. Use them for questions about the "
+            "chatbot itself or what is new; treat them as fresher than the "
+            "notes above.\n\n" + memory
+        )
+    parts.append(
+        "\n(The user wrote in Spanish: answer in Castilian Spanish.)"
+        if spanish
+        else "\n(The user wrote in English: answer in English.)"
+    )
+    return "\n".join(parts)
+
 
 _ES_WORDS = re.compile(
     r"\b(qu[eé]|c[oó]mo|por qu[eé]|cu[aá]l|cu[aá]les|d[oó]nde|est[aá]s|tienes|haces|"
@@ -88,9 +135,7 @@ def call_anthropic(api_key, model, question, spanish):
     body = {
         "model": model,
         "max_tokens": 400,
-        "system": SYSTEM
-        + ("\n(The user wrote in Spanish: answer in Castilian Spanish.)"
-           if spanish else "\n(The user wrote in English: answer in English.)"),
+        "system": build_system(spanish),
         "messages": [{"role": "user", "content": question}],
     }
     data = _post("https://api.anthropic.com/v1/messages", api_key, body, "anthropic")
@@ -108,10 +153,7 @@ def call_openai(api_key, model, question, spanish, base_url=None):
         # chat_template_kwargs (top-level enable_thinking is ignored).
         "chat_template_kwargs": {"enable_thinking": False},
         "messages": [
-            {"role": "system",
-             "content": SYSTEM
-             + ("\n(The user wrote in Spanish: answer in Castilian Spanish.)"
-                if spanish else "\n(The user wrote in English: answer in English.)")},
+            {"role": "system", "content": build_system(spanish)},
             {"role": "user", "content": question},
         ],
     }
