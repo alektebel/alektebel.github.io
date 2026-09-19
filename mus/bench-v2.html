@@ -1,0 +1,134 @@
+<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>mus_bench — vacas &amp; faroles (rules v2)</title><style>
+:root{--bg:#161826;--surface:#232532;--text:#e9e9ed;--divider:color-mix(in srgb,#e9e9ed 16%,transparent);--muted:#9397ab}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;font-size:13px;
+color:var(--text);background:radial-gradient(120% 80% at 15% -10%,#1d2036 0%,var(--bg) 55%)}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 20px}a{color:#b5abfc}
+h1{font-weight:500;letter-spacing:-.02em}.lede{color:#cfd3e5;max-width:80ch}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+padding:4px 10px;border-radius:6px;background:#423a6a;color:#e7e5fe}
+.card{background:var(--surface);border-radius:14px;padding:20px;margin:22px 0}
+.card h2{font-size:15px;font-weight:600;margin:0 0 4px}
+.card .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--divider);white-space:nowrap}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.num{text-align:right;font-family:ui-monospace,monospace}.model{font-family:ui-monospace,monospace}
+.strong{font-weight:700;color:#e7e5fe}.muted{color:var(--muted)}
+</style></head><body><div class=wrap>
+<span class=pill>mus_bench</span>
+<h1>mus_bench — vacas &amp; faroles (rules v2)</h1>
+<p class=lede>Round robin under rules v2 (explicit envite amounts 2..39 + ordago, first hand corrido y sin señas) with chain-of-thought. qwen3.6, DeepSeek-V4-Flash, GLM-5.3-Flash and Gemma 4 play each other, both seatings; then Jev (typesafe:jev-latest) vs DeepSeek-V4-Flash. A farol is an envite raised from the bottom tercile of hand strength for that lance.</p>
+<p class=muted>Rules: v2: explicit amounts, corrido sin señas hand 1, CoT · 8 hands · seed 0 · both seatings · result dirs: results/bench_v2, results/bench_v2b, results/jev_v2</p>
+
+<div class=card><h2>Scoreboard — vacas &amp; faroles</h2>
+<div class=sub>A <b>farol</b> is an envite raised from the bottom tercile of hand strength for
+that lance (measured over every seat that held a betting option). Bluff rate is faroles
+over all aggressive actions.</div>
+<table><thead><tr><th>model</th><th class=num>M</th><th class=num>W–L–T</th>
+<th class=num>vacas</th><th class=num>Δ</th><th class=num>faroles</th>
+<th class=num>bluff%</th><th class=num>aggr</th><th class=num>aggr%</th>
+<th class=num>bluff win</th><th class=num>fold eq</th><th class=num>piedras/hand</th>
+<th class=num>fb</th><th class=num>rej</th></tr></thead><tbody>
+<tr><td class=model>glm5.3-flash</td>
+<td class=num>6</td>
+<td class=num>4–1–1</td>
+<td class="num strong">18–12</td>
+<td class=num>+6</td>
+<td class=num><b>13</b></td>
+<td class=num>14.3%</td>
+<td class=num>91</td>
+<td class=num>37.1%</td>
+<td class=num>40.0%</td>
+<td class=num>-37</td>
+<td class=num>3.375</td>
+<td class=num>5</td><td class=num>54</td></tr>
+<tr><td class=model>jev-latest</td>
+<td class=num>2</td>
+<td class=num>2–0–0</td>
+<td class="num strong">9–3</td>
+<td class=num>+6</td>
+<td class=num><b>23</b></td>
+<td class=num>33.8%</td>
+<td class=num>68</td>
+<td class=num>93.2%</td>
+<td class=num>88.2%</td>
+<td class=num>+153</td>
+<td class=num>13.625</td>
+<td class=num>0</td><td class=num>12</td></tr>
+<tr><td class=model>gemma4</td>
+<td class=num>6</td>
+<td class=num>3–2–1</td>
+<td class="num strong">32–32</td>
+<td class=num>+0</td>
+<td class=num><b>43</b></td>
+<td class=num>29.3%</td>
+<td class=num>147</td>
+<td class=num>63.9%</td>
+<td class=num>64.0%</td>
+<td class=num>-131</td>
+<td class=num>2.75</td>
+<td class=num>59</td><td class=num>325</td></tr>
+<tr><td class=model>qwen3.6</td>
+<td class=num>6</td>
+<td class=num>2–3–1</td>
+<td class="num strong">27–29</td>
+<td class=num>-2</td>
+<td class=num><b>56</b></td>
+<td class=num>35.7%</td>
+<td class=num>157</td>
+<td class=num>90.2%</td>
+<td class=num>55.8%</td>
+<td class=num>-277</td>
+<td class=num>0.375</td>
+<td class=num>0</td><td class=num>30</td></tr>
+<tr><td class=model>deepseek-v4-flash</td>
+<td class=num>8</td>
+<td class=num>1–6–1</td>
+<td class="num strong">16–26</td>
+<td class=num>-10</td>
+<td class=num><b>36</b></td>
+<td class=num>24.3%</td>
+<td class=num>148</td>
+<td class=num>42.9%</td>
+<td class=num>66.7%</td>
+<td class=num>-12</td>
+<td class=num>-8.281</td>
+<td class=num>2</td><td class=num>56</td></tr>
+</tbody></table></div>
+
+<div class=card><h2>Head-to-head (both seatings pooled)</h2>
+<table><thead><tr><th>matchup</th><th class=num>matches</th><th class=num>vacas</th>
+<th class=num>Δ vacas</th><th class=num>Δ piedras</th></tr></thead><tbody>
+<tr><td class=model>jev-latest vs deepseek-v4-flash</td>
+<td class=num>2</td><td class=num>9–3</td>
+<td class=num strong>+6</td>
+<td class=num>+218</td></tr>
+<tr><td class=model>glm5.3-flash vs gemma4</td>
+<td class=num>2</td><td class=num>9–5</td>
+<td class=num strong>+4</td>
+<td class=num>+119</td></tr>
+<tr><td class=model>gemma4 vs deepseek-v4-flash</td>
+<td class=num>2</td><td class=num>9–7</td>
+<td class=num strong>+2</td>
+<td class=num>+218</td></tr>
+<tr><td class=model>deepseek-v4-flash vs qwen3.6</td>
+<td class=num>2</td><td class=num>5–5</td>
+<td class=num strong>+0</td>
+<td class=num>-58</td></tr>
+<tr><td class=model>qwen3.6 vs glm5.3-flash</td>
+<td class=num>2</td><td class=num>6–6</td>
+<td class=num strong>+0</td>
+<td class=num>-7</td></tr>
+<tr><td class=model>qwen3.6 vs gemma4</td>
+<td class=num>2</td><td class=num>16–18</td>
+<td class=num strong>-2</td>
+<td class=num>-33</td></tr>
+<tr><td class=model>deepseek-v4-flash vs glm5.3-flash</td>
+<td class=num>2</td><td class=num>1–3</td>
+<td class=num strong>-2</td>
+<td class=num>-36</td></tr>
+</tbody></table></div>
+<p class=muted>Generated by mus_bench/publish/render_faroles.py</p>
+</div></body></html>
