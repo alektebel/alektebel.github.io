@@ -1,4 +1,6 @@
 node_modules
+__pycache__/
+*.pyc
 
 # Master thesis files
 13-10-2025 - memoria - v3 - definitiva.pdf

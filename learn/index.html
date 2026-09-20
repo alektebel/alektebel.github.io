@@ -60,6 +60,48 @@
   .pill.busy { color: var(--accent); border-color: #f1c2b8; }
   .pill.error { color: var(--accent); border-color: var(--accent); }
 
+  /* sign-in + sync */
+  .authbox { display: inline-flex; align-items: center; gap: 8px; }
+  .authbox .who { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--body); max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .authbtn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 5px 10px; border: 1px solid var(--line); background: var(--ink); color: var(--bg); cursor: pointer;
+  }
+  .authbtn:hover { background: var(--accent); border-color: var(--accent); }
+  .authbtn.plain { background: none; color: var(--muted); border-color: var(--soft-line); text-transform: none; letter-spacing: 0; }
+  .authbtn.plain:hover { color: var(--accent); background: none; border-color: var(--accent); }
+  #sync-pill { cursor: default; }
+
+  /* learn tree */
+  .tree-wrap { position: relative; margin-top: 28px; overflow-x: auto; padding-bottom: 10px; }
+  .tree-inner { position: relative; }
+  .tree-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .tree-svg path { fill: none; stroke: #c9c4b8; stroke-width: 2; transition: stroke 0.15s; }
+  .tree-svg path.ready { stroke: var(--green); }
+  .tree-svg path.hot { stroke: var(--accent); stroke-width: 2.5; }
+  .tree-cols { display: flex; gap: 76px; align-items: flex-start; padding: 4px 2px 16px; width: max-content; }
+  .tree-tier { display: flex; flex-direction: column; gap: 24px; flex: none; }
+  .tnode { position: relative; width: 268px; border: 1px solid var(--line); background: var(--panel); padding: 14px 14px 12px; }
+  .tnode:hover { border-color: var(--accent); }
+  .tnode.done { border-color: var(--green); }
+  .tnode .t-open { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; cursor: pointer; text-align: left; }
+  .tnode .t-count { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .tnode .t-toggle { position: absolute; top: 10px; right: 10px; border: 1px solid var(--soft-line); background: var(--bg); color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 2px 7px; cursor: pointer; }
+  .tnode .t-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .tprog { height: 4px; background: var(--soft-line); margin-top: 9px; }
+  .tprog i { display: block; height: 100%; background: var(--green); width: 0; }
+  .tchecks { display: none; margin-top: 10px; border-top: 1px dashed var(--soft-line); padding-top: 8px; }
+  .tnode.open .tchecks { display: block; }
+  .tcheck { display: flex; gap: 9px; align-items: baseline; width: 100%; text-align: left; border: none; background: none; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--body); padding: 3px 2px; }
+  .tcheck:hover { color: var(--ink); }
+  .tcheck .dot { width: 8px; height: 8px; border-radius: 50%; background: #c9c4b8; flex: none; align-self: center; }
+  .tcheck[data-st="PASS"] .dot { background: var(--green); }
+  .tcheck[data-st="FAIL"] .dot { background: var(--accent); }
+  .tcheck[data-st="TODO"] .dot { background: var(--yellow); }
+  .tcheck .c-num { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--faint); flex: none; }
+  .tree-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .tree-legend .dot { width: 8px; height: 8px; border-radius: 50%; background: #c9c4b8; display: inline-block; margin-right: 5px; }
+
   .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); max-width: 1400px; margin: 0 auto; }
   /* track nav */
   .tracks { border-right: 1px solid var(--line); padding: 22px 18px 40px; position: sticky; top: 61px; align-self: start; max-height: calc(100vh - 61px); overflow: auto; }
@@ -100,6 +142,11 @@
   .track-head .meta { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 18px; }
   .track-head .meta a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
   .progress { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+  .refs { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; }
+  .refs .label { margin-right: 2px; }
+  .refs a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
+  .refs a:hover { color: var(--accent); border-color: var(--accent); }
+  .refs .r-where { font-size: 10px; color: var(--faint); border-bottom: none; }
   .btn {
     padding: 9px 16px; border: 1px solid var(--line); background: var(--ink); color: var(--bg);
     font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
@@ -109,8 +156,14 @@
   .btn.ghost { background: var(--bg); color: var(--ink); }
   .btn.ghost:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
 
-  .track-body { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 26px; margin-top: 24px; align-items: start; }
-  .checks { border-top: 1px solid var(--soft-line); }
+  .track-body { display: grid; grid-template-columns: var(--checks-w, 340px) 10px minmax(0, 1fr); gap: 0 18px; margin-top: 24px; align-items: start; }
+  .checks { border-top: 1px solid var(--soft-line); min-width: 0; align-self: start; }
+  .vsplit { align-self: stretch; min-height: 260px; cursor: col-resize; touch-action: none; position: relative; }
+  .vsplit::after { content: ""; position: absolute; top: 10px; bottom: 10px; left: 4px; width: 2px; background: var(--soft-line); }
+  .vsplit:hover::after, .vsplit.dragging::after { background: var(--accent); }
+  .hsplit { height: 16px; cursor: row-resize; touch-action: none; position: relative; flex: none; }
+  .hsplit::after { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: var(--soft-line); }
+  .hsplit:hover::after, .hsplit.dragging::after { background: var(--accent); }
   .file-group { border-bottom: 1px solid var(--soft-line); padding: 12px 0 8px; }
   .file-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; }
   .file-name .f-count { font-size: 10.5px; color: var(--faint); font-weight: 400; }
@@ -128,7 +181,11 @@
   .check-row .c-num { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); flex: none; }
 
   .work { min-width: 0; }
-  .work-head { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .split-x { display: flex; align-items: stretch; gap: 0; min-width: 0; }
+  .split-x > .vsplit { flex: 0 0 10px; min-height: 100px; }
+  .split-x .guidelines { flex: 0 0 var(--gx-w, 44%); min-width: 220px; max-width: 100%; }
+  .edcol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .work-head { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .work-head .wf { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
   .work-head a { font-family: 'IBM Plex Mono', monospace; font-size: 11px; border-bottom: 1px solid #c9c4b8; }
   .hint { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; text-wrap: pretty; }
@@ -139,11 +196,11 @@
     font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6;
     tab-size: 4; white-space: pre; overflow: auto;
   }
-  .work-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+  .work-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 16px; }
   #output {
-    margin: 0; min-height: 120px; max-height: 420px; overflow: auto;
+    margin: 0; flex: none; height: var(--con-h, 180px); min-height: 90px; overflow: auto;
     padding: 14px 16px; border: 1px solid var(--soft-line); background: var(--panel);
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.55;
+    font-family: 'IBM Plex Mono', monospace; font-size: var(--code-size, 13px); line-height: 1.55;
     white-space: pre-wrap; word-break: break-word; color: var(--body);
   }
   #output .oline { min-height: 1.2em; }
@@ -167,7 +224,7 @@
   .how code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--panel); padding: 1px 5px; }
 
   /* guidelines + editor */
-  .guidelines { border: 1px solid var(--soft-line); border-left: 3px solid var(--accent); background: var(--panel); padding: 16px 18px; margin-bottom: 14px; }
+  .guidelines { border: 1px solid var(--soft-line); border-left: 3px solid var(--accent); background: var(--panel); padding: 16px 18px; overflow: auto; max-height: calc(var(--ed-h, 440px) + 34px); }
   .guidelines .g-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.1em; }
   .guidelines .g-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; margin-top: 7px; line-height: 1.25; }
   .guidelines .g-body { margin-top: 12px; }
@@ -177,9 +234,17 @@
   .guidelines .g-link { display: inline-block; margin-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; border-bottom: 1px solid #c9c4b8; }
 
   .editor-wrap { border: 1px solid var(--line); background: var(--code-bg); }
-  .editor-wrap .CodeMirror { height: 440px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6; padding: 6px 0; }
+  .editor-wrap .CodeMirror { height: var(--ed-h, 440px); font-family: 'IBM Plex Mono', monospace; font-size: var(--code-size, 13px); line-height: 1.6; padding: 6px 0; }
   .editor-wrap .CodeMirror-linenumber { color: #5b5952; }
-  .editor-wrap textarea.fallback-editor { display: block; width: 100%; height: 440px; resize: vertical; padding: 14px 16px; border: 0; background: var(--code-bg); color: var(--code-ink); font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6; tab-size: 4; }
+  .editor-wrap textarea.fallback-editor { display: block; width: 100%; height: var(--ed-h, 440px); resize: vertical; padding: 14px 16px; border: 0; background: var(--code-bg); color: var(--code-ink); font-family: 'IBM Plex Mono', monospace; font-size: var(--code-size, 13px); line-height: 1.6; tab-size: 4; }
+
+  .grow { flex: 1 1 auto; }
+  .btn.sm { padding: 5px 10px; font-size: 10px; }
+  .zoomctl { display: inline-flex; border: 1px solid var(--soft-line); }
+  .zbtn { border: none; background: var(--bg); color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 4px 9px; cursor: pointer; }
+  .zbtn:hover { background: var(--ink); color: var(--bg); }
+  .con-head { display: flex; align-items: center; gap: 10px; border: 1px solid var(--soft-line); border-bottom: none; background: var(--panel); padding: 6px 12px; }
+  .con-sum { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
 
   footer.colophon { margin-top: 50px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
 
@@ -187,6 +252,9 @@
     .layout { grid-template-columns: 1fr; }
     .tracks { position: static; border-right: none; border-bottom: 1px solid var(--line); max-height: none; }
     .track-body { grid-template-columns: 1fr; }
+    .vsplit, .hsplit { display: none; }
+    .split-x { display: block; }
+    .guidelines { max-height: none; margin-bottom: 14px; }
   }
 
   /* phone-first: topics become a horizontal rail, the editor gets room, the
@@ -202,11 +270,11 @@
     .track-head .meta .btn, .work-actions .btn { flex: 1 1 auto; text-align: center; }
     .guidelines { padding: 14px 14px; }
     .guidelines .g-title { font-size: 16px; }
-    .editor-wrap .CodeMirror { height: 54vh; min-height: 320px; font-size: 16px; line-height: 1.5; }
+    .editor-wrap .CodeMirror { height: 54vh; min-height: 320px; font-size: max(16px, var(--code-size, 16px)); line-height: 1.5; }
     .editor-wrap .CodeMirror-linenumber { color: #6b6862; }
-    .editor-wrap textarea.fallback-editor { height: 54vh; min-height: 320px; font-size: 16px; }
+    .editor-wrap textarea.fallback-editor { height: 54vh; min-height: 320px; font-size: max(16px, var(--code-size, 16px)); }
     .work-actions { position: sticky; bottom: 0; z-index: 12; background: var(--bg); padding: 10px 0; border-top: 1px solid var(--soft-line); }
-    #output { max-height: 50vh; }
+    #output { height: 40vh; }
   }
 </style>
 </head>
@@ -219,6 +287,9 @@
   <span class="grow"></span>
   <div class="actions">
     <span class="pill" id="runner-pill">python runner idle</span>
+    <span class="pill" id="sync-pill" hidden></span>
+    <span class="authbox" id="authbox"></span>
+    <a href="#tree" data-nav="tree">tree</a>
     <a href="https://github.com/alektebel/learn-stuff-from-scratch" target="_blank" rel="noopener">repo ↗</a>
   </div>
 </header>
@@ -233,6 +304,10 @@
 const RAW = "https://raw.githubusercontent.com/alektebel/learn-stuff-from-scratch/main/";
 const PYODIDE_VERSION = "v0.26.4";
 const PYODIDE_BASE = "https://cdn.jsdelivr.net/pyodide/" + PYODIDE_VERSION + "/full/";
+// Filled after deploying backend/template-progress-cfn.yaml (see README).
+// Until then the page works exactly as before: localStorage progress, no button.
+const PROGRESS_ENDPOINT = "";
+const GOOGLE_CLIENT_ID = "";
 
 const state = {
   catalog: null,
@@ -242,6 +317,8 @@ const state = {
   files: {},              // "dir/name" -> fetched text
   buffers: {},            // "dir/name" -> edited text
   status: {},             // "trackId:index" -> PASS|FAIL|TODO
+  auth: null,             // { token, exp, email } while the Google ID token lives
+  syncQuiet: false,       // true while applying server state, to avoid echo-push
   py: null,
   pyLoading: false,
   outBuf: ""
@@ -273,11 +350,166 @@ function persistStatus(track) {
     if (st) out[i + 1] = st;
   });
   try { localStorage.setItem("lfs:status:" + track.id, JSON.stringify(out)); } catch (e) { /* ignore */ }
+  if (state.auth && !state.syncQuiet) schedulePush();
 }
 function passedCount(track) {
   let n = 0;
   track.checks.forEach((c, i) => { if (state.status[track.id + ":" + (i + 1)] === "PASS") n++; });
   return n;
+}
+
+/* ── Google sign-in + per-user progress sync ──
+   The ID token from Google Identity Services is the credential; the Lambda
+   checks it with Google and keys the progress row by the account's stable sub.
+   Google owns the "remember login" part: the site keeps only the token until
+   it expires (~1 h), and one click on "sign in" then completes instantly for
+   anyone with a live Google session. Local progress is merged with the server
+   set on sign-in, and every PASS you earn is pushed (debounced). Code and
+   check output never leave the browser — only the list of passed checks. ── */
+const syncPill = document.getElementById("sync-pill");
+function setSync(text, cls) {
+  if (!PROGRESS_ENDPOINT || !GOOGLE_CLIENT_ID) { syncPill.hidden = true; return; }
+  syncPill.hidden = false;
+  syncPill.textContent = text;
+  syncPill.className = "pill" + (cls ? " " + cls : "");
+}
+
+function decodeJwt(t) {
+  try {
+    const b64 = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(decodeURIComponent(escape(atob(b64))));
+  } catch (e) { return null; }
+}
+function loadAuth() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("lfs:auth") || "null");
+    if (saved && saved.token && saved.exp * 1000 > Date.now() + 30000) { state.auth = saved; return state.auth; }
+  } catch (e) { /* ignore */ }
+  try { localStorage.removeItem("lfs:auth"); } catch (e) { /* ignore */ }
+  return null;
+}
+function saveAuth(claims, token) {
+  state.auth = { token: token, exp: claims.exp, email: claims.email || "" };
+  try { localStorage.setItem("lfs:auth", JSON.stringify(state.auth)); } catch (e) { /* ignore */ }
+  renderAuthBox();
+}
+function clearAuth() {
+  state.auth = null;
+  try { localStorage.removeItem("lfs:auth"); } catch (e) { /* ignore */ }
+  renderAuthBox();
+}
+function localPassed() {
+  return Object.keys(state.status).filter((k) => state.status[k] === "PASS");
+}
+function applyServerPassed(list) {
+  state.syncQuiet = true;
+  try {
+    const dirty = {};
+    (list || []).forEach((k) => {
+      if (state.status[k] !== "PASS") state.status[k] = "PASS";
+      dirty[k.split(":")[0]] = true;
+    });
+    state.catalog.tracks.forEach((t) => { if (dirty[t.id]) persistStatus(t); });
+    if (state.view.name === "track" && state.track) { updateBadges(state.track); updateProgress(state.track); }
+    renderNav(state.view.name === "track" ? state.track.id : null);
+  } finally {
+    state.syncQuiet = false;
+  }
+}
+
+async function apiCall(method, body) {
+  if (!state.auth) throw new Error("not signed in");
+  const r = await fetch(PROGRESS_ENDPOINT, {
+    method: method,
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + state.auth.token },
+    body: body == null ? undefined : JSON.stringify(body)
+  });
+  if (r.status === 401) { clearAuth(); setSync("sign in again to sync", "error"); throw new Error("Google login expired"); }
+  if (!r.ok) throw new Error("sync backend " + r.status);
+  return r.json();
+}
+async function syncFromServer() {
+  try {
+    setSync("syncing…", "busy");
+    const got = await apiCall("GET");
+    applyServerPassed(got.passed);
+    const mine = localPassed();
+    if (mine.length) {
+      const res = await apiCall("PUT", { passed: mine });
+      applyServerPassed(res.passed);
+    }
+    setSync("progress synced", "ready");
+  } catch (e) {
+    if (state.auth) setSync("sync offline", "error");
+  }
+}
+let pushTimer = null;
+function schedulePush() {
+  if (!state.auth || !PROGRESS_ENDPOINT || !GOOGLE_CLIENT_ID) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    try {
+      setSync("syncing…", "busy");
+      const res = await apiCall("PUT", { passed: localPassed() });
+      applyServerPassed(res.passed);
+      setSync("progress synced", "ready");
+    } catch (e) { /* setSync already reacted in apiCall */ }
+  }, 500);
+}
+
+let gisReady = null;
+function initGIS() {
+  if (gisReady) return gisReady;
+  gisReady = loadScript("https://accounts.google.com/gsi/client").then(() => {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (resp) => {
+        const claims = decodeJwt(resp.credential);
+        if (!claims) { setSync("bad credential", "error"); return; }
+        saveAuth(claims, resp.credential);
+        setSync("hello " + (claims.email || ""), "ready");
+        syncFromServer();
+      }
+    });
+  });
+  return gisReady;
+}
+async function askGoogle() {
+  try {
+    await initGIS();
+    // One Tap: with a live Google session this is a single "continue as" click.
+    window.google.accounts.id.prompt((n) => {
+      if (n.isNotDisplayed() || n.isSkippedMoment() || n.isDismissedMoment()) {
+        const box = document.getElementById("gis-button");
+        if (box && !box.childElementCount) window.google.accounts.id.renderButton(box, { theme: "outline", size: "medium", text: "continue_with" });
+      }
+    });
+  } catch (e) { setSync("could not reach google", "error"); }
+}
+function renderAuthBox() {
+  const box = document.getElementById("authbox");
+  if (!GOOGLE_CLIENT_ID || !PROGRESS_ENDPOINT) { box.hidden = true; return; }
+  box.hidden = false;
+  if (state.auth) {
+    box.innerHTML = '<span class="who" title="signed in — progress syncs to your account">' + esc(state.auth.email || "signed in") + '</span>' +
+      '<button class="authbtn plain" id="signout">sign out</button>';
+    document.getElementById("signout").addEventListener("click", () => {
+      clearAuth();
+      try { window.google && window.google.accounts && window.google.accounts.id.cancel(); } catch (e) { /* ignore */ }
+      setSync("local only", "");
+    });
+  } else {
+    box.innerHTML = '<button class="authbtn" id="signin">sign in · google</button><span id="gis-button"></span>';
+    document.getElementById("signin").addEventListener("click", askGoogle);
+  }
+}
+function initAuth() {
+  if (!GOOGLE_CLIENT_ID || !PROGRESS_ENDPOINT) return;
+  state.catalog.tracks.forEach(loadStatus);
+  if (loadAuth()) setSync("syncing…", "busy");
+  else setSync("local only", "");
+  renderAuthBox();
+  if (state.auth) syncFromServer();
 }
 
 /* ── buffers ── */
@@ -445,8 +677,7 @@ function updateProgress(track) {
 function renderHome() {
   state.view = { name: "home" };
   state.cm = null; state.ta = null; state.editorReady = false;
-  const c = state.catalog;
-  const cards = c.tracks.map((t) => {
+  const c = state.catalog;  const cards = c.tracks.map((t) => {
     loadStatus(t);
     const p = passedCount(t);
     return '<button class="card" data-nav="track" data-id="' + t.id + '">' +
@@ -469,6 +700,7 @@ function renderHome() {
     '<code>check.py</code> that grades <em>your</em> code and names the likely cause when it fails, and a ' +
     'run button that executes the checker in your browser. No install.</p>' +
     '<div class="cards">' + cards + '</div>' +
+    '<p class="lede" style="margin-top:16px"><a href="#tree" data-nav="tree">see the whole path as an interactive tree →</a></p>' +
     '<div class="how"><div class="label">how to work through a track</div><ol>' +
     '<li>Open a check, read the docstring in the template — it names the design decision and the failure it avoids.</li>' +
     '<li>Implement the function, hit <span class="code-inline">Run</span>. The checker tells you what to build next.</li>' +
@@ -476,7 +708,8 @@ function renderHome() {
     '</ol></div>' +
     '<div class="links"><div class="label">more from-scratch tracks — source on github</div>' +
     '<div class="grid">' + links + '</div></div>' +
-    '<footer class="colophon">Runs on Pyodide · checks fetched live from GitHub · nothing is uploaded</footer>';
+    '<footer class="colophon">Runs on Pyodide · checks fetched live from GitHub · your code stays in the browser; signing in syncs only the list of checks you passed</footer>';
+  renderNav();
 }
 
 /* ── render: track ── */
@@ -497,6 +730,10 @@ function renderTrack(track) {
     }
     current.rows.push({ index: i + 1, title: c.title });
   });
+
+  const refsHtml = (track.references || []).map((r) =>
+    '<a href="' + esc(r.url) + '" target="_blank" rel="noopener" title="maps to ' + esc(r.where) + '">' +
+    esc(r.title) + ' <span class="r-where">' + esc(r.where) + '</span></a>').join("");
 
   const checksHtml = groups.map((g) => {
     const rows = g.rows.map((r) => {
@@ -520,22 +757,39 @@ function renderTrack(track) {
         '<a href="https://github.com/' + state.catalog.repo + '/tree/' + state.catalog.ref + '/' + track.dir + '" target="_blank" rel="noopener">readme &amp; source ↗</a>' +
         '<span class="progress" id="progress">' + passedCount(track) + ' / ' + track.checks.length + ' passing</span>' +
       '</div>' +
+      ((track.references || []).length
+        ? '<div class="refs"><span class="label">study</span>' + refsHtml + '</div>'
+        : "") +
     '</div>' +
-    '<div class="track-body">' +
+    '<div class="track-body" id="track-body">' +
       '<aside class="checks" aria-label="Checks">' + checksHtml + '</aside>' +
+      '<div class="vsplit" data-split="checks" title="Drag to resize"></div>' +
       '<section class="work">' +
-        '<div class="work-head"><span class="wf" id="work-file">select a topic</span>' +
-        '<a id="work-gh" href="#" target="_blank" rel="noopener" hidden>view source ↗</a></div>' +
         '<p class="hint" id="work-hint">Pick a topic to open the guidelines and its editor. ' +
-        'Everything runs in the browser — nothing to install.</p>' +
-        '<div id="guidelines" class="guidelines" hidden></div>' +
-        '<div id="editor-wrap" class="editor-wrap" hidden></div>' +
+        'Drag any divider to resize, use A&minus;/A+ (or Ctrl+scroll) for code size. Everything runs in the browser.</p>' +
+        '<div class="split-x" id="split-x">' +
+          '<div id="guidelines" class="guidelines" hidden></div>' +
+          '<div class="vsplit x" data-split="gx" id="split-gx" hidden title="Drag to resize"></div>' +
+          '<div class="edcol" id="edcol">' +
+            '<div class="work-head">' +
+              '<span class="wf" id="work-file">select a topic</span>' +
+              '<span class="grow"></span>' +
+              '<span class="zoomctl" title="Code size (Ctrl+scroll too)">' +
+                '<button class="zbtn" id="font-minus" title="Smaller (Ctrl -)">A&minus;</button>' +
+                '<button class="zbtn" id="font-plus" title="Bigger (Ctrl +)">A+</button>' +
+              '</span>' +
+              '<a id="work-gh" href="#" target="_blank" rel="noopener" hidden>view source ↗</a>' +
+            '</div>' +
+            '<div id="editor-wrap" class="editor-wrap" hidden></div>' +
+            '<div class="hsplit" data-split="eo" id="split-eo" hidden title="Drag to resize console"></div>' +
+            '<pre id="output" aria-live="polite"></pre>' +
+          '</div>' +
+        '</div>' +
         '<div class="work-actions" id="work-actions" hidden>' +
           '<button class="btn" id="run-check">Run checks</button>' +
           '<button class="btn ghost" id="reset-file">Reset</button>' +
           '<button class="btn ghost" id="load-sol">Solution</button>' +
         '</div>' +
-        '<pre id="output" aria-live="polite"></pre>' +
       '</section>' +
     '</div>';
 
@@ -544,6 +798,8 @@ function renderTrack(track) {
     row.addEventListener("click", () => selectCheck(track, row.getAttribute("data-file"), parseInt(row.getAttribute("data-id"), 10)));
   });
   byId("output").textContent = "Ready. The first run loads the Python runtime (about 10 MB, once).";
+  wireSplits();
+  applyFont();
 }
 
 async function selectCheck(track, file, index) {
@@ -595,7 +851,9 @@ async function selectCheck(track, file, index) {
 
   renderGuidelines(index, file, check.title, extractDocstring(state.files[bufKey(track, file)] || ""));
   byId("guidelines").hidden = false;
+  byId("split-gx").hidden = false;
   byId("editor-wrap").hidden = false;
+  byId("split-eo").hidden = false;
   byId("work-actions").hidden = false;
   await mountEditor();
   editorSet(src);
@@ -697,6 +955,251 @@ function editorSet(value) {
   if (state.sel) saveBuffer(state.track, state.sel.file, v);
 }
 
+/* ── split panes + code size, LeetCode style ── */
+const SIZE_KEY = "lfs:splits";
+const FONT_KEY = "lfs:codefont";
+function savedSizes() { try { return JSON.parse(localStorage.getItem(SIZE_KEY) || "{}"); } catch (e) { return {}; } }
+function saveSize(name, value) { const s = savedSizes(); s[name] = value; try { localStorage.setItem(SIZE_KEY, JSON.stringify(s)); } catch (e) { /* quota */ } }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function cssVar(name, fallback) {
+  const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  return isNaN(v) ? fallback : v;
+}
+function refreshCm() { if (state.cm) setTimeout(() => state.cm.refresh(), 0); }
+
+function attachDrag(el, axis, onDown, onDrag, onUp, scale) {
+  el.addEventListener("pointerdown", (e) => {
+    if (e.button) return;
+    e.preventDefault();
+    el.classList.add("dragging");
+    document.body.style.userSelect = "none";
+    const p0 = axis === "x" ? e.clientX : e.clientY;
+    const sc = scale ? scale() : 1;
+    const base = onDown();
+    const move = (ev) => onDrag(base + (axis === "x" ? ev.clientX - p0 : ev.clientY - p0) * sc);
+    const up = () => {
+      el.classList.remove("dragging");
+      document.body.style.userSelect = "";
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (onUp) onUp();
+      refreshCm();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  });
+}
+
+function wireSplits() {
+  const tb = byId("track-body");
+  const s = savedSizes();
+  if (s.checks) tb.style.setProperty("--checks-w", clamp(s.checks, 200, 640) + "px");
+  if (s.gx) document.documentElement.style.setProperty("--gx-w", clamp(s.gx, 20, 75) + "%");
+  if (s.ed) document.documentElement.style.setProperty("--ed-h", s.ed + "px");
+  if (s.con) document.documentElement.style.setProperty("--con-h", s.con + "px");
+
+  attachDrag(
+    document.querySelector('[data-split="checks"]'), "x",
+    () => parseFloat(tb.style.getPropertyValue("--checks-w")) || cssVar("--checks-w", 340),
+    (px) => tb.style.setProperty("--checks-w", clamp(px, 200, 640) + "px"),
+    () => saveSize("checks", parseFloat(tb.style.getPropertyValue("--checks-w")) || 340)
+  );
+
+  const gx = byId("split-gx");
+  attachDrag(gx, "x",
+    () => cssVar("--gx-w", 44),
+    (pct) => document.documentElement.style.setProperty("--gx-w", clamp(pct, 20, 75) + "%"),
+    () => saveSize("gx", cssVar("--gx-w", 44)),
+    () => 100 / (byId("split-x").clientWidth || 1)
+  );
+  gx.addEventListener("dblclick", () => {
+    document.documentElement.style.setProperty("--gx-w", "44%");
+    saveSize("gx", 44); refreshCm();
+  });
+
+  const eo = byId("split-eo");
+  let total = 0;
+  attachDrag(eo, "y",
+    () => {
+      const ed = cssVar("--ed-h", 440), con = cssVar("--con-h", 180);
+      total = ed + con;
+      return ed;
+    },
+    (px) => {
+      const ed = clamp(px, 140, total - 90);
+      document.documentElement.style.setProperty("--ed-h", ed + "px");
+      document.documentElement.style.setProperty("--con-h", (total - ed) + "px");
+    },
+    () => {
+      saveSize("ed", Math.round(cssVar("--ed-h", 440)));
+      saveSize("con", Math.round(cssVar("--con-h", 180)));
+    }
+  );
+  eo.addEventListener("dblclick", () => {
+    document.documentElement.style.setProperty("--ed-h", "440px");
+    document.documentElement.style.setProperty("--con-h", "180px");
+    saveSize("ed", 440); saveSize("con", 180); refreshCm();
+  });
+
+  byId("font-minus").addEventListener("click", () => bumpFont(-1));
+  byId("font-plus").addEventListener("click", () => bumpFont(1));
+  const wrap = byId("editor-wrap");
+  wrap.addEventListener("wheel", (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    bumpFont(e.deltaY < 0 ? 1 : -1);
+  }, { passive: false });
+}
+
+function currentFont() {
+  const v = parseInt(localStorage.getItem(FONT_KEY) || "0", 10);
+  if (v >= 10) return v;
+  return window.matchMedia("(max-width: 700px)").matches ? 16 : 13;
+}
+function bumpFont(d) {
+  try { localStorage.setItem(FONT_KEY, String(clamp(currentFont() + d, 10, 24))); } catch (e) { /* ignore */ }
+  applyFont();
+}
+function applyFont() {
+  document.documentElement.style.setProperty("--code-size", currentFont() + "px");
+  refreshCm();
+}
+
+/* ── render: the interactive learn tree ── */
+function trackDepths() {
+  const byIdMap = {};
+  state.catalog.tracks.forEach((t) => { byIdMap[t.id] = t; });
+  const depth = {};
+  function calc(t, seen) {
+    if (depth[t.id] != null) return depth[t.id];
+    if (seen.has(t.id)) return 0;
+    seen.add(t.id);
+    let d = 0;
+    (t.requires || []).forEach((r) => {
+      if (byIdMap[r]) d = Math.max(d, calc(byIdMap[r], seen) + 1);
+    });
+    seen.delete(t.id);
+    depth[t.id] = d;
+    return d;
+  }
+  state.catalog.tracks.forEach((t) => calc(t, new Set()));
+  return depth;
+}
+
+function renderTree() {
+  state.view = { name: "tree" };
+  state.cm = null; state.ta = null; state.editorReady = false;
+  renderNav();
+  const depths = trackDepths();
+  const tiers = {};
+  state.catalog.tracks.forEach((t) => {
+    const d = depths[t.id] || 0;
+    (tiers[d] = tiers[d] || []).push(t);
+  });
+  const cols = Object.keys(tiers).map(Number).sort((a, b) => a - b).map((d) => {
+    const nodes = tiers[d].map((t) => {
+      loadStatus(t);
+      const p = passedCount(t);
+      const done = p === t.checks.length;
+      const rows = t.checks.map((c, i) => {
+        const st = state.status[t.id + ":" + (i + 1)] || "";
+        return '<button class="tcheck" data-track="' + t.id + '" data-file="' + esc(c.file) + '" data-index="' + (i + 1) + '" data-st="' + st + '">' +
+          '<span class="dot"></span><span class="c-num">' + (i + 1) + '</span><span>' + esc(c.title) + '</span></button>';
+      }).join("");
+      const req = (t.requires || []).length ? '<div class="t-count">needs ' + esc(t.requires.join(", ")) + '</div>' : "";
+      return '<div class="tnode' + (done ? " done" : "") + '" data-track="' + t.id + '">' +
+        '<button class="t-toggle" title="expand / collapse checks">checks</button>' +
+        '<div class="t-open" data-nav="track" data-id="' + t.id + '">' + esc(t.title) + '</div>' +
+        '<div class="t-count">' + p + ' / ' + t.checks.length + ' passing</div>' + req +
+        '<div class="tprog"><i style="width:' + (100 * p / t.checks.length) + '%"></i></div>' +
+        '<div class="tchecks">' + rows + '</div>' +
+      '</div>';
+    }).join("");
+    return '<div class="tree-tier"><div class="label">stage ' + (d + 1) + '</div>' + nodes + '</div>';
+  }).join("");
+
+  mainEl.innerHTML =
+    '<div class="label">the tree · what unlocks what</div>' +
+    '<h1>Every track, in the order it bites.</h1>' +
+    '<p class="lede">Arrows point from what you should pass first to what builds on it: context caching ' +
+    'needs the KV cache from the LLM track, Dynamo needs the storage primitives from AWS, and deploy-and-debug ' +
+    'assumes you can already build and serve all of it. Expand a node to see its checks; the dots are live ' +
+    'from your progress.</p>' +
+    '<div class="tree-wrap" id="tree-wrap"><div class="tree-inner">' +
+      '<svg class="tree-svg" id="tree-svg" aria-hidden="true"></svg>' +
+      '<div class="tree-cols">' + cols + '</div>' +
+    '</div></div>' +
+    '<div class="tree-legend">' +
+      '<span><span class="dot"></span>untried</span>' +
+      '<span><span class="dot" style="background:var(--green)"></span>passing</span>' +
+      '<span><span class="dot" style="background:var(--accent)"></span>failing</span>' +
+      '<span><span class="dot" style="background:var(--yellow)"></span>started, not yet passing</span>' +
+      '<span>click the title to open the track · <b>checks</b> to expand · click a check to go straight to it</span>' +
+    '</div>';
+
+  document.querySelectorAll(".tnode").forEach((node) => {
+    const id = node.getAttribute("data-track");
+    node.addEventListener("mouseenter", () => setHotEdge(id, true));
+    node.addEventListener("mouseleave", () => setHotEdge(id, false));
+    node.querySelector(".t-toggle").addEventListener("click", (e) => {
+      e.stopPropagation();
+      node.classList.toggle("open");
+      requestAnimationFrame(drawTreeEdges);
+    });
+    node.addEventListener("click", (e) => {
+      if (e.target.closest(".t-toggle, .tcheck, [data-nav]")) return;
+      const t = state.catalog.tracks.find((x) => x.id === id);
+      if (t) { renderNav(id); renderTrack(t); history.replaceState(null, "", "#" + id); window.scrollTo(0, 0); }
+    });
+  });
+  document.querySelectorAll(".tcheck").forEach((row) => {
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = row.getAttribute("data-track");
+      const t = state.catalog.tracks.find((x) => x.id === id);
+      if (!t) return;
+      renderNav(id); renderTrack(t);
+      history.replaceState(null, "", "#" + id);
+      window.scrollTo(0, 0);
+      selectCheck(t, row.getAttribute("data-file"), parseInt(row.getAttribute("data-index"), 10));
+    });
+  });
+  requestAnimationFrame(() => requestAnimationFrame(drawTreeEdges));
+  setTimeout(drawTreeEdges, 400); // once webfonts have swapped and boxes settle
+}
+
+function setHotEdge(id, on) {
+  document.querySelectorAll('#tree-svg path[data-to="' + id + '"]').forEach((p) => p.classList.toggle("hot", on));
+}
+
+function drawTreeEdges() {
+  const svg = byId("tree-svg"), wrap = byId("tree-wrap");
+  if (!svg || !wrap) return;
+  const inner = wrap.querySelector(".tree-inner");
+  const wr = inner.getBoundingClientRect();
+  svg.setAttribute("viewBox", "0 0 " + inner.clientWidth + " " + inner.clientHeight);
+  svg.innerHTML = "";
+  const NS = "http://www.w3.org/2000/svg";
+  state.catalog.tracks.forEach((t) => {
+    (t.requires || []).forEach((rid) => {
+      const from = document.querySelector('.tnode[data-track="' + rid + '"]');
+      const to = document.querySelector('.tnode[data-track="' + t.id + '"]');
+      if (!from || !to) return;
+      const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+      const x1 = a.right - wr.left, y1 = a.top - wr.top + a.height / 2;
+      const x2 = b.left - wr.left - 2, y2 = b.top - wr.top + b.height / 2;
+      const dx = Math.max(30, (x2 - x1) / 2);
+      const p = document.createElementNS(NS, "path");
+      p.setAttribute("d", "M " + x1 + " " + y1 + " C " + (x1 + dx) + " " + y1 + ", " + (x2 - dx) + " " + y2 + ", " + x2 + " " + y2);
+      p.setAttribute("data-to", t.id);
+      p.setAttribute("data-from", rid);
+      const rt = state.catalog.tracks.find((x) => x.id === rid);
+      if (rt && passedCount(rt) === rt.checks.length) p.classList.add("ready");
+      svg.appendChild(p);
+    });
+  });
+}
+
 /* ── render: nav ── */
 function renderNav(activeId) {
   navEl.innerHTML = '<div class="label">tracks</div>' +
@@ -704,7 +1207,8 @@ function renderNav(activeId) {
       loadStatus(t);
       return '<button data-nav="track" data-id="' + t.id + '"' + (t.id === activeId ? ' class="active"' : "") + '>' +
         esc(t.title) + '<span class="t-prog">' + passedCount(t) + ' / ' + t.checks.length + '</span></button>';
-    }).join("");
+    }).join("") +
+    '<button data-nav="tree"' + (!activeId && state.view.name === "tree" ? ' class="active"' : "") + '>the tree<span class="t-prog">dependency map</span></button>';
 }
 
 /* ── navigation (delegated) ── */
@@ -712,6 +1216,7 @@ document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-nav]");
   if (!el) return;
   if (el.getAttribute("data-nav") === "home") { history.replaceState(null, "", location.pathname); renderNav(); renderHome(); window.scrollTo(0, 0); return; }
+  if (el.getAttribute("data-nav") === "tree") { history.replaceState(null, "", "#tree"); renderNav(); renderTree(); window.scrollTo(0, 0); return; }
   const track = state.catalog.tracks.find((t) => t.id === el.getAttribute("data-id"));
   if (!track) return;
   renderNav(track.id);
@@ -721,6 +1226,17 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === "Enter") {
+    if (state.track && document.getElementById("run-check")) {
+      e.preventDefault();
+      run(state.track, state.sel ? state.sel.index : null);
+    }
+    return;
+  }
+  if (mod && (e.key === "=" || e.key === "+")) { e.preventDefault(); bumpFont(1); return; }
+  if (mod && e.key === "-") { e.preventDefault(); bumpFont(-1); return; }
+  if (mod && e.key === "0") { e.preventDefault(); try { localStorage.removeItem(FONT_KEY); } catch (er) { /* ignore */ } applyFont(); return; }
   if (e.key === "Tab" && e.target && e.target.id === "editor") {
     e.preventDefault();
     const t = e.target;
@@ -741,7 +1257,10 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   renderNav();
+  applyFont();
+  initAuth();
   const initial = decodeURIComponent(location.hash.slice(1));
+  if (initial === "tree") { renderNav(); renderTree(); return; }
   const initialTrack = initial && state.catalog.tracks.find((t) => t.id === initial);
   if (initialTrack) { renderNav(initialTrack.id); renderTrack(initialTrack); }
   else renderHome();

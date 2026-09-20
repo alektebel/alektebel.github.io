@@ -1,0 +1,145 @@
+# Plain CloudFormation (no SAM transform — the deploy IAM user lacks permission
+# on it), same shape as template-cfn.yaml. Low-cost by construction:
+#   - API Gateway HTTP API: first 1M requests/month free.
+#   - Lambda python3.12: 1M requests/month + 400k GB-s free; this handler is
+#     ~100ms of work, so a whole semester of clicking "Run" costs $0.
+#   - DynamoDB on-demand (PAY_PER_REQUEST): ~$0.25 per million writes/reads,
+#     25GB storage free. Only PASSed checks are stored, one tiny item per user.
+# No secrets, no client secret anywhere: Google ID tokens are verified via
+# Google's public tokeninfo endpoint (backend/progress/app.py).
+AWSTemplateFormatVersion: '2010-09-09'
+Description: learn-progress backend for diegoatencia.dev/learn (Google sign-in, per-user progress)
+
+Parameters:
+  CodeBucket:
+    Type: String
+    Description: S3 bucket holding the zipped Lambda code.
+  CodeKey:
+    Type: String
+    Default: learn-progress/progress.zip
+    Description: S3 key of the zipped Lambda code (backend/progress/app.py zipped).
+  GoogleClientId:
+    Type: String
+    Description: >-
+      OAuth 2.0 Web client id from console.cloud.google.com (Credentials ->
+      Create credentials -> OAuth client ID -> Web application). Authorized
+      JavaScript origins: https://diegoatencia.dev and
+      https://alektebel.github.io. No redirect URIs are needed (ID tokens via
+      Google Identity Services, never an auth code flow).
+  AllowedOrigin:
+    Type: String
+    Description: Comma-separated list of allowed CORS origins.
+    Default: https://diegoatencia.dev,https://www.diegoatencia.dev,https://alektebel.github.io
+
+Resources:
+  ProgressTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: learn-progress
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: sub, AttributeType: S }
+      KeySchema:
+        - { AttributeName: sub, KeyType: HASH }
+
+  ProgressRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: read-write-own-progress
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt ProgressTable.Arn
+
+  ProgressFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: { S3Bucket: !Ref CodeBucket, S3Key: !Ref CodeKey }
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Timeout: 15
+      MemorySize: 256
+      Role: !GetAtt ProgressRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ProgressTable
+          GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          ALLOWED_ORIGIN: !Ref AllowedOrigin
+
+  # Function URLs are unusable in this account (anonymous calls 403), so the
+  # public frontend is an API Gateway HTTP API; CORS is answered in app.py.
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: learn-progress
+      ProtocolType: HTTP
+
+  HttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ProgressFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  GetProgressRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /progress'
+      Target: !Sub 'integrations/${HttpIntegration}'
+
+  PutProgressRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'PUT /progress'
+      Target: !Sub 'integrations/${HttpIntegration}'
+
+  PreflightRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'OPTIONS /progress'
+      Target: !Sub 'integrations/${HttpIntegration}'
+
+  SmokeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      # GET / -> {"ok": true}, to confirm the stack is live without a token.
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /'
+      Target: !Sub 'integrations/${HttpIntegration}'
+
+  DefaultStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+
+  InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ProgressFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
+
+Outputs:
+  ProgressEndpoint:
+    Description: Paste this URL into PROGRESS_ENDPOINT in learn/index.html
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/progress'

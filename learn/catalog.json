@@ -7,28 +7,135 @@
       "title": "AWS from scratch",
       "tagline": "8 services, 18 graded checks",
       "dir": "aws-from-scratch",
+      "requires": [],
       "blurb": "Implement the eight mechanism families every AWS service is made from — IAM policy evaluation, object storage, leased queues, partitioned KV, ephemeral compute, fanout, envelope encryption and networking — and reproduce the failure each one is famous for.",
-      "files": ["iam.py", "s3.py", "sqs.py", "dynamodb.py", "lambda_svc.py", "sns.py", "kms.py", "vpc.py", "capstone.py"],
+      "files": [
+        "iam.py",
+        "s3.py",
+        "sqs.py",
+        "dynamodb.py",
+        "lambda_svc.py",
+        "sns.py",
+        "kms.py",
+        "vpc.py",
+        "capstone.py"
+      ],
       "entry": "check.py",
       "checks": [
-        { "file": "iam.py", "title": "explicit deny > allow > implicit deny" },
-        { "file": "iam.py", "title": "conditions and permissions boundaries" },
-        { "file": "iam.py", "title": "STS assume-role: both directions" },
-        { "file": "s3.py", "title": "objects, ETags and multipart" },
-        { "file": "s3.py", "title": "prefix listing and delete markers" },
-        { "file": "sqs.py", "title": "visibility timeout and redelivery" },
-        { "file": "sqs.py", "title": "dead letters, FIFO and dedup" },
-        { "file": "dynamodb.py", "title": "composite keys, query, conditions" },
-        { "file": "dynamodb.py", "title": "capacity, hot partitions, scan cost" },
-        { "file": "lambda_svc.py", "title": "cold starts and warm state" },
-        { "file": "lambda_svc.py", "title": "concurrency, reservations, async retry" },
-        { "file": "sns.py", "title": "fanout and filter policies" },
-        { "file": "sns.py", "title": "EventBridge pattern matching" },
-        { "file": "kms.py", "title": "envelope encryption" },
-        { "file": "kms.py", "title": "encryption context and rotation" },
-        { "file": "vpc.py", "title": "CIDR, subnets and longest-prefix routing" },
-        { "file": "vpc.py", "title": "stateful SG vs stateless NACL" },
-        { "file": "capstone.py", "title": "the pipeline, and its failures" }
+        {
+          "file": "iam.py",
+          "title": "explicit deny > allow > implicit deny"
+        },
+        {
+          "file": "iam.py",
+          "title": "conditions and permissions boundaries"
+        },
+        {
+          "file": "iam.py",
+          "title": "STS assume-role: both directions"
+        },
+        {
+          "file": "s3.py",
+          "title": "objects, ETags and multipart"
+        },
+        {
+          "file": "s3.py",
+          "title": "prefix listing and delete markers"
+        },
+        {
+          "file": "sqs.py",
+          "title": "visibility timeout and redelivery"
+        },
+        {
+          "file": "sqs.py",
+          "title": "dead letters, FIFO and dedup"
+        },
+        {
+          "file": "dynamodb.py",
+          "title": "composite keys, query, conditions"
+        },
+        {
+          "file": "dynamodb.py",
+          "title": "capacity, hot partitions, scan cost"
+        },
+        {
+          "file": "lambda_svc.py",
+          "title": "cold starts and warm state"
+        },
+        {
+          "file": "lambda_svc.py",
+          "title": "concurrency, reservations, async retry"
+        },
+        {
+          "file": "sns.py",
+          "title": "fanout and filter policies"
+        },
+        {
+          "file": "sns.py",
+          "title": "EventBridge pattern matching"
+        },
+        {
+          "file": "kms.py",
+          "title": "envelope encryption"
+        },
+        {
+          "file": "kms.py",
+          "title": "encryption context and rotation"
+        },
+        {
+          "file": "vpc.py",
+          "title": "CIDR, subnets and longest-prefix routing"
+        },
+        {
+          "file": "vpc.py",
+          "title": "stateful SG vs stateless NACL"
+        },
+        {
+          "file": "capstone.py",
+          "title": "the pipeline, and its failures"
+        }
+      ],
+      "references": [
+        {
+          "title": "IAM policy evaluation logic",
+          "where": "iam.py",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html"
+        },
+        {
+          "title": "S3 delete markers",
+          "where": "s3.py",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/DeleteMarker.html"
+        },
+        {
+          "title": "SQS visibility timeout",
+          "where": "sqs.py",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html"
+        },
+        {
+          "title": "DynamoDB partition key design",
+          "where": "dynamodb.py",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html"
+        },
+        {
+          "title": "Lambda execution environment",
+          "where": "lambda_svc.py",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html"
+        },
+        {
+          "title": "SNS subscription filter policies",
+          "where": "sns.py",
+          "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-subscription-filter-policies.html"
+        },
+        {
+          "title": "KMS envelope encryption",
+          "where": "kms.py",
+          "url": "https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html"
+        },
+        {
+          "title": "Security groups vs NACLs",
+          "where": "vpc.py",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html"
+        }
       ]
     },
     {
@@ -36,22 +143,89 @@
       "title": "Compiler + virtual GPU",
       "tagline": "one ISA, two machines, 12 graded checks",
       "dir": "compiler-and-vgpu",
+      "requires": [],
       "blurb": "Build a 32-bit ISA, a two-pass assembler, a CPU, a recursive-descent front end, code generation with register allocation and spilling, and a SIMT warp that punishes you for branching — then compile one program to both.",
-      "files": ["isa.py", "assembler.py", "cpu.py", "frontend.py", "codegen.py", "vgpu.py", "capstone.py"],
+      "files": [
+        "isa.py",
+        "assembler.py",
+        "cpu.py",
+        "frontend.py",
+        "codegen.py",
+        "vgpu.py",
+        "capstone.py"
+      ],
       "entry": "check.py",
       "checks": [
-        { "file": "isa.py", "title": "instruction encoding round-trip" },
-        { "file": "assembler.py", "title": "two-pass assembly with labels" },
-        { "file": "cpu.py", "title": "arithmetic, comparison, memory" },
-        { "file": "cpu.py", "title": "control flow and error reporting" },
-        { "file": "frontend.py", "title": "lexer and keywords" },
-        { "file": "frontend.py", "title": "parser: precedence and blocks" },
-        { "file": "codegen.py", "title": "v1-v2: expressions and control flow" },
-        { "file": "codegen.py", "title": "v3: allocation and spilling" },
-        { "file": "vgpu.py", "title": "uniform SIMT execution" },
-        { "file": "vgpu.py", "title": "v4: divergence, nesting, ragged loops" },
-        { "file": "vgpu.py", "title": "barrier deadlock and disagreeing branches" },
-        { "file": "capstone.py", "title": "one program, two machines" }
+        {
+          "file": "isa.py",
+          "title": "instruction encoding round-trip"
+        },
+        {
+          "file": "assembler.py",
+          "title": "two-pass assembly with labels"
+        },
+        {
+          "file": "cpu.py",
+          "title": "arithmetic, comparison, memory"
+        },
+        {
+          "file": "cpu.py",
+          "title": "control flow and error reporting"
+        },
+        {
+          "file": "frontend.py",
+          "title": "lexer and keywords"
+        },
+        {
+          "file": "frontend.py",
+          "title": "parser: precedence and blocks"
+        },
+        {
+          "file": "codegen.py",
+          "title": "v1-v2: expressions and control flow"
+        },
+        {
+          "file": "codegen.py",
+          "title": "v3: allocation and spilling"
+        },
+        {
+          "file": "vgpu.py",
+          "title": "uniform SIMT execution"
+        },
+        {
+          "file": "vgpu.py",
+          "title": "v4: divergence, nesting, ragged loops"
+        },
+        {
+          "file": "vgpu.py",
+          "title": "barrier deadlock and disagreeing branches"
+        },
+        {
+          "file": "capstone.py",
+          "title": "one program, two machines"
+        }
+      ],
+      "references": [
+        {
+          "title": "Crafting Interpreters",
+          "where": "frontend.py",
+          "url": "https://craftinginterpreters.com/"
+        },
+        {
+          "title": "Linear scan register allocation (Poletto & Sarkar)",
+          "where": "codegen.py",
+          "url": "https://dl.acm.org/doi/10.1145/330249.330250"
+        },
+        {
+          "title": "CUDA C++ Programming Guide: SIMT",
+          "where": "vgpu.py",
+          "url": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/"
+        },
+        {
+          "title": "Inside Volta: independent thread scheduling",
+          "where": "vgpu.py",
+          "url": "https://developer.nvidia.com/blog/inside-volta/"
+        }
       ]
     },
     {
@@ -59,23 +233,96 @@
       "title": "LLM from scratch",
       "tagline": "BPE, attention, sampling, KV cache, RoPE",
       "dir": "llm-from-scratch",
+      "requires": [],
       "blurb": "The five mechanisms a language model is assembled from, in pure standard-library Python. Implement byte-pair encoding, stable softmax attention, top-p sampling, an exact KV cache and rotary positions — and see the number each one produces.",
-      "files": ["tokenizer.py", "attention.py", "sampling.py", "kv_cache.py", "rope.py"],
+      "files": [
+        "tokenizer.py",
+        "attention.py",
+        "sampling.py",
+        "kv_cache.py",
+        "rope.py"
+      ],
       "entry": "check.py",
       "checks": [
-        { "file": "tokenizer.py", "title": "pair counts and non-overlapping merges" },
-        { "file": "tokenizer.py", "title": "deterministic training and compression" },
-        { "file": "tokenizer.py", "title": "rank-ordered encode and round-trip" },
-        { "file": "attention.py", "title": "stable softmax" },
-        { "file": "attention.py", "title": "attention weights and the causal mask" },
-        { "file": "sampling.py", "title": "temperature and hard greedy" },
-        { "file": "sampling.py", "title": "top-k" },
-        { "file": "sampling.py", "title": "top-p keeps the crossing token" },
-        { "file": "sampling.py", "title": "seeded sampling is reproducible" },
-        { "file": "kv_cache.py", "title": "cache append and shape" },
-        { "file": "kv_cache.py", "title": "cached output is bit-exact" },
-        { "file": "kv_cache.py", "title": "the cost model: linear vs quadratic" },
-        { "file": "rope.py", "title": "norm and relative-position invariants" }
+        {
+          "file": "tokenizer.py",
+          "title": "pair counts and non-overlapping merges"
+        },
+        {
+          "file": "tokenizer.py",
+          "title": "deterministic training and compression"
+        },
+        {
+          "file": "tokenizer.py",
+          "title": "rank-ordered encode and round-trip"
+        },
+        {
+          "file": "attention.py",
+          "title": "stable softmax"
+        },
+        {
+          "file": "attention.py",
+          "title": "attention weights and the causal mask"
+        },
+        {
+          "file": "sampling.py",
+          "title": "temperature and hard greedy"
+        },
+        {
+          "file": "sampling.py",
+          "title": "top-k"
+        },
+        {
+          "file": "sampling.py",
+          "title": "top-p keeps the crossing token"
+        },
+        {
+          "file": "sampling.py",
+          "title": "seeded sampling is reproducible"
+        },
+        {
+          "file": "kv_cache.py",
+          "title": "cache append and shape"
+        },
+        {
+          "file": "kv_cache.py",
+          "title": "cached output is bit-exact"
+        },
+        {
+          "file": "kv_cache.py",
+          "title": "the cost model: linear vs quadratic"
+        },
+        {
+          "file": "rope.py",
+          "title": "norm and relative-position invariants"
+        }
+      ],
+      "references": [
+        {
+          "title": "Neural Machine Translation of Rare Words (BPE)",
+          "where": "tokenizer.py",
+          "url": "https://arxiv.org/abs/1508.07909"
+        },
+        {
+          "title": "Attention Is All You Need",
+          "where": "attention.py",
+          "url": "https://arxiv.org/abs/1706.03762"
+        },
+        {
+          "title": "The Curious Case of Neural Text Degeneration (top-p)",
+          "where": "sampling.py",
+          "url": "https://arxiv.org/abs/1904.09751"
+        },
+        {
+          "title": "Let's build GPT (Karpathy)",
+          "where": "kv_cache.py",
+          "url": "https://www.youtube.com/watch?v=kCc8FmEb1nY"
+        },
+        {
+          "title": "RoFormer: Rotary Position Embedding",
+          "where": "rope.py",
+          "url": "https://arxiv.org/abs/2104.09864"
+        }
       ]
     },
     {
@@ -83,26 +330,103 @@
       "title": "Context caching",
       "tagline": "KV cache to PagedAttention, 16 checks",
       "dir": "context-caching",
+      "requires": [
+        "llm"
+      ],
       "blurb": "Wire a KV cache into a tiny transformer, then make prefix caching, radix matching, paged KV with copy-on-write and cache-aware routing all keep the output bit-identical while the cost model collapses.",
-      "files": ["kv_cache.py", "tiny_transformer.py", "prefix_cache.py", "radix_cache.py", "paged_kv_cache.py", "semantic_cache.py", "cache_router.py", "serving_demo.py"],
+      "files": [
+        "kv_cache.py",
+        "tiny_transformer.py",
+        "prefix_cache.py",
+        "radix_cache.py",
+        "paged_kv_cache.py",
+        "semantic_cache.py",
+        "cache_router.py",
+        "serving_demo.py"
+      ],
       "entry": "check.py",
       "checks": [
-        { "file": "kv_cache.py", "title": "linear algebra helpers" },
-        { "file": "kv_cache.py", "title": "KVCache append/truncate/clone" },
-        { "file": "kv_cache.py", "title": "cached == uncached attention" },
-        { "file": "kv_cache.py", "title": "prefill and the cost model" },
-        { "file": "tiny_transformer.py", "title": "layer_norm and gelu" },
-        { "file": "tiny_transformer.py", "title": "generation matches exactly" },
-        { "file": "tiny_transformer.py", "title": "truncate, clone, prefix reuse" },
-        { "file": "prefix_cache.py", "title": "block hashing and chaining" },
-        { "file": "prefix_cache.py", "title": "matching, eviction, isolation" },
-        { "file": "radix_cache.py", "title": "matching and node splitting" },
-        { "file": "radix_cache.py", "title": "eviction and pinning" },
-        { "file": "paged_kv_cache.py", "title": "block allocation and growth" },
-        { "file": "paged_kv_cache.py", "title": "forking and copy-on-write" },
-        { "file": "semantic_cache.py", "title": "exact and semantic caching" },
-        { "file": "cache_router.py", "title": "cache-aware routing" },
-        { "file": "serving_demo.py", "title": "capstone: identical output" }
+        {
+          "file": "kv_cache.py",
+          "title": "linear algebra helpers"
+        },
+        {
+          "file": "kv_cache.py",
+          "title": "KVCache append/truncate/clone"
+        },
+        {
+          "file": "kv_cache.py",
+          "title": "cached == uncached attention"
+        },
+        {
+          "file": "kv_cache.py",
+          "title": "prefill and the cost model"
+        },
+        {
+          "file": "tiny_transformer.py",
+          "title": "layer_norm and gelu"
+        },
+        {
+          "file": "tiny_transformer.py",
+          "title": "generation matches exactly"
+        },
+        {
+          "file": "tiny_transformer.py",
+          "title": "truncate, clone, prefix reuse"
+        },
+        {
+          "file": "prefix_cache.py",
+          "title": "block hashing and chaining"
+        },
+        {
+          "file": "prefix_cache.py",
+          "title": "matching, eviction, isolation"
+        },
+        {
+          "file": "radix_cache.py",
+          "title": "matching and node splitting"
+        },
+        {
+          "file": "radix_cache.py",
+          "title": "eviction and pinning"
+        },
+        {
+          "file": "paged_kv_cache.py",
+          "title": "block allocation and growth"
+        },
+        {
+          "file": "paged_kv_cache.py",
+          "title": "forking and copy-on-write"
+        },
+        {
+          "file": "semantic_cache.py",
+          "title": "exact and semantic caching"
+        },
+        {
+          "file": "cache_router.py",
+          "title": "cache-aware routing"
+        },
+        {
+          "file": "serving_demo.py",
+          "title": "capstone: identical output"
+        }
+      ],
+      "references": [
+        {
+          "title": "PagedAttention (vLLM)",
+          "where": "paged_kv_cache.py",
+          "url": "https://arxiv.org/abs/2309.06180"
+        },
+        {
+          "title": "SGLang: RadixAttention",
+          "where": "radix_cache.py",
+          "url": "https://arxiv.org/abs/2312.07104"
+        },
+        {
+          "title": "GQA: Training Generalized Multi-Query Transformers",
+          "where": "kv_cache.py",
+          "url": "https://arxiv.org/abs/2305.13245"
+        }
       ]
     },
     {
@@ -110,27 +434,96 @@
       "title": "Dynamo paper",
       "tagline": "quorums, vector clocks, anti-entropy, 17 checks",
       "dir": "dynamo-paper",
+      "requires": [
+        "aws"
+      ],
       "blurb": "Replicate the Dynamo paper from scratch: consistent-hash partitioning, vector clocks, N/R/W quorums, sloppy quorum and hinted handoff, Merkle-tree anti-entropy and gossip failure detection — then put a shopping cart on it.",
-      "files": ["partitioning.py", "vector_clock.py", "quorum.py", "hinted_handoff.py", "merkle_sync.py", "gossip.py", "dynamo_cluster.py"],
+      "files": [
+        "partitioning.py",
+        "vector_clock.py",
+        "quorum.py",
+        "hinted_handoff.py",
+        "merkle_sync.py",
+        "gossip.py",
+        "dynamo_cluster.py"
+      ],
       "entry": "check.py",
       "checks": [
-        { "file": "partitioning.py", "title": "ring: add/remove/coordinator" },
-        { "file": "partitioning.py", "title": "preference lists (N distinct nodes)" },
-        { "file": "partitioning.py", "title": "load balance and key migration" },
-        { "file": "partitioning.py", "title": "strategy 3: fixed partitions" },
-        { "file": "vector_clock.py", "title": "clock ordering and merge" },
-        { "file": "vector_clock.py", "title": "reconciliation (paper Figure 3)" },
-        { "file": "vector_clock.py", "title": "clock truncation" },
-        { "file": "quorum.py", "title": "storage node keeps siblings" },
-        { "file": "quorum.py", "title": "N/R/W put and get" },
-        { "file": "quorum.py", "title": "siblings and read repair" },
-        { "file": "hinted_handoff.py", "title": "sloppy quorum writes a hint" },
-        { "file": "hinted_handoff.py", "title": "hinted handoff delivery" },
-        { "file": "merkle_sync.py", "title": "merkle tree build and diff" },
-        { "file": "merkle_sync.py", "title": "anti-entropy is a union" },
-        { "file": "gossip.py", "title": "gossip convergence O(log S)" },
-        { "file": "gossip.py", "title": "local failure detection, seeds" },
-        { "file": "dynamo_cluster.py", "title": "capstone: cart + availability" }
+        {
+          "file": "partitioning.py",
+          "title": "ring: add/remove/coordinator"
+        },
+        {
+          "file": "partitioning.py",
+          "title": "preference lists (N distinct nodes)"
+        },
+        {
+          "file": "partitioning.py",
+          "title": "load balance and key migration"
+        },
+        {
+          "file": "partitioning.py",
+          "title": "strategy 3: fixed partitions"
+        },
+        {
+          "file": "vector_clock.py",
+          "title": "clock ordering and merge"
+        },
+        {
+          "file": "vector_clock.py",
+          "title": "reconciliation (paper Figure 3)"
+        },
+        {
+          "file": "vector_clock.py",
+          "title": "clock truncation"
+        },
+        {
+          "file": "quorum.py",
+          "title": "storage node keeps siblings"
+        },
+        {
+          "file": "quorum.py",
+          "title": "N/R/W put and get"
+        },
+        {
+          "file": "quorum.py",
+          "title": "siblings and read repair"
+        },
+        {
+          "file": "hinted_handoff.py",
+          "title": "sloppy quorum writes a hint"
+        },
+        {
+          "file": "hinted_handoff.py",
+          "title": "hinted handoff delivery"
+        },
+        {
+          "file": "merkle_sync.py",
+          "title": "merkle tree build and diff"
+        },
+        {
+          "file": "merkle_sync.py",
+          "title": "anti-entropy is a union"
+        },
+        {
+          "file": "gossip.py",
+          "title": "gossip convergence O(log S)"
+        },
+        {
+          "file": "gossip.py",
+          "title": "local failure detection, seeds"
+        },
+        {
+          "file": "dynamo_cluster.py",
+          "title": "capstone: cart + availability"
+        }
+      ],
+      "references": [
+        {
+          "title": "Dynamo: Amazon's Highly Available Key-value Store (SOSP 2007)",
+          "where": "every file",
+          "url": "https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf"
+        }
       ]
     },
     {
@@ -138,37 +531,165 @@
       "title": "Deploy and debug",
       "tagline": "capacity, percentiles, faults, rollouts",
       "dir": "deploy-and-debug",
+      "requires": [
+        "context-caching",
+        "dynamo"
+      ],
       "blurb": "Capacity maths, percentile latency, SLO error budgets, root-cause diagnosis of injected faults and safe canary rollouts. The half of production that pages you at 3am, as graded checks.",
-      "files": ["capacity.py", "metrics.py", "diagnose.py", "rollout.py", "deployment.py"],
+      "files": [
+        "capacity.py",
+        "metrics.py",
+        "diagnose.py",
+        "rollout.py",
+        "deployment.py"
+      ],
       "entry": "check.py",
       "checks": [
-        { "file": "capacity.py", "title": "KV cache and batch-size math" },
-        { "file": "capacity.py", "title": "fleet sizing and quorum tolerance" },
-        { "file": "metrics.py", "title": "percentiles and summaries" },
-        { "file": "metrics.py", "title": "queueing and fan-out tails" },
-        { "file": "metrics.py", "title": "SLOs, budgets and burn rate" },
-        { "file": "diagnose.py", "title": "diagnose 6 serving faults" },
-        { "file": "diagnose.py", "title": "undersized KV vs overload" },
-        { "file": "diagnose.py", "title": "diagnose 5 store faults" },
-        { "file": "diagnose.py", "title": "node down vs strict quorum" },
-        { "file": "rollout.py", "title": "liveness vs readiness probes" },
-        { "file": "rollout.py", "title": "canary analysis and staging" },
-        { "file": "rollout.py", "title": "budget-based auto-rollback" }
+        {
+          "file": "capacity.py",
+          "title": "KV cache and batch-size math"
+        },
+        {
+          "file": "capacity.py",
+          "title": "fleet sizing and quorum tolerance"
+        },
+        {
+          "file": "metrics.py",
+          "title": "percentiles and summaries"
+        },
+        {
+          "file": "metrics.py",
+          "title": "queueing and fan-out tails"
+        },
+        {
+          "file": "metrics.py",
+          "title": "SLOs, budgets and burn rate"
+        },
+        {
+          "file": "diagnose.py",
+          "title": "diagnose 6 serving faults"
+        },
+        {
+          "file": "diagnose.py",
+          "title": "undersized KV vs overload"
+        },
+        {
+          "file": "diagnose.py",
+          "title": "diagnose 5 store faults"
+        },
+        {
+          "file": "diagnose.py",
+          "title": "node down vs strict quorum"
+        },
+        {
+          "file": "rollout.py",
+          "title": "liveness vs readiness probes"
+        },
+        {
+          "file": "rollout.py",
+          "title": "canary analysis and staging"
+        },
+        {
+          "file": "rollout.py",
+          "title": "budget-based auto-rollback"
+        }
+      ],
+      "references": [
+        {
+          "title": "SRE Book: Monitoring Distributed Systems",
+          "where": "metrics.py",
+          "url": "https://sre.google/sre-book/monitoring-distributed-systems/"
+        },
+        {
+          "title": "SRE Workbook: Alerting on SLOs",
+          "where": "metrics.py",
+          "url": "https://sre.google/workbook/alerting-on-slos/"
+        },
+        {
+          "title": "vLLM metrics reference",
+          "where": "diagnose.py",
+          "url": "https://docs.vllm.ai/en/latest/usage/metrics.html"
+        },
+        {
+          "title": "Kubernetes liveness, readiness, startup probes",
+          "where": "rollout.py",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+        }
       ]
     }
   ],
   "links": [
-    { "title": "C compiler", "dir": "c-compiler", "blurb": "Lexer, recursive-descent parser, semantic analysis, codegen and an optimizer — in C, with a C test suite.", "tag": "C" },
-    { "title": "CUDA from scratch", "dir": "cuda-from-scratch", "blurb": "Kernels from vector add up to a neural network on the GPU.", "tag": "CUDA" },
-    { "title": "HTTP server", "dir": "http-server", "blurb": "Sockets, request parsing, routing and a static file server.", "tag": "C" },
-    { "title": "DNS server", "dir": "dns-server", "blurb": "UDP networking and protocol parsing for real DNS packets.", "tag": "C" },
-    { "title": "Firewall", "dir": "firewall-from-scratch", "blurb": "Raw sockets, protocol parsing and rule-based packet filtering.", "tag": "C" },
-    { "title": "Shell", "dir": "bash-from-scratch", "blurb": "A Unix shell: parsing, pipes, redirection, job control.", "tag": "C" },
-    { "title": "Cryptographic library", "dir": "cryptographic-library", "blurb": "SHA-256, ECDSA and the primitives underneath them.", "tag": "C" },
-    { "title": "Quantum computing language", "dir": "quantum-computing-lang", "blurb": "A language and simulator for quantum circuits, Qiskit-style.", "tag": "C" },
-    { "title": "Lean proofs", "dir": "lean-proofs", "blurb": "Mathematical proofs in Lean, progressing toward Galois theory.", "tag": "Lean" },
-    { "title": "Spectral graphs", "dir": "spectral-graphs", "blurb": "Spectral methods and graph Laplacians.", "tag": "NumPy" },
-    { "title": "vLLM engine", "dir": "vllm-engine", "blurb": "PagedAttention and continuous batching on top of context caching.", "tag": "systems" },
-    { "title": "Diffusion models", "dir": "diffusion-models", "blurb": "DDPM, DDIM and a U-Net, from scratch.", "tag": "PyTorch" }
+    {
+      "title": "C compiler",
+      "dir": "c-compiler",
+      "blurb": "Lexer, recursive-descent parser, semantic analysis, codegen and an optimizer — in C, with a C test suite.",
+      "tag": "C"
+    },
+    {
+      "title": "CUDA from scratch",
+      "dir": "cuda-from-scratch",
+      "blurb": "Kernels from vector add up to a neural network on the GPU.",
+      "tag": "CUDA"
+    },
+    {
+      "title": "HTTP server",
+      "dir": "http-server",
+      "blurb": "Sockets, request parsing, routing and a static file server.",
+      "tag": "C"
+    },
+    {
+      "title": "DNS server",
+      "dir": "dns-server",
+      "blurb": "UDP networking and protocol parsing for real DNS packets.",
+      "tag": "C"
+    },
+    {
+      "title": "Firewall",
+      "dir": "firewall-from-scratch",
+      "blurb": "Raw sockets, protocol parsing and rule-based packet filtering.",
+      "tag": "C"
+    },
+    {
+      "title": "Shell",
+      "dir": "bash-from-scratch",
+      "blurb": "A Unix shell: parsing, pipes, redirection, job control.",
+      "tag": "C"
+    },
+    {
+      "title": "Cryptographic library",
+      "dir": "cryptographic-library",
+      "blurb": "SHA-256, ECDSA and the primitives underneath them.",
+      "tag": "C"
+    },
+    {
+      "title": "Quantum computing language",
+      "dir": "quantum-computing-lang",
+      "blurb": "A language and simulator for quantum circuits, Qiskit-style.",
+      "tag": "C"
+    },
+    {
+      "title": "Lean proofs",
+      "dir": "lean-proofs",
+      "blurb": "Mathematical proofs in Lean, progressing toward Galois theory.",
+      "tag": "Lean"
+    },
+    {
+      "title": "Spectral graphs",
+      "dir": "spectral-graphs",
+      "blurb": "Spectral methods and graph Laplacians.",
+      "tag": "NumPy"
+    },
+    {
+      "title": "vLLM engine",
+      "dir": "vllm-engine",
+      "blurb": "PagedAttention and continuous batching on top of context caching.",
+      "tag": "systems"
+    },
+    {
+      "title": "Diffusion models",
+      "dir": "diffusion-models",
+      "blurb": "DDPM, DDIM and a U-Net, from scratch.",
+      "tag": "PyTorch"
+    }
   ]
 }
