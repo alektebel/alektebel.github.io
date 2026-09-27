@@ -246,6 +246,34 @@
   .con-head { display: flex; align-items: center; gap: 10px; border: 1px solid var(--soft-line); border-bottom: none; background: var(--panel); padding: 6px 12px; }
   .con-sum { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
 
+  /* lines to implement */
+  .stubs { border: 1px solid var(--soft-line); background: var(--bg); padding: 12px 15px; margin-bottom: 14px; }
+  .stubs h4 { margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .stubs ul { list-style: none; margin: 9px 0 0; padding: 0; }
+  .stubs li { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--soft-line); font-size: 13px; }
+  .stubs li:last-child { border-bottom: none; }
+  .stubs .s-tick { color: var(--accent); font-size: 12px; flex: none; }
+  .stubs .s-fn { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--ink); }
+  .stubs .s-ln { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); margin-left: auto; }
+  .stubs .s-all { margin: 4px 0 0; font-size: 13px; color: var(--green); }
+
+  /* feedback */
+  .fb-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
+  .fb-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
+  .fb-wrap { overflow-x: auto; margin-top: 8px; }
+  .fb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .fb-table th, .fb-table td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--soft-line); vertical-align: top; }
+  .fb-table th { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .fb-table td.num { font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .fb-table .ok { color: var(--green); }
+  .fb-table .bad { color: var(--accent); }
+  .fb-table .todo { color: var(--yellow); }
+  .fb-table .note { color: var(--muted); font-size: 12px; max-width: 46ch; }
+  .fb-empty { color: var(--muted); }
+  .hard-list { margin: 8px 0 0; padding-left: 20px; font-size: 13.5px; color: var(--body); }
+  .hard-list li { margin-bottom: 7px; }
+  .hard-list .note { color: var(--muted); font-size: 12.5px; }
+
   footer.colophon { margin-top: 50px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
 
   @media (max-width: 980px) {
@@ -593,16 +621,66 @@ function renderOut() {
     out.appendChild(div);
   });
 }
-function parseStatuses(track, text) {
-  stripAnsi(text).split("\n").forEach((line) => {
-    const m = line.match(/^\s*([✓·✗])\s+(\d+)\./);
-    if (!m) return;
-    const idx = parseInt(m[2], 10);
-    state.status[track.id + ":" + idx] = m[1] === "✓" ? "PASS" : m[1] === "·" ? "TODO" : "FAIL";
-  });
+function parseOutput(text) {
+  const lines = stripAnsi(text).split("\n");
+  const entries = [];
+  for (let k = 0; k < lines.length; k++) {
+    const m = lines[k].match(/^\s*([✓·✗])\s+(\d+)\.\s+(\S+)\s*(.*)$/);
+    if (!m) continue;
+    const status = m[1] === "✓" ? "PASS" : m[1] === "·" ? "TODO" : "FAIL";
+    let detail = "";
+    for (let j = k + 1; j < lines.length; j++) {
+      const l = lines[j];
+      if (/^\s*[✓·✗]\s+\d+\./.test(l)) break;
+      if (/^\s*\d+\/\d+ passing/.test(l) || /^\s*(Next:|The docstrings)/.test(l)) break;
+      if (l.trim()) detail += (detail ? " " : "") + l.trim();
+    }
+    entries.push({ index: parseInt(m[2], 10), file: m[3], title: m[4].trim(), status: status, detail: detail.slice(0, 400) });
+  }
+  return entries;
+}
+function applyStatuses(track, entries) {
+  entries.forEach((e) => { state.status[track.id + ":" + e.index] = e.status; });
   persistStatus(track);
   updateBadges(track);
   updateProgress(track);
+}
+
+/* ── feedback: every run is recorded so the exercises can adapt to what is hard ── */
+const FB_KEY = "lfs:feedback:v1";
+function loadFeedback() {
+  try { return JSON.parse(localStorage.getItem(FB_KEY) || '{"runs":[]}'); }
+  catch (e) { return { runs: [] }; }
+}
+function saveFeedback(fb) {
+  try { localStorage.setItem(FB_KEY, JSON.stringify(fb)); } catch (e) { /* quota */ }
+}
+function recordRun(track, entries) {
+  if (!entries.length) return;
+  const fb = loadFeedback();
+  fb.runs.push({ t: Date.now(), track: track.id, entries: entries });
+  if (fb.runs.length > 400) fb.runs = fb.runs.slice(-400);
+  saveFeedback(fb);
+  const el = byId("fb-count");
+  if (el) el.textContent = fb.runs.length + " runs recorded";
+  const nb = byId("fb-nav-count");
+  if (nb) nb.textContent = fb.runs.length;
+}
+function aggregateFeedback() {
+  const fb = loadFeedback();
+  const agg = {};
+  fb.runs.forEach((run) => {
+    (run.entries || []).forEach((e) => {
+      const key = run.track + ":" + e.index;
+      const a = agg[key] || (agg[key] = { track: run.track, index: e.index, file: e.file, title: e.title, attempts: 0, pass: 0, fail: 0, todo: 0, last: "", detail: "" });
+      a.attempts++;
+      if (e.status === "PASS") a.pass++; else if (e.status === "FAIL") a.fail++; else a.todo++;
+      a.last = e.status;
+      a.file = e.file; a.title = e.title;
+      if (e.status !== "PASS" && e.detail) a.detail = e.detail;
+    });
+  });
+  return { runs: fb.runs.length, rows: Object.values(agg) };
 }
 
 /* ── run ── */
@@ -635,7 +713,9 @@ async function run(track, index) {
       "mod.main(" + args + ")"
     ].join("\n");
     await py.runPythonAsync(code);
-    parseStatuses(track, state.outBuf);
+    const entries = parseOutput(state.outBuf);
+    applyStatuses(track, entries);
+    recordRun(track, entries);
     setPill("runner ready", "ready");
   } catch (err) {
     let msg = err && err.message ? err.message : String(err);
@@ -700,7 +780,9 @@ function renderHome() {
     '<code>check.py</code> that grades <em>your</em> code and names the likely cause when it fails, and a ' +
     'run button that executes the checker in your browser. No install.</p>' +
     '<div class="cards">' + cards + '</div>' +
-    '<p class="lede" style="margin-top:16px"><a href="#tree" data-nav="tree">see the whole path as an interactive tree →</a></p>' +
+    '<p class="lede" style="margin-top:16px"><a href="#tree" data-nav="tree">see the whole path as an interactive tree →</a> · ' +
+    '<a href="#feedback" data-nav="feedback">your run feedback →</a> · ' +
+    '<a href="/working-on/">the projects I&rsquo;m building →</a></p>' +
     '<div class="how"><div class="label">how to work through a track</div><ol>' +
     '<li>Open a check, read the docstring in the template — it names the design decision and the failure it avoids.</li>' +
     '<li>Implement the function, hit <span class="code-inline">Run</span>. The checker tells you what to build next.</li>' +
@@ -756,6 +838,7 @@ function renderTrack(track) {
         '<button class="btn" id="run-all">Run all checks</button>' +
         '<a href="https://github.com/' + state.catalog.repo + '/tree/' + state.catalog.ref + '/' + track.dir + '" target="_blank" rel="noopener">readme &amp; source ↗</a>' +
         '<span class="progress" id="progress">' + passedCount(track) + ' / ' + track.checks.length + ' passing</span>' +
+        '<button class="btn ghost" id="fb-open">your feedback</button>' +
       '</div>' +
       ((track.references || []).length
         ? '<div class="refs"><span class="label">study</span>' + refsHtml + '</div>'
@@ -780,6 +863,7 @@ function renderTrack(track) {
               '</span>' +
               '<a id="work-gh" href="#" target="_blank" rel="noopener" hidden>view source ↗</a>' +
             '</div>' +
+            '<div id="stubs" class="stubs" hidden></div>' +
             '<div id="editor-wrap" class="editor-wrap" hidden></div>' +
             '<div class="hsplit" data-split="eo" id="split-eo" hidden title="Drag to resize console"></div>' +
             '<pre id="output" aria-live="polite"></pre>' +
@@ -798,6 +882,8 @@ function renderTrack(track) {
     row.addEventListener("click", () => selectCheck(track, row.getAttribute("data-file"), parseInt(row.getAttribute("data-id"), 10)));
   });
   byId("output").textContent = "Ready. The first run loads the Python runtime (about 10 MB, once).";
+  const fbo = byId("fb-open");
+  if (fbo) fbo.addEventListener("click", () => { history.replaceState(null, "", "#feedback"); renderNav(); renderFeedback(); window.scrollTo(0, 0); });
   wireSplits();
   applyFont();
 }
@@ -852,11 +938,13 @@ async function selectCheck(track, file, index) {
   renderGuidelines(index, file, check.title, extractDocstring(state.files[bufKey(track, file)] || ""));
   byId("guidelines").hidden = false;
   byId("split-gx").hidden = false;
+  byId("stubs").hidden = false;
   byId("editor-wrap").hidden = false;
   byId("split-eo").hidden = false;
   byId("work-actions").hidden = false;
   await mountEditor();
   editorSet(src);
+  renderStubs();
 
   if (window.matchMedia("(max-width: 700px)").matches) {
     setTimeout(() => { const g = byId("guidelines"); if (g) g.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
@@ -905,6 +993,54 @@ function renderGuidelines(index, file, title, doc) {
   box.appendChild(link);
 }
 
+/* ── stubs: the lines left to implement in the file open in the editor ── */
+function parseStubs(src) {
+  const lines = String(src).split("\n");
+  const out = [];
+  lines.forEach((line, i) => {
+    if (!/raise\s+NotImplementedError/.test(line) || /^\s*#/.test(line)) return;
+    let name = "";
+    for (let j = i; j >= 0; j--) {
+      const m = lines[j].match(/^\s*(?:async\s+)?def\s+([A-Za-z_]\w*)/);
+      if (m) { name = m[1]; break; }
+    }
+    out.push({ line: i + 1, name: name || "…" });
+  });
+  return out;
+}
+let stubTimer = null;
+function scheduleStubs() { clearTimeout(stubTimer); stubTimer = setTimeout(renderStubs, 220); }
+function renderStubs() {
+  const box = byId("stubs");
+  if (!box) return;
+  const stubs = parseStubs(editorGet());
+  box.innerHTML = "";
+  if (!stubs.length) {
+    const done = document.createElement("p");
+    done.className = "s-all";
+    done.textContent = "✓ no stubs left in this file — every function is implemented";
+    box.appendChild(done);
+    return;
+  }
+  const h = document.createElement("h4");
+  h.textContent = "lines to implement · " + stubs.length + " left";
+  const ul = document.createElement("ul");
+  stubs.forEach((s) => {
+    const li = document.createElement("li");
+    const tick = document.createElement("span"); tick.className = "s-tick"; tick.textContent = "▢";
+    const fn = document.createElement("span"); fn.className = "s-fn"; fn.textContent = s.name + "()";
+    const ln = document.createElement("span"); ln.className = "s-ln"; ln.textContent = "line " + s.line;
+    li.append(tick, fn, ln);
+    li.title = "jump to line " + s.line;
+    li.addEventListener("click", () => {
+      if (state.cm) { state.cm.setCursor({ line: s.line - 1, ch: 0 }); state.cm.focus(); }
+      else if (state.ta) { state.ta.focus(); state.ta.setSelectionRange(0, 0); }
+    });
+    ul.appendChild(li);
+  });
+  box.append(h, ul);
+}
+
 /* ── editor: CodeMirror 5 with a plain-textarea fallback ── */
 function addCss(href) {
   const l = document.createElement("link");
@@ -934,6 +1070,7 @@ async function mountEditor() {
     });
     state.cm.on("change", () => {
       if (state.sel) saveBuffer(state.track, state.sel.file, state.cm.getValue());
+      scheduleStubs();
     });
   } catch (e) {
     const ta = document.createElement("textarea");
@@ -941,7 +1078,7 @@ async function mountEditor() {
     ta.className = "fallback-editor";
     ta.spellcheck = false;
     ta.setAttribute("aria-label", "Code editor");
-    ta.addEventListener("input", () => { if (state.sel) saveBuffer(state.track, state.sel.file, ta.value); });
+    ta.addEventListener("input", () => { if (state.sel) saveBuffer(state.track, state.sel.file, ta.value); scheduleStubs(); });
     wrap.appendChild(ta);
     state.ta = ta;
   }
@@ -1201,14 +1338,108 @@ function drawTreeEdges() {
 }
 
 /* ── render: nav ── */
+/* ── feedback view: what the runs say you are finding hard ── */
+function feedbackMarkdown(agg) {
+  const L = [];
+  L.push("# learn-from-scratch — run feedback");
+  L.push("");
+  L.push("Runs recorded: " + agg.runs + ".");
+  L.push("");
+  L.push("| track | file | check | tries | pass | fail | last |");
+  L.push("| --- | --- | --- | --- | --- | --- | --- |");
+  agg.rows.slice().sort((a, b) => (a.pass - b.pass) || (b.fail - a.fail) || (b.attempts - a.attempts))
+    .forEach((r) => L.push("| " + r.track + " | " + r.file + " | " + (r.title || "") + " | " + r.attempts + " | " + r.pass + " | " + r.fail + " | " + (r.last || "") + " |"));
+  const hard = agg.rows.filter((r) => r.pass === 0 && (r.fail > 0 || r.todo > 0));
+  if (hard.length) {
+    L.push("");
+    L.push("## Struggling with");
+    hard.forEach((r) => L.push("- **" + r.track + " · " + r.file + " · " + (r.title || "") + "**" + (r.detail ? " — " + r.detail : "")));
+  }
+  return L.join("\n");
+}
+function download(name, text, type) {
+  const blob = new Blob([text], { type: type || "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+function flash(btn, text) {
+  const old = btn.textContent;
+  btn.textContent = text;
+  setTimeout(() => { btn.textContent = old; }, 1400);
+}
+function renderFeedback() {
+  state.view = { name: "feedback" };
+  state.track = null; state.sel = null;
+  state.cm = null; state.ta = null; state.editorReady = false;
+
+  const agg = aggregateFeedback();
+  const hard = agg.rows.filter((r) => r.pass === 0 && (r.fail > 0 || r.todo > 0))
+    .sort((a, b) => (b.fail - a.fail) || (b.attempts - a.attempts)).slice(0, 10);
+  const rows = agg.rows.slice().sort((a, b) => (a.pass - b.pass) || (b.fail - a.fail) || (b.attempts - a.attempts));
+  const body = rows.map((r) =>
+    "<tr>" +
+      '<td class="num">' + esc(r.track) + "</td>" +
+      '<td class="num">' + esc(r.file) + "</td>" +
+      "<td>" + esc(r.title || "—") + "</td>" +
+      '<td class="num">' + r.attempts + "</td>" +
+      '<td class="num ok">' + r.pass + "</td>" +
+      '<td class="num bad">' + r.fail + "</td>" +
+      '<td class="num ' + (r.last === "PASS" ? "ok" : r.last === "FAIL" ? "bad" : "todo") + '">' + (r.last || "—") + "</td>" +
+    "</tr>").join("");
+  const hardHtml = hard.length
+    ? '<h3 style="font-size:16px;margin:28px 0 4px">What you are finding hard</h3>' +
+      '<ul class="hard-list">' + hard.map((r) =>
+        "<li><strong>" + esc(r.file) + " · " + esc(r.title || "") + "</strong>" +
+        (r.detail ? '<span class="note"> — ' + esc(r.detail) + "</span>" : "") + "</li>").join("") + "</ul>"
+    : "";
+
+  mainEl.innerHTML =
+    '<div class="label">your feedback</div>' +
+    '<div class="fb-head"><h1>What the checks show.</h1>' +
+    '<span class="progress" id="fb-count">' + agg.runs + " runs recorded</span></div>" +
+    '<p class="lede">Every run of the checks is saved here. Repeated attempts and failures are what the exercises should adapt to — export this and hand it back so the templates get tuned to the parts you actually find hard.</p>' +
+    '<div class="fb-tools">' +
+      '<button class="btn" id="fb-copy">Copy summary</button>' +
+      '<button class="btn ghost" id="fb-json">Download JSON</button>' +
+      '<button class="btn ghost" id="fb-export">Download Markdown</button>' +
+      '<button class="btn ghost" id="fb-clear">Clear</button>' +
+    "</div>" +
+    (rows.length
+      ? '<div class="fb-wrap"><table class="fb-table"><thead><tr>' +
+          "<th>track</th><th>file</th><th>check</th><th>tries</th><th>pass</th><th>fail</th><th>last</th>" +
+        "</tr></thead><tbody>" + body + "</tbody></table></div>" + hardHtml
+      : '<p class="fb-empty">No runs yet. Open a topic, write some code and press Run checks — every attempt lands here.</p>') +
+    '<footer class="colophon">Stored only in this browser. Nothing is uploaded.</footer>';
+
+  byId("fb-copy").onclick = () => {
+    const text = feedbackMarkdown(agg);
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => flash(byId("fb-copy"), "Copied ✓"), () => download("learn-feedback.md", text, "text/markdown"));
+    else download("learn-feedback.md", text, "text/markdown");
+  };
+  byId("fb-json").onclick = () => download("learn-feedback.json", JSON.stringify(loadFeedback(), null, 2), "application/json");
+  byId("fb-export").onclick = () => download("learn-feedback.md", feedbackMarkdown(agg), "text/markdown");
+  byId("fb-clear").onclick = () => {
+    if (!confirm("Delete all recorded run feedback from this browser?")) return;
+    saveFeedback({ runs: [] });
+    renderFeedback();
+  };
+}
+
 function renderNav(activeId) {
+  const runs = loadFeedback().runs.length;
   navEl.innerHTML = '<div class="label">tracks</div>' +
     state.catalog.tracks.map((t) => {
       loadStatus(t);
       return '<button data-nav="track" data-id="' + t.id + '"' + (t.id === activeId ? ' class="active"' : "") + '>' +
         esc(t.title) + '<span class="t-prog">' + passedCount(t) + ' / ' + t.checks.length + '</span></button>';
     }).join("") +
-    '<button data-nav="tree"' + (!activeId && state.view.name === "tree" ? ' class="active"' : "") + '>the tree<span class="t-prog">dependency map</span></button>';
+    '<button data-nav="tree"' + (!activeId && state.view.name === "tree" ? ' class="active"' : "") + '>the tree<span class="t-prog">dependency map</span></button>' +
+    '<button data-nav="feedback"' + (!activeId && state.view.name === "feedback" ? ' class="active"' : "") + '>your feedback<span class="t-prog"><span id="fb-nav-count">' + runs + '</span> runs</span></button>';
 }
 
 /* ── navigation (delegated) ── */
@@ -1217,6 +1448,7 @@ document.addEventListener("click", (e) => {
   if (!el) return;
   if (el.getAttribute("data-nav") === "home") { history.replaceState(null, "", location.pathname); renderNav(); renderHome(); window.scrollTo(0, 0); return; }
   if (el.getAttribute("data-nav") === "tree") { history.replaceState(null, "", "#tree"); renderNav(); renderTree(); window.scrollTo(0, 0); return; }
+  if (el.getAttribute("data-nav") === "feedback") { history.replaceState(null, "", "#feedback"); renderNav(); renderFeedback(); window.scrollTo(0, 0); return; }
   const track = state.catalog.tracks.find((t) => t.id === el.getAttribute("data-id"));
   if (!track) return;
   renderNav(track.id);
@@ -1261,6 +1493,7 @@ document.addEventListener("keydown", (e) => {
   initAuth();
   const initial = decodeURIComponent(location.hash.slice(1));
   if (initial === "tree") { renderNav(); renderTree(); return; }
+  if (initial === "feedback") { renderNav(); renderFeedback(); return; }
   const initialTrack = initial && state.catalog.tracks.find((t) => t.id === initial);
   if (initialTrack) { renderNav(initialTrack.id); renderTrack(initialTrack); }
   else renderHome();
