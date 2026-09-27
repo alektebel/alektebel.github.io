@@ -1117,7 +1117,7 @@ function apiHeaders(){
   return h;
 }
 function sendAction(obj){
-  fetch('https://52.31.169.175.sslip.io/api/action',{method:'POST',headers:apiHeaders(),
+  fetch('https://34.253.36.5.sslip.io/api/action',{method:'POST',headers:apiHeaders(),
     body:JSON.stringify({token:TOKEN, sid:SID, ...obj})})
    .then(r => r.json()).then(d => { if(!d.ok) flash(d.error || 'error'); });
 }
@@ -1125,12 +1125,12 @@ function flash(t){ const e = $('errbanner'); e.style.display = 'block'; e.textCo
   setTimeout(() => { e.style.display = 'none'; }, 4000); }
 $('sendchat').onclick = () => {
   const v = $('chatinput').value.trim(); if(!v) return;
-  fetch('https://52.31.169.175.sslip.io/api/chat',{method:'POST',headers:apiHeaders(),
+  fetch('https://34.253.36.5.sslip.io/api/chat',{method:'POST',headers:apiHeaders(),
     body:JSON.stringify({token:TOKEN, sid:SID, text:v})}).then(() => $('chatinput').value = '');
 };
 $('chatinput').addEventListener('keydown', e => { if(e.key === 'Enter') $('sendchat').onclick(); });
 $('newmatch').onclick = () => {
-  fetch('https://52.31.169.175.sslip.io/api/new',{method:'POST',headers:apiHeaders(),
+  fetch('https://34.253.36.5.sslip.io/api/new',{method:'POST',headers:apiHeaders(),
     body:JSON.stringify({token:TOKEN, sid:SID})})
    .then(r => r.json()).then(d => { if(d.ok) adoptSession(d); else flash(d.error); });
 };
@@ -1142,7 +1142,7 @@ function renderSenas(){
     const b = document.createElement('button'); b.className = 'sena-btn';
     b.innerHTML = '<span class="g">' + esc(g2) + '</span><span class="m">' + esc(m) + '</span>';
     b.onclick = () => {
-      fetch('https://52.31.169.175.sslip.io/api/sena',{method:'POST',headers:apiHeaders(),
+      fetch('https://34.253.36.5.sslip.io/api/sena',{method:'POST',headers:apiHeaders(),
         body:JSON.stringify({token:TOKEN, sid:SID, gesture:g2})})
        .then(r => r.json()).then(d => { if(!d.ok) flash(d.error); });
     };
@@ -1167,7 +1167,7 @@ function renderSenas(){
 let benchData = null;
 let benchTimer = null;
 function loadBench(){
-  return fetch('https://52.31.169.175.sslip.io/api/results',{cache:'no-store'}).then(r => r.json()).then(d => {
+  return fetch('https://34.253.36.5.sslip.io/api/results',{cache:'no-store'}).then(r => r.json()).then(d => {
     benchData = d; renderBench();
   }).catch(() => {});
 }
@@ -1342,7 +1342,7 @@ function applySnapshot(data){
 }
 function connect(){
   if(es) es.close();
-  es = new EventSource('https://52.31.169.175.sslip.io/events' + (Q ? ('?' + Q) : ''),
+  es = new EventSource('https://34.253.36.5.sslip.io/events' + (Q ? ('?' + Q) : ''),
                        {withCredentials: true});
   es.onopen = () => { $('status').textContent = ''; };
   es.onmessage = m => { try { applySnapshot(JSON.parse(m.data)); } catch(e){} };
@@ -1366,7 +1366,7 @@ function adoptSession(d){
 connect();
 // Some proxies (e.g. Cloudflare quick tunnels) buffer SSE; poll /snapshot as a fallback.
 setInterval(() => {
-  fetch('https://52.31.169.175.sslip.io/snapshot' + (Q ? ('?' + Q) : ''), {credentials: 'include'})
+  fetch('https://34.253.36.5.sslip.io/snapshot' + (Q ? ('?' + Q) : ''), {credentials: 'include'})
     .then(r => r.json())
     .then(applySnapshot).catch(() => {});
 }, 2000);
