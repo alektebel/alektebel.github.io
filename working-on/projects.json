@@ -1,0 +1,69 @@
+{
+  "owner": "alektebel",
+  "note": "Curated list of things I am building from scratch. Edit freely; the page enriches each entry with live GitHub activity when it can.",
+  "projects": [
+    {
+      "name": "cpore",
+      "repo": "alektebel/cpore",
+      "blurb": "A Spore-like life simulation written from scratch in C, built as a reinforcement-learning environment rather than a game. Own renderer, own PNG codec — libc and libm only.",
+      "tags": ["C", "from scratch", "RL environment", "graphics"],
+      "featured": true
+    },
+    {
+      "name": "learn-stuff-from-scratch",
+      "repo": "alektebel/learn-stuff-from-scratch",
+      "blurb": "From-scratch implementations with graded checks — AWS, compilers, LLMs, Dynamo, context caching. The material behind /learn.",
+      "tags": ["python", "learning", "systems"],
+      "featured": true
+    },
+    {
+      "name": "mus-benchmark",
+      "repo": "alektebel/mus-benchmark",
+      "blurb": "Multi-agent experiments on the Spanish card game mus: covert signalling, órdago decisions, and LLMs playing against each other.",
+      "tags": ["multi-agent", "game theory", "LLM"],
+      "featured": true
+    },
+    {
+      "name": "bayesian-llm-council",
+      "repo": "alektebel/bayesian-llm-council",
+      "blurb": "Bayesian aggregation across several LLMs voting on an answer, so disagreement is measured instead of averaged away.",
+      "tags": ["Bayesian", "evals", "LLM"]
+    },
+    {
+      "name": "litetorch",
+      "repo": "alektebel/litetorch",
+      "blurb": "PyTorch reimplemented small enough to read, with reinforcement-learning algorithms included.",
+      "tags": ["python", "PyTorch", "RL"]
+    },
+    {
+      "name": "robellm",
+      "repo": "alektebel/robellm",
+      "blurb": "Re-aligning a Robe Iniesta persona LoRA with an editor-in-the-loop DPO: a model rectifies its own drafts into preference pairs.",
+      "tags": ["LoRA", "DPO", "fine-tuning"]
+    },
+    {
+      "name": "regllm",
+      "repo": "alektebel/regllm",
+      "blurb": "Answering questions about Spanish banking regulation with a grounded LLM.",
+      "tags": ["RAG", "LLM", "finance"]
+    },
+    {
+      "name": "deep_learning_in_c",
+      "repo": "alektebel/deep_learning_in_c",
+      "blurb": "A neural network from scratch in C: backprop and gradient descent at the lowest level.",
+      "tags": ["C", "from scratch", "neural nets"]
+    },
+    {
+      "name": "labelled",
+      "repo": "alektebel/labeled",
+      "blurb": "Platform for decentralised data labelling, currently supporting multiclass annotations.",
+      "tags": ["product", "data", "labeling"]
+    },
+    {
+      "name": "dec-inference",
+      "repo": "alektebel/dec-inference",
+      "blurb": "Decentralised inference: serving models across shared compute.",
+      "tags": ["inference", "distributed"]
+    }
+  ]
+}

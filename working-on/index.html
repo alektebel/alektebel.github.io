@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>working on — Diego Rodríguez Atencia</title>
+<meta name="description" content="What I'm building from scratch right now: cpore, learn-stuff-from-scratch, mus and more — with the latest lines of work and exercise progress.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='2' y='13' font-family='monospace' font-size='12' fill='%23ff3b1f'%3E%3E_%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f2ed; --panel: #efece4; --ink: #111110; --body: #3c3a35;
+    --muted: #6b6862; --faint: #9a958b; --line: #111110; --soft-line: #ddd8cb;
+    --accent: #ff3b1f; --green: #1f7a3d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body { color: var(--ink); font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.55; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .label { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .topbar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 12px 22px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .topbar .brand { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
+  .topbar .title { font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
+  .topbar .title .dot { color: var(--accent); }
+  .topbar .grow { flex: 1 1 auto; }
+  .topbar .actions a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; border-bottom: 1px solid #c9c4b8; }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 34px 26px 90px; }
+  h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.03; margin: 8px 0 0; }
+  h2 { font-size: 13px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 44px 0 0; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .lede { max-width: 66ch; color: var(--body); font-size: 15px; text-wrap: pretty; }
+
+  .ex-list { margin-top: 18px; border-top: 1px solid var(--soft-line); }
+  .ex { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; padding: 15px 4px; border-bottom: 1px solid var(--soft-line); }
+  .ex:hover { background: var(--panel); }
+  .ex .e-name { font-family: 'IBM Plex Mono', monospace; font-size: 14.5px; font-weight: 500; min-width: 16ch; }
+  .ex .e-bar { flex: 1 1 160px; height: 6px; background: var(--soft-line); align-self: center; min-width: 100px; }
+  .ex .e-bar span { display: block; height: 100%; background: var(--accent); }
+  .ex .e-prog { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .ex .e-hard { flex: 1 1 100%; font-size: 12.5px; color: var(--accent); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 14px; margin-top: 18px; }
+  .proj { display: flex; flex-direction: column; gap: 9px; padding: 17px 18px; background: var(--panel); border: 1px solid var(--soft-line); transition: border-color 0.16s, transform 0.16s; }
+  .proj:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .proj.feat { border-left: 3px solid var(--accent); }
+  .proj .p-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .proj h3 { margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500; }
+  .proj .p-lang { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); white-space: nowrap; }
+  .proj p { margin: 0; font-size: 13.5px; color: var(--body); text-wrap: pretty; }
+  .proj .p-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .proj .p-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--soft-line); padding: 3px 7px; }
+  .proj .p-work { margin-top: 4px; border-top: 1px dashed var(--soft-line); padding-top: 9px; }
+  .proj .p-when { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--faint); }
+  .proj .p-commit { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--body); margin-top: 4px; display: flex; gap: 7px; }
+  .proj .p-commit::before { content: "·"; color: var(--accent); }
+  .proj .p-none { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--faint); }
+  footer.colophon { margin-top: 50px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
+  .empty { color: var(--muted); font-size: 13.5px; margin-top: 14px; }
+
+  @media (max-width: 640px) {
+    main { padding: 22px 14px 80px; }
+    .topbar { padding: 10px 14px; }
+    .ex .e-name { min-width: 0; flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">← diegoatencia.dev</a>
+  <div class="title">working<span class="dot">·</span>on</div>
+  <span class="grow"></span>
+  <div class="actions">
+    <a href="/learn/">learn from scratch →</a>
+    <a href="https://github.com/alektebel" target="_blank" rel="noopener">github ↗</a>
+  </div>
+</header>
+
+<main id="main">
+  <div class="label">from scratch, in the open</div>
+  <h1>What I&rsquo;m building right now.</h1>
+  <p class="lede">Not a portfolio of finished things — a running list of what has my attention, the lines I keep coming back to, and how far I have got through the exercises. Live from GitHub and from this browser.</p>
+
+  <h2>Exercises I&rsquo;m working through</h2>
+  <div id="exercises"><p class="empty">Loading…</p></div>
+
+  <h2>Projects</h2>
+  <div id="projects" class="grid"><p class="empty">Loading…</p></div>
+
+  <footer class="colophon">Enriched live from the GitHub API where available · exercise progress read from this browser only.</footer>
+</main>
+
+<script>
+"use strict";
+const OWNER = "alektebel";
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function rel(iso) {
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 3600) return Math.max(1, Math.round(s / 60)) + "m ago";
+  if (s < 86400) return Math.round(s / 3600) + "h ago";
+  if (s < 2592000) return Math.round(s / 86400) + "d ago";
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
+/* ── live GitHub activity: latest commits → the lines I'm working on ──
+   The events API no longer ships commit payloads, so use events only to find
+   the active repos (and their push times), then read each repo's commits. */
+async function githubActivity(projects) {
+  const info = {};
+  let eventsOk = false;
+  try {
+    const r = await fetch("https://api.github.com/users/" + OWNER + "/events/public?per_page=100");
+    if (r.ok) {
+      eventsOk = true;
+      const events = await r.json();
+      events.forEach((e) => {
+        const full = e.repo && e.repo.name;
+        if (!full) return;
+        const key = full.toLowerCase();
+        const cur = info[key] || (info[key] = { time: e.created_at, commits: [], active: true });
+        if (new Date(e.created_at) > new Date(cur.time)) cur.time = e.created_at;
+      });
+    }
+  } catch (e) { /* offline or rate-limited */ }
+
+  // fetch recent commit subjects for the repos with activity (plus featured ones)
+  await Promise.all(projects.map(async (p) => {
+    const key = (p.repo || "").toLowerCase();
+    if (!info[key] && !p.featured) return;
+    try {
+      const r = await fetch("https://api.github.com/repos/" + p.repo + "/commits?per_page=3");
+      if (!r.ok) return;
+      const cs = await r.json();
+      if (!Array.isArray(cs) || !cs.length) return;
+      const cur = info[key] || (info[key] = { time: null, commits: [] });
+      cur.commits = cs.map((c) => c.commit.message.split("\n")[0]);
+      if (!cur.time) cur.time = cs[0].commit.author.date;
+    } catch (e) { /* skip this repo */ }
+  }));
+  info.__eventsOk = eventsOk;
+  return info;
+}
+
+/* ── exercise progress from /learn (same origin, shared localStorage) ── */
+function statusOf(trackId, index) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("lfs:status:" + trackId) || "{}");
+    return saved[index] || "";
+  } catch (e) { return ""; }
+}
+function feedbackByTrack() {
+  const out = {};
+  try {
+    const fb = JSON.parse(localStorage.getItem("lfs:feedback:v1") || '{"runs":[]}');
+    fb.runs.forEach((run) => {
+      (run.entries || []).forEach((e) => {
+        const a = out[run.track] || (out[run.track] = {});
+        const c = a[e.index] || (a[e.index] = { pass: 0, fail: 0, title: e.title });
+        if (e.status === "PASS") c.pass++; else if (e.status === "FAIL") c.fail++;
+        c.title = e.title;
+      });
+    });
+  } catch (e) { /* none */ }
+  return out;
+}
+function renderExercises(catalog) {
+  const fb = feedbackByTrack();
+  const html = catalog.tracks.map((t) => {
+    let passed = 0;
+    t.checks.forEach((c, i) => { if (statusOf(t.id, i + 1) === "PASS") passed++; });
+    const pct = Math.round((passed / t.checks.length) * 100);
+    const agg = fb[t.id] || {};
+    const hard = Object.keys(agg).filter((k) => agg[k].pass === 0 && agg[k].fail > 0)
+      .map((k) => agg[k].title).slice(0, 3);
+    const hardHtml = hard.length ? '<div class="e-hard">stuck on: ' + hard.map(esc).join(", ") + "</div>" : "";
+    return '<a class="ex" href="/learn/#' + t.id + '">' +
+      '<span class="e-name">' + esc(t.title) + "</span>" +
+      '<span class="e-bar"><span style="width:' + pct + '%"></span></span>' +
+      '<span class="e-prog">' + passed + " / " + t.checks.length + "</span>" + hardHtml + "</a>";
+  }).join("");
+  document.getElementById("exercises").outerHTML = '<div class="ex-list">' + html + "</div>";
+}
+
+/* ── projects ── */
+function renderProjects(projects, info) {
+  const html = projects.map((p) => {
+    const act = info[(p.repo || "").toLowerCase()];
+    let work = '<div class="p-work"><span class="p-when">' +
+      (info.__eventsOk ? "no recent public pushes" : "activity unavailable right now") + "</span></div>";
+    if (act && act.commits && act.commits.length) {
+      const commits = act.commits.slice(0, 3).map((m) => '<div class="p-commit">' + esc(m.slice(0, 90)) + "</div>").join("");
+      work = '<div class="p-work"><span class="p-when">last push ' + rel(act.time) + "</span>" + commits + "</div>";
+    }
+    return '<a class="proj' + (p.featured ? " feat" : "") + '" href="https://github.com/' + esc(p.repo) + '" target="_blank" rel="noopener">' +
+      '<div class="p-top"><h3>' + esc(p.name) + '</h3><span class="p-lang">' + esc(p.repo.split("/")[0]) + "</span></div>" +
+      "<p>" + esc(p.blurb) + "</p>" +
+      '<div class="p-tags">' + (p.tags || []).map((t) => '<span class="p-tag">' + esc(t) + "</span>").join("") + "</div>" +
+      work + "</a>";
+  }).join("");
+  document.getElementById("projects").innerHTML = html;
+}
+
+(async function boot() {
+  let projects = [];
+  try { projects = (await (await fetch("projects.json", { cache: "no-cache" })).json()).projects; } catch (e) { /* none */ }
+  const info = await githubActivity(projects);
+  renderProjects(projects, info);
+  try { renderExercises(await (await fetch("/learn/catalog.json", { cache: "no-cache" })).json()); }
+  catch (e) { document.getElementById("exercises").innerHTML = '<p class="empty">Exercise catalog unavailable.</p>'; }
+})();
+</script>
+</body>
+</html>
