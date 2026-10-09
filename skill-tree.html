@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI skill tree — Diego Rodríguez Atencia</title>
-<meta name="description" content="An Obsidian-style graph of the papers and principles behind modern AI, LLMs and robotics — from McCulloch–Pitts to today's VLA models.">
+<title>skill tree — Diego Rodríguez Atencia</title>
+<meta name="description" content="Two dependency graphs: the papers and principles behind modern AI, LLMs and robotics — from McCulloch–Pitts to today's VLA models — and the 38-node maths and pattern-recognition curriculum behind them, read live from the learn-stuff-from-scratch repo.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='3' y='13' font-family='monospace' font-size='13' fill='%2300ff00'%3Ea%3C/text%3E%3C/svg%3E">
 <style>
   :root {
@@ -78,6 +78,32 @@
   }
   #legend li.off .dot { opacity: 0.25; }
 
+  /* view tabs */
+  #tabs { display: flex; gap: 6px; margin: 8px 0 10px; }
+  #tabs button {
+    font: inherit;
+    font-size: 12px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px 9px;
+    cursor: pointer;
+  }
+  #tabs button:hover { color: var(--ink); }
+  #tabs button.on { background: var(--ink-2); border-color: var(--ink-2); color: var(--bg); }
+
+  /* progress legend, only meaningful for the curriculum */
+  #legend-status { margin-top: 8px; list-style: none; padding: 0; display: none; }
+  #legend-status li { font-size: 12px; margin: 3px 0; color: var(--muted); }
+  #legend-status .ring {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    border: 1.5px solid;
+    margin-right: 7px;
+    vertical-align: 0;
+  }
+
   /* note panel */
   #panel {
     position: fixed;
@@ -125,6 +151,7 @@
   #panel li a { text-decoration: none; }
   #panel li a:hover { text-decoration: underline; }
   #panel code { background: var(--bg); padding: 0 4px; font-size: 12px; }
+  #panel .tag { color: var(--muted); font-size: 11px; }
 
   @media (max-width: 700px) {
     #panel { width: 100vw; height: 62vh; top: auto; bottom: 0; border-left: none; border-top: 1px solid var(--border); }
@@ -138,10 +165,15 @@
 
 <div id="chrome">
   <a class="home" href="/">&larr; alektebel</a>
-  <h1>ai skill tree</h1>
-  <p class="hint">the papers behind modern AI.<br>drag &middot; scroll to zoom &middot; click a node</p>
-  <input id="search" type="search" placeholder="search papers..." aria-label="search papers">
+  <h1>skill tree</h1>
+  <p class="hint"><span id="hint-lead">the papers behind modern AI.</span><br>drag &middot; scroll to zoom &middot; click a node</p>
+  <div id="tabs" role="tablist" aria-label="graph">
+    <button type="button" role="tab" data-view="papers" aria-selected="true">ai papers</button>
+    <button type="button" role="tab" data-view="math" aria-selected="false">maths</button>
+  </div>
+  <input id="search" type="search" placeholder="search papers..." aria-label="search nodes">
   <ul id="legend"></ul>
+  <ul id="legend-status" aria-label="progress"></ul>
 </div>
 
 <aside id="panel" aria-label="paper note">
@@ -154,7 +186,7 @@
 
 /* ---------------- data ---------------- */
 
-const CATS = {
+const PAPERS_CATS = {
   found: { name: "foundations",            col: "#3987e5" },
   dl:    { name: "deep learning",          col: "#199e70" },
   llm:   { name: "language models",        col: "#c98500" },
@@ -165,7 +197,7 @@ const CATS = {
 
 /* Each node: id, s(hort label), t(itle), y(ear), c(ategory), a(uthors),
    deps (what it builds on), paper/code/demo links, sum(mary), impl(ementation notes). */
-const NODES = [
+const PAPERS_NODES = [
 
 /* ---- foundations ---- */
 { id:"mcp", s:"McCulloch–Pitts", t:"A Logical Calculus of the Ideas Immanent in Nervous Activity", y:1943, c:"found",
@@ -710,24 +742,71 @@ const NODES = [
   impl:"openpi releases π0 checkpoints with fine-tuning recipes; the demo videos are the current state of the art in general manipulation — compare them to ALOHA's from 18 months earlier to feel the slope." },
 ];
 
-const CHRONO_END = 2026;
+/* ---------------- graph state (one graph per view) ---------------- */
 
-/* ---------------- graph setup ---------------- */
+let CATS, NODES, byId, EDGES, degree, catKeys, YEARS;
+let span = 2200;                 /* graph width, for the initial fit */
+let alpha = 1;
+function kick() { alpha = Math.max(alpha, 0.35); }
 
-const byId = {};
-NODES.forEach(n => { byId[n.id] = n; });
-const EDGES = [];
-NODES.forEach(n => n.deps.forEach(d => { if (byId[d]) EDGES.push([d, n.id]); }));
+function yearX(y) { return (YEARS.indexOf(y) / Math.max(1, YEARS.length - 1) - 0.5) * 2200; }
 
-/* degree → radius */
-const degree = {};
-NODES.forEach(n => degree[n.id] = 0);
-EDGES.forEach(([a, b]) => { degree[a]++; degree[b]++; });
-NODES.forEach(n => {
-  n.r = 4 + Math.min(9, degree[n.id] * 0.9);
-  n.out = []; n.in = [];
-});
-EDGES.forEach(([a, b]) => { byId[a].out.push(b); byId[b].in.push(a); });
+/* Longest path from the roots: a node sits one column right of its last
+   prerequisite, so a dependency graph reads left to right. */
+function depths(nodes) {
+  const by = {};
+  nodes.forEach(n => by[n.id] = n);
+  const memo = {};
+  function d(id) {
+    if (memo[id] !== undefined) return memo[id];
+    memo[id] = 0;                /* placeholder; also stops a malformed cycle */
+    const req = (by[id].deps || []).filter(r => by[r]);
+    memo[id] = req.length ? 1 + Math.max(...req.map(d)) : 0;
+    return memo[id];
+  }
+  nodes.forEach(n => d(n.id));
+  return memo;
+}
+
+/* Rebuild everything derived from a (categories, nodes) pair. `layout` picks the
+   x target: "chrono" ranks nodes by year, "depth" columns them by dependency. */
+function buildGraph(cats, nodes, layout) {
+  CATS = cats; NODES = nodes; catKeys = Object.keys(cats);
+  byId = {};
+  nodes.forEach(n => { byId[n.id] = n; });
+  EDGES = [];
+  nodes.forEach(n => (n.deps || []).forEach(d => { if (byId[d]) EDGES.push([d, n.id]); }));
+  degree = {};
+  nodes.forEach(n => degree[n.id] = 0);
+  EDGES.forEach(([a, b]) => { degree[a]++; degree[b]++; });
+  nodes.forEach(n => {
+    n.r = 4 + Math.min(9, degree[n.id] * 0.9);
+    n.out = []; n.in = [];
+  });
+  EDGES.forEach(([a, b]) => { byId[a].out.push(b); byId[b].in.push(a); });
+
+  YEARS = [...new Set(nodes.map(n => n.y))].sort((a, b) => a - b);
+  const tracks = catKeys.length;
+  if (layout === "depth") {
+    const dep = depths(nodes);
+    const max = Math.max(...nodes.map(n => dep[n.id]));
+    span = (max + 1) * 260;
+    nodes.forEach(n => { n.px = (dep[n.id] - max / 2) * 260; });
+  } else {
+    span = 2200;
+    nodes.forEach(n => { n.px = yearX(n.y); });
+  }
+  nodes.forEach(n => {
+    n.py = (catKeys.indexOf(n.c) - (tracks - 1) / 2) * 155;
+    if (n.x === undefined) {
+      /* seed once per node, so returning to a view keeps the shape it settled into */
+      n.x = n.px + (Math.random() - 0.5) * 60;
+      n.yy = n.py + (Math.random() - 0.5) * 120;
+    }
+    n.vx = 0; n.vy = 0;
+  });
+  alpha = 1;
+}
 
 /* ---------------- simulation ---------------- */
 
@@ -744,23 +823,7 @@ function resize() {
 window.addEventListener("resize", () => { resize(); kick(); });
 resize();
 
-/* seed positions: x by year rank (timeline flavor without the empty decades),
-   y spread by category band */
-const catKeys = Object.keys(CATS);
-const SPAN = 2200;
-const YEARS = [...new Set(NODES.map(n => n.y))].sort((a, b) => a - b);
-function yearX(y) { return (YEARS.indexOf(y) / (YEARS.length - 1) - 0.5) * SPAN; }
-NODES.forEach((n, i) => {
-  n.x = yearX(n.y) + (Math.random() - 0.5) * 60;
-  n.y2 = 0;
-  const band = catKeys.indexOf(n.c) - (catKeys.length - 1) / 2;
-  n.py = band * 155 + (Math.random() - 0.5) * 120;
-  n.vx = 0; n.vy = 0;
-});
-NODES.forEach(n => { n.yy = n.py; });
-
-let alpha = 1;
-function kick() { alpha = Math.max(alpha, 0.35); }
+/* positions are seeded by buildGraph() when the view is set */
 
 function step() {
   if (alpha < 0.003) return;
@@ -788,8 +851,8 @@ function step() {
     b.vx -= f * dx; b.vy -= f * dy;
   }
   for (const n of NODES) {
-    /* weak pull toward its chronological x and category band y */
-    n.vx += (yearX(n.y) - n.x) * 0.02;
+    /* weak pull toward its target column and category band */
+    n.vx += (n.px - n.x) * 0.02;
     n.vy += (n.py - n.yy) * 0.004;
     n.vy += (0 - n.yy) * 0.002;
     if (n !== dragNode) {
@@ -804,7 +867,7 @@ function step() {
 
 let scale = 0.7, tx = 0, ty = 0;
 function fitView() {
-  scale = Math.min(W / (SPAN + 260), 0.9);
+  scale = Math.min(W / (span + 260), 0.9);
   tx = W / 2; ty = H / 2;
 }
 fitView();
@@ -943,10 +1006,18 @@ function draw() {
     if (!nodeVisible(n)) continue;
     const dim = act && !act.has(n.id);
     ctx.globalAlpha = dim ? 0.15 : 1;
-    ctx.fillStyle = CATS[n.c].col;
+    const col = n.status === "exists" ? "#6f6f6a" : CATS[n.c].col;
     ctx.beginPath();
     ctx.arc(n.x, n.yy, n.r, 0, Math.PI * 2);
-    ctx.fill();
+    if (n.status && n.status !== "done") {
+      /* hollow: not built yet (tree.toml status is "todo", "in-progress" or "exists") */
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.8 / scale;
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = col;
+      ctx.fill();
+    }
     if (n.id === selectedId) {
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.5 / scale;
@@ -977,16 +1048,34 @@ requestAnimationFrame(draw);
 
 /* ---------------- legend / search ---------------- */
 
-const legend = document.getElementById("legend");
-for (const k of catKeys) {
-  const li = document.createElement("li");
-  li.innerHTML = `<span class="dot" style="background:${CATS[k].col}"></span>${CATS[k].name}`;
-  li.onclick = () => {
-    if (hiddenCats.has(k)) hiddenCats.delete(k); else hiddenCats.add(k);
-    li.classList.toggle("off");
-  };
-  legend.appendChild(li);
+const legendEl = document.getElementById("legend");
+const legendStatusEl = document.getElementById("legend-status");
+
+/* Rebuilt on every view change: categories, plus a progress key when the nodes
+   carry a status (the curriculum does; the papers graph does not). */
+function buildLegend() {
+  legendEl.innerHTML = "";
+  for (const k of catKeys) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="dot" style="background:${CATS[k].col}"></span>${esc(CATS[k].name)}`;
+    li.onclick = () => {
+      if (hiddenCats.has(k)) hiddenCats.delete(k); else hiddenCats.add(k);
+      li.classList.toggle("off");
+    };
+    legendEl.appendChild(li);
+  }
+  const key = [
+    ["hollow — to build", "border-color:#898781"],
+    ["solid — built", "border-color:#898781;background:#898781"],
+    ["grey — exists, no checker", "border-color:#6f6f6a;background:#6f6f6a"],
+  ];
+  const show = NODES.some(n => n.status);
+  legendStatusEl.innerHTML = show
+    ? key.map(([name, style]) => `<li><span class="ring" style="${style}"></span>${name}</li>`).join("")
+    : "";
+  legendStatusEl.style.display = show ? "block" : "none";
 }
+
 document.getElementById("search").addEventListener("input", e => {
   searchQ = e.target.value.trim().toLowerCase();
 });
@@ -1011,10 +1100,41 @@ function connList(ids) {
     `<li><a href="#${i}" data-node="${i}">${esc(byId[i].s)} (${byId[i].y})</a></li>`).join("");
 }
 
-function openNote(id) {
-  const n = byId[id];
-  if (!n) return;
-  selectedId = id;
+/* Same, but for curriculum nodes, where the year is a book year and the
+   interesting part of a prerequisite is whether it is already built. */
+function jumpList(ids) {
+  return ids.filter(i => byId[i]).map(i =>
+    `<li><a href="#${i}" data-node="${i}">${esc(byId[i].s)}</a> <span class="tag">${esc(byId[i].status || "")}</span></li>`).join("");
+}
+
+/* A curriculum node, read from learn-stuff-from-scratch/skill-tree/tree.toml. */
+function mathNote(n) {
+  const m = n.math;
+  const list = arr => "<ul>" + arr.map(x => `<li>${md(esc(x))}</li>`).join("") + "</ul>";
+  const sources = m.sources.map(s => {
+    const [key, chapter] = s.split(":");
+    const b = mathBooks[key];
+    return b
+      ? `<li>${esc(b.title)} — ${esc(b.authors)}, ${b.year} <span class="tag">ch. ${esc(chapter || "?")}</span></li>`
+      : `<li>${esc(s)}</li>`;
+  }).join("");
+  const base = "https://github.com/alektebel/learn-stuff-from-scratch";
+  const links = `<a href="${base}/tree/main/${esc(m.deliverable)}" target="_blank" rel="noopener">[module]</a> `
+              + `<a href="${base}/blob/main/skill-tree/tree.toml" target="_blank" rel="noopener">[tree.toml]</a>`;
+  let html = `
+    <h2>${esc(n.t)}</h2>
+    <p class="meta"><span class="dot" style="background:${CATS[n.c].col}"></span>${esc(CATS[n.c].name)} &middot; ${esc(n.status)} &middot; <code>${esc(n.id)}</code></p>
+    <div class="links">${links}</div>
+    <h3>sources</h3><ul>${sources}</ul>`;
+  if (m.build.length) html += `<h3>build</h3>${list(m.build)}`;
+  if (m.accept.length) html += `<h3>acceptance criteria</h3>${list(m.accept)}`;
+  if (m.limit.length) html += `<h3>limit cases</h3>${list(m.limit)}`;
+  if (n.in.length) html += `<h3>builds on</h3><ul>${jumpList(n.in)}</ul>`;
+  if (n.out.length) html += `<h3>leads to</h3><ul>${jumpList(n.out)}</ul>`;
+  return html;
+}
+
+function paperNote(n) {
   const links = [];
   if (n.paper) links.push(`<a href="${n.paper}" target="_blank" rel="noopener">[paper]</a>`);
   if (n.code) links.push(`<a href="${n.code}" target="_blank" rel="noopener">[code]</a>`);
@@ -1027,7 +1147,14 @@ function openNote(id) {
     <h3>implementation</h3><p>${md(n.impl)}</p>`;
   if (n.in.length) html += `<h3>builds on</h3><ul>${connList(n.in)}</ul>`;
   if (n.out.length) html += `<h3>leads to</h3><ul>${connList(n.out)}</ul>`;
-  noteEl.innerHTML = html;
+  return html;
+}
+
+function openNote(id) {
+  const n = byId[id];
+  if (!n) return;
+  selectedId = id;
+  noteEl.innerHTML = n.math ? mathNote(n) : paperNote(n);
   noteEl.querySelectorAll("a[data-node]").forEach(a => {
     a.onclick = e => { e.preventDefault(); openNote(a.dataset.node); };
   });
@@ -1043,11 +1170,233 @@ function closeNote() {
 panel.querySelector(".close").onclick = closeNote;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeNote(); });
 
-/* deep link */
-if (location.hash) {
-  const id = location.hash.slice(1);
-  if (byId[id]) openNote(id);
+/* ---------------- views: the papers graph, and the repo's maths tree ---------------- */
+
+const RAW = "https://raw.githubusercontent.com/alektebel/learn-stuff-from-scratch/main/";
+
+/* The maths graph is not embedded: it is read from skill-tree/tree.toml on the
+   repo's main branch, so the page tracks the curriculum as nodes get built. */
+const VIEWS = {
+  papers: {
+    cats: PAPERS_CATS,
+    nodes: PAPERS_NODES,
+    layout: "chrono",
+    hint: "the papers behind modern AI.",
+    search: "search papers...",
+  },
+  math: {
+    cats: null,
+    nodes: null,
+    layout: "depth",
+    hint: "the maths under the papers — 38 skills, each a graded module.",
+    search: "search skills...",
+  },
+};
+
+let view = "papers";
+let mathBooks = {};
+
+/* A reader for the slice of TOML these two files use: [[node]] and [book.x]
+   tables, `key = "text"`, `key = [ "a", "b", ]` (newlines allowed) and
+   `key = 2020`. Anything else throws, so a change in the repo surfaces as an
+   error instead of a half-parsed tree. */
+function parseToml(text) {
+  const tables = [];
+  let cur = null, i = 0;
+  const bad = m => { throw new Error(m + " near " + JSON.stringify(text.slice(i, i + 24))); };
+
+  function skip() {
+    for (;;) {
+      while (i < text.length && /\s/.test(text[i])) i++;
+      if (text[i] !== "#") return;
+      while (i < text.length && text[i] !== "\n") i++;
+    }
+  }
+  function string() {
+    let s = "";
+    while (i < text.length) {
+      const c = text[i++];
+      if (c === "\\") { s += text[i++]; continue; }
+      if (c === '"') return s;
+      s += c;
+    }
+    return bad("unterminated string");
+  }
+
+  for (skip(); i < text.length; skip()) {
+    if (text[i] === "[") {
+      if (text.startsWith("[[", i)) {
+        const end = text.indexOf("]]", i);
+        if (end < 0) bad("unterminated table header");
+        cur = { __t: text.slice(i + 2, end).trim() };
+        i = end + 2;
+      } else {
+        const end = text.indexOf("]", i);
+        if (end < 0) bad("unterminated table header");
+        cur = { __t: "book", __key: text.slice(i + 1, end).trim().replace(/^book\./, "") };
+        i = end + 1;
+      }
+      tables.push(cur);
+      continue;
+    }
+    const key = /^[A-Za-z_][A-Za-z0-9_]*/.exec(text.slice(i));
+    if (!key) bad("expected a key");
+    if (!cur) bad("value outside a table");
+    i += key[0].length;
+    skip();
+    if (text[i] !== "=") bad("expected = after " + key[0]);
+    i++;
+    skip();
+    if (text[i] === '"') { i++; cur[key[0]] = string(); }
+    else if (text[i] === "[") {
+      i++;
+      const arr = [];
+      for (;;) {
+        skip();
+        if (i >= text.length) bad("unterminated array");
+        if (text[i] === "]") { i++; break; }
+        if (text[i] === ",") { i++; continue; }
+        if (text[i] === '"') { i++; arr.push(string()); continue; }
+        bad("unexpected " + text[i] + " in array");
+      }
+      cur[key[0]] = arr;
+    } else {
+      const num = /^-?\d+(\.\d+)?/.exec(text.slice(i));
+      if (!num) bad("unreadable value for " + key[0]);
+      cur[key[0]] = Number(num[0]);
+      i += num[0].length;
+    }
+  }
+  return tables;
 }
+
+/* tree.toml nodes + books.toml books → the shape the graph engine wants. */
+function toMathGraph(nodes, books) {
+  mathBooks = {};
+  books.forEach(b => mathBooks[b.__key] = b);
+  const TRACK = {
+    foundations: ["foundations", "#E0B33C"],
+    linalg: ["linear algebra", "#58B0A4"],
+    probability: ["probability", "#B48AD6"],
+    optimization: ["optimisation", "#E08A5A"],
+    prml: ["pattern recognition", "#8CBF68"],
+    lean: ["lean", "#96A0B2"],
+  };
+  const cats = {};
+  const short = n => {
+    const num = (n.id.match(/-(\d\d)-/) || [])[1];
+    const words = n.title.split(/[\s,:]+/).filter(Boolean).slice(0, 4).join(" ");
+    return (num ? num + " " : "") + words;
+  };
+  const nodesOut = nodes.map(n => {
+    const [key] = (n.sources || [])[0] ? n.sources[0].split(":") : [""];
+    const b = mathBooks[key] || {};
+    const t = TRACK[n.track] || [n.track, "#898781"];
+    cats[n.track] = { name: t[0], col: t[1] };
+    return {
+      id: n.id,
+      s: short(n),
+      t: n.title,
+      c: n.track,
+      y: b.year || 2022,
+      a: b.authors || "lean-proofs/",
+      deps: (n.requires || []).slice(),
+      status: n.status,
+      math: {
+        track: n.track,
+        sources: n.sources || [],
+        build: n.build || [],
+        accept: n.accept || [],
+        limit: n.limit_cases || [],
+        deliverable: n.deliverable || "",
+      },
+    };
+  });
+  return { cats, nodes: nodesOut };
+}
+
+function loadMath() {
+  if (VIEWS.math.nodes) return Promise.resolve();
+  const get = f => fetch(RAW + "skill-tree/" + f, { cache: "no-cache" }).then(r => {
+    if (!r.ok) throw new Error(f + ": HTTP " + r.status);
+    return r.text();
+  });
+  return Promise.all([get("tree.toml"), get("books.toml")]).then(([tree, books]) => {
+    const tables = parseToml(tree);
+    const g = toMathGraph(
+      tables.filter(t => t.__t === "node"),
+      parseToml(books).filter(t => t.__t === "book"),
+    );
+    VIEWS.math.cats = g.cats;
+    VIEWS.math.nodes = g.nodes;
+  });
+}
+
+function setView(name, id) {
+  view = VIEWS[name] ? name : "papers";
+  const spec = VIEWS[view];
+  buildGraph(spec.cats, spec.nodes, spec.layout);
+  hiddenCats = new Set();
+  searchQ = "";
+  hoverId = null;
+  selectedId = null;
+  const search = document.getElementById("search");
+  search.value = "";
+  search.placeholder = spec.search;
+  document.getElementById("hint-lead").textContent = spec.hint;
+  document.querySelectorAll("#tabs button").forEach(b => {
+    const on = b.dataset.view === view;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  buildLegend();
+  fitView();
+  closeNote();
+  if (id) openNote(id);
+}
+
+async function selectView(name) {
+  if (name === "math" && !VIEWS.math.nodes) {
+    const lead = document.getElementById("hint-lead");
+    lead.textContent = "reading skill-tree/ from learn-stuff-from-scratch…";
+    try {
+      await loadMath();
+    } catch (e) {
+      lead.textContent = "could not read the tree from the repo — " + e.message;
+      return;
+    }
+  }
+  setView(name);
+}
+
+document.querySelectorAll("#tabs button").forEach(b => {
+  b.addEventListener("click", () => selectView(b.dataset.view));
+});
+
+/* #<id> links (and the browser's back button) move between graphs, loading the
+   curriculum on first use. openNote() uses replaceState, so this never loops. */
+window.addEventListener("hashchange", () => {
+  const id = location.hash.slice(1);
+  if (!id) { closeNote(); return; }
+  if (byId[id]) { openNote(id); return; }
+  if (PAPERS_NODES.some(n => n.id === id)) { setView("papers", id); return; }
+  loadMath()
+    .then(() => { if (VIEWS.math.nodes.some(n => n.id === id)) setView("math", id); })
+    .catch(() => { /* unreachable id — stay put */ });
+});
+
+/* boot: the papers graph draws at once, the curriculum loads on demand, and a
+   #<id> hash opens that node in whichever graph owns it. */
+const initialHash = location.hash.slice(1);
+setView("papers");
+(async () => {
+  if (!initialHash) return;
+  if (byId[initialHash]) { openNote(initialHash); return; }
+  try {
+    await loadMath();
+    if (VIEWS.math.nodes.some(n => n.id === initialHash)) setView("math", initialHash);
+  } catch (e) { /* hash target not reachable — leave the papers view up */ }
+})();
 </script>
 </body>
 </html>
