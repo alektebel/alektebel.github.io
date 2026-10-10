@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jev-trader — Diego Atencia</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem;line-height:1.6;color:#222}
+h1{font-size:1.4rem}nav a{margin-right:1rem;color:#06c;text-decoration:none}
+footer{margin-top:3rem;font-size:.85rem;color:#666}
+</style>
+</head>
+<body>
+<nav><a href="privacy.html">Política de privacidad</a><a href="terms.html">Términos del servicio</a></nav>
+<h1>jev-trader</h1>
+<p>jev-trader es un bot personal de <em>trading</em> en modo simulado (paper) que construyo para aprender
+a medir de forma honesta si una estrategia funciona. Corre en mi propio ordenador como servicio, no es un
+servicio público ni una app instalable: solo yo lo uso, con mi propia cuenta de Gmail y mi propio token
+de Telegram.</p>
+<p>Qué hace:</p>
+<ul>
+<li>Lee mis correos de la newsletter Milk Road (acceso <strong>de solo lectura</strong> a Gmail) y usa un modelo de lenguaje para extraer las vistas de mercado que contienen.</li>
+<li>Con esas vistas y datos de precios, un analista LLM redacta tesis por valor; el bot decide operaciones sobre la API paper de Alpaca.</li>
+<li>Envía avisos a mi chat privado de Telegram (órdenes, errores, resúmenes) y guarda todo el historial en una base de datos SQLite local.</li>
+</ul>
+<p>El único dato que sale de mi máquina hacia los proveedores de OAuth es el contenido de los correos que
+el bot analiza (procesado por la API del modelo de lenguaje) y las órdenes paper a Alpaca. No hay base de
+datos compartida, ni analítica, ni terceros.</p>
+<p>Contacto del desarrollador: dratencia@gmail.com · <a href="https://diegoatencia.dev">diegoatencia.dev</a></p>
+<footer>Privacidad: <a href="privacy.html">aquí</a> · Términos: <a href="terms.html">aquí</a> · Última actualización: 2026-10-10</footer>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jev-trader — Política de privacidad</title>
+<style>body{font-family:system-ui,sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem;line-height:1.6;color:#222}nav a{margin-right:1rem;color:#06c;text-decoration:none}</style>
+</head>
+<body>
+<nav><a href="index.html">jev-trader</a><a href="terms.html">Términos del servicio</a></nav>
+<h1>Política de privacidad de jev-trader</h1>
+<p>Actualizada: 2026-10-10. jev-trader es una aplicación personal que se ejecuta en el ordenador de su autor
+(Diego Rodríguez Atencia, dratencia@gmail.com). No es un servicio multiusuario: el único usuario final es su propio autor.</p>
+<h2>Qué accede y por qué</h2>
+<ul>
+<li><strong>Gmail API — ámbito <code>gmail.readonly</code>:</strong> la app lista y lee únicamente los correos que coinciden con la consulta <code>from:milkroad.com</code> para extraer vistas de mercado. No envía, borra ni modifica correo, y no lee otros buzones. La consulta puede cambiar solo en la configuración local de la app.</li>
+<li><strong>Telegram:</strong> la app publica avisos en un chat privado que su autor creó con su propio bot.</li>
+<li><strong>APIs de trading (Alpaca):</strong> datos de mercado y órdenes en cuenta simulada (paper).</li>
+<li><strong>APIs de modelos de lenguaje:</strong> el contenido de los correos leídos se envía a un proveedor de LLM para extraer las vistas; las salidas se guardan localmente.</li>
+</ul>
+<h2>Almacenamiento</h2>
+<p>Todo el historial (tokens OAuth, mensajes procesados, decisiones, resultados) se guarda en archivos locales
+del ordenador del autor (<code>token.json</code>, base SQLite). Nada se aloja en servidores de terceros ni se
+transfiere fuera del control del autor, salvo lo descrito arriba. No hay publicidad ni analítica.</p>
+<h2>Derechos</h2>
+<p>Al no tratar datos de terceros, no se recogen datos personales de usuarios. Cualquier duda: dratencia@gmail.com.</p>
+</body>
+</html>
