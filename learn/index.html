@@ -665,6 +665,21 @@ function recordRun(track, entries) {
   if (el) el.textContent = fb.runs.length + " runs recorded";
   const nb = byId("fb-nav-count");
   if (nb) nb.textContent = fb.runs.length;
+  announceRun(track, entries);
+}
+/* CodeCrafters-style live link: every browser run is announced so a dashboard
+   watching the same browser (cz web opened via codecraft/web, or any listener)
+   can react in real time. Failure is silent — the page works standalone. */
+function announceRun(track, entries) {
+  try {
+    const passed = entries.filter((e) => e.status === "PASS").length;
+    localStorage.setItem("lfs:last-run", JSON.stringify({
+      track: track.id, title: track.title, passed: passed,
+      total: track.checks.length, ts: Date.now(),
+      entries: entries.map((e) => ({ index: e.index, file: e.file, status: e.status })),
+    }));
+    window.dispatchEvent(new Event("lfs:run"));
+  } catch (e) { /* quota or private mode; the run itself still counts */ }
 }
 function aggregateFeedback() {
   const fb = loadFeedback();
