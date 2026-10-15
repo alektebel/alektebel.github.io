@@ -1,0 +1,1801 @@
+{
+ "generated": "2026-10-15T23:20:05",
+ "repo": "alektebel/learn-stuff-from-scratch",
+ "ref": "main",
+ "phases": [
+  {
+   "code": "A",
+   "title": "Cloud and LLM internals",
+   "items": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "A7"
+   ]
+  },
+  {
+   "code": "B",
+   "title": "RAG",
+   "items": [
+    "B1",
+    "B2"
+   ]
+  },
+  {
+   "code": "C",
+   "title": "Evals and agents",
+   "items": [
+    "C1",
+    "C2"
+   ]
+  },
+  {
+   "code": "D",
+   "title": "MCP",
+   "items": [
+    "D1"
+   ]
+  },
+  {
+   "code": "E",
+   "title": "Harness",
+   "items": [
+    "E1"
+   ]
+  },
+  {
+   "code": "F",
+   "title": "Benchmark and eval",
+   "items": [
+    "F1",
+    "F2"
+   ]
+  },
+  {
+   "code": "G",
+   "title": "GPU, CPU and the machine stack",
+   "items": [
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6"
+   ]
+  },
+  {
+   "code": "H",
+   "title": "The rest",
+   "items": [
+    "H1",
+    "H2",
+    "H3",
+    "H4"
+   ]
+  }
+ ],
+ "courses": {
+  "A1": {
+   "id": "A1",
+   "title": "AWS From Scratch",
+   "kind": "ready",
+   "why": "Eight mechanism families in pure Python, 18 checks. The best first course: no dependencies, every stage is a real failure mode.",
+   "prereq": [],
+   "course": "aws-from-scratch",
+   "command": "cz run aws-from-scratch",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 18
+   },
+   "repo": {
+    "baseline": 95,
+    "remaining": 95,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "iam.py",
+     "title": "explicit deny > allow > implicit deny",
+     "tags": [
+      "authorization"
+     ],
+     "status": "TODO",
+     "action": "IAM: an explicit Deny wins; otherwise any matching Allow applies; otherwise implicit Deny.",
+     "predict": "the result when Allow and Deny both match."
+    },
+    {
+     "id": 2,
+     "file": "iam.py",
+     "title": "conditions and permissions boundaries",
+     "tags": [
+      "authorization"
+     ],
+     "status": "TODO",
+     "action": "Evaluate conditions and permissions boundaries — a boundary only SHRINKS the permission, it can never grant one.",
+     "predict": "Allow outside the boundary."
+    },
+    {
+     "id": 3,
+     "file": "iam.py",
+     "title": "STS assume-role: both directions",
+     "tags": [
+      "authorization"
+     ],
+     "status": "TODO",
+     "action": "Assume-role needs trust on both sides: the caller may assume, AND the role must allow the action.",
+     "predict": "identity policy Allows but trust policy does not."
+    },
+    {
+     "id": 4,
+     "file": "s3.py",
+     "title": "objects, ETags and multipart",
+     "tags": [
+      "storage"
+     ],
+     "status": "TODO",
+     "action": "Objects carry an ETag (MD5 simple, part-hash multipart); multipart assembles the parts in order.",
+     "predict": "the ETag of a two-part multipart upload."
+    },
+    {
+     "id": 5,
+     "file": "s3.py",
+     "title": "prefix listing and delete markers",
+     "tags": [
+      "storage",
+      "lifecycle"
+     ],
+     "status": "TODO",
+     "action": "Listing uses prefix + delimiter; a delete marker HIDES a version without destroying it.",
+     "predict": "what GET returns after a delete marker is added."
+    },
+    {
+     "id": 6,
+     "file": "sqs.py",
+     "title": "visibility timeout and redelivery",
+     "tags": [
+      "messaging",
+      "lifecycle"
+     ],
+     "status": "TODO",
+     "action": "The visibility timeout hides a message; if it is not deleted in time it is redelivered.",
+     "predict": "whether the same message is received twice."
+    },
+    {
+     "id": 7,
+     "file": "sqs.py",
+     "title": "dead letters, FIFO and dedup",
+     "tags": [
+      "messaging"
+     ],
+     "status": "TODO",
+     "action": "DLQ after max receives; FIFO orders by message group and dedups by id within a window.",
+     "predict": "how many times a failing message is delivered."
+    },
+    {
+     "id": 8,
+     "file": "dynamodb.py",
+     "title": "composite keys, query, conditions",
+     "tags": [
+      "storage"
+     ],
+     "status": "TODO",
+     "action": "DynamoDB composite key = partition + sort: Query is within one partition, and conditional writes fail cleanly on conflict.",
+     "predict": "whether Query can span partitions."
+    },
+    {
+     "id": 9,
+     "file": "dynamodb.py",
+     "title": "capacity, hot partitions, scan cost",
+     "tags": [
+      "capacity"
+     ],
+     "status": "TODO",
+     "action": "Capacity: RCU/WCU from item size; a hot partition is a bad key distribution; Scan costs roughly the whole table.",
+     "predict": "WCU for a 2KB write with no batching."
+    },
+    {
+     "id": 10,
+     "file": "lambda_svc.py",
+     "title": "cold starts and warm state",
+     "tags": [
+      "lifecycle"
+     ],
+     "status": "TODO",
+     "action": "Lambda cold start initialises the container once; warm invocations reuse whatever the container kept in memory.",
+     "predict": "how many inits over six invocations."
+    },
+    {
+     "id": 11,
+     "file": "lambda_svc.py",
+     "title": "concurrency, reservations, async retry",
+     "tags": [
+      "availability"
+     ],
+     "status": "TODO",
+     "action": "Reserved concurrency caps a function; an async invoke retries twice and then goes to the DLQ.",
+     "predict": "attempts for a failing async handler."
+    },
+    {
+     "id": 12,
+     "file": "sns.py",
+     "title": "fanout and filter policies",
+     "tags": [
+      "messaging"
+     ],
+     "status": "TODO",
+     "action": "SNS fans out; filter policies match message attributes (AND within a key, OR across values).",
+     "predict": "which subscriptions a two-attribute message hits."
+    },
+    {
+     "id": 13,
+     "file": "sns.py",
+     "title": "EventBridge pattern matching",
+     "tags": [
+      "messaging",
+      "boundary"
+     ],
+     "status": "TODO",
+     "action": "EventBridge patterns match nested detail; arrays mean OR, and an EMPTY pattern matches everything.",
+     "predict": "whether {} matches a random event."
+    },
+    {
+     "id": 14,
+     "file": "kms.py",
+     "title": "envelope encryption",
+     "tags": [
+      "authorization"
+     ],
+     "status": "TODO",
+     "action": "KMS envelope encryption: a data key encrypts the data, and the CMK encrypts the data key.",
+     "predict": "what you must store alongside the ciphertext."
+    },
+    {
+     "id": 15,
+     "file": "kms.py",
+     "title": "encryption context and rotation",
+     "tags": [
+      "authorization"
+     ],
+     "status": "TODO",
+     "action": "Encryption context must match on decrypt; rotation changes the CMK but old ciphertext still decrypts.",
+     "predict": "decrypt with a mismatched context."
+    },
+    {
+     "id": 16,
+     "file": "vpc.py",
+     "title": "CIDR, subnets and longest-prefix routing",
+     "tags": [
+      "networking",
+      "boundary"
+     ],
+     "status": "TODO",
+     "action": "VPC: CIDR -> subnets, and routes pick the LONGEST matching prefix, not the first or the shortest.",
+     "predict": "which route wins for 10.0.1.5."
+    },
+    {
+     "id": 17,
+     "file": "vpc.py",
+     "title": "stateful SG vs stateless NACL",
+     "tags": [
+      "stateless-vs-stateful"
+     ],
+     "status": "TODO",
+     "action": "Security groups are STATEFUL (return traffic is automatic); NACLs are STATELESS (allow both directions explicitly).",
+     "predict": "why a NACL blocks the reply to an allowed request."
+    },
+    {
+     "id": 18,
+     "file": "capstone.py",
+     "title": "the pipeline, and its failures",
+     "tags": [
+      "plumbing"
+     ],
+     "status": "TODO",
+     "action": "Capstone: wire the services into one pipeline and reproduce each of its failure modes deliberately.",
+     "predict": "which service's failure stops the pipeline first."
+    }
+   ],
+   "files": [
+    "capstone.py",
+    "check.py",
+    "dynamodb.py",
+    "iam.py",
+    "kms.py",
+    "lambda_svc.py",
+    "s3.py",
+    "sns.py",
+    "sqs.py",
+    "vpc.py"
+   ],
+   "entry": "check.py"
+  },
+  "A2": {
+   "id": "A2",
+   "title": "LLM From Scratch",
+   "kind": "ready",
+   "why": "BPE, attention, sampling, KV cache, RoPE. 13 checks, pure Python.",
+   "prereq": [],
+   "course": "llm-from-scratch",
+   "command": "cz run llm-from-scratch",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 13
+   },
+   "repo": {
+    "baseline": 26,
+    "remaining": 26,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "tokenizer.py",
+     "title": "pair counts and non-overlapping merges",
+     "tags": [
+      "merging"
+     ],
+     "status": "TODO",
+     "action": "Write get_pair_counts as a dict of adjacent pairs, then merge_pair with an index that SKIPS PAST each merge, so [1,1,1] becomes [9,1] and not two overlapping merges.",
+     "predict": "In [1,1,1,2], how many adjacent (1,1) pairs? (two, not three)"
+    },
+    {
+     "id": 2,
+     "file": "tokenizer.py",
+     "title": "deterministic training and compression",
+     "tags": [
+      "determinism",
+      "ordering"
+     ],
+     "status": "TODO",
+     "action": "In train_bpe, take the most frequent pair but break ties by the smallest pair, and start new ids at 256. Determinism is the whole point — same corpus, same table.",
+     "predict": "Train twice on one corpus: identical merge table?"
+    },
+    {
+     "id": 3,
+     "file": "tokenizer.py",
+     "title": "rank-ordered encode and round-trip",
+     "tags": [
+      "ordering"
+     ],
+     "status": "TODO",
+     "action": "Make encode repeatedly apply the LOWEST-RANK merge anywhere in the sequence (not a left-to-right sweep); decode expands ids bottom-up.",
+     "predict": "encode('aba') with (98,97)->256, (97,98)->257 gives [97,256]."
+    },
+    {
+     "id": 4,
+     "file": "attention.py",
+     "title": "stable softmax",
+     "tags": [
+      "numerical-stability"
+     ],
+     "status": "TODO",
+     "action": "In softmax, subtract the row max before exp: exp(x - max). The result is identical and can never overflow.",
+     "predict": "softmax([1000,1001]) — finite, and sums to 1."
+    },
+    {
+     "id": 5,
+     "file": "attention.py",
+     "title": "attention weights and the causal mask",
+     "tags": [
+      "masking",
+      "exactness"
+     ],
+     "status": "TODO",
+     "action": "Apply the causal mask as -inf BEFORE the softmax, so each row still sums to 1 and position 0 attends only to itself.",
+     "predict": "the output row for position 0 equals V[0]."
+    },
+    {
+     "id": 6,
+     "file": "sampling.py",
+     "title": "temperature and hard greedy",
+     "tags": [
+      "boundary",
+      "determinism"
+     ],
+     "status": "TODO",
+     "action": "temperature 0 is hard greedy: one-hot at the argmax, -inf everywhere else. Temperature divides the logits.",
+     "predict": "sample(temp=0) is deterministic — the tail can never fire."
+    },
+    {
+     "id": 7,
+     "file": "sampling.py",
+     "title": "top-k",
+     "tags": [
+      "ordering",
+      "boundary"
+     ],
+     "status": "TODO",
+     "action": "top_k keeps the k largest and breaks ties by smallest index, keeping BOTH tied values.",
+     "predict": "top-2 of [1,3,3,2] keeps indices 1 and 2."
+    },
+    {
+     "id": 8,
+     "file": "sampling.py",
+     "title": "top-p keeps the crossing token",
+     "tags": [
+      "boundary"
+     ],
+     "status": "TODO",
+     "action": "top_p keeps the smallest set whose cumulative probability reaches p, INCLUDING the token that crosses it (>= not >).",
+     "predict": "[.5,.3,.15,.05] at p=.9 keeps the .15 token."
+    },
+    {
+     "id": 9,
+     "file": "sampling.py",
+     "title": "seeded sampling is reproducible",
+     "tags": [
+      "determinism"
+     ],
+     "status": "TODO",
+     "action": "Thread the Random instance you were handed through every sampling call; never touch the global random module.",
+     "predict": "one seed twice gives the same 50 samples."
+    },
+    {
+     "id": 10,
+     "file": "kv_cache.py",
+     "title": "cache append and shape",
+     "tags": [
+      "data-structure"
+     ],
+     "status": "TODO",
+     "action": "KVCache stores parallel key/value lists; append, and make len/keys/values reflect exactly what was appended.",
+     "predict": "the length after two appends."
+    },
+    {
+     "id": 11,
+     "file": "kv_cache.py",
+     "title": "cached output is bit-exact",
+     "tags": [
+      "exactness"
+     ],
+     "status": "TODO",
+     "action": "cached_step must reproduce recompute_step to <1e-9: append the new K/V and attend over ALL cached rows — read the cache.",
+     "predict": "dropping the last key must change the output."
+    },
+    {
+     "id": 12,
+     "file": "kv_cache.py",
+     "title": "the cost model: linear vs quadratic",
+     "tags": [
+      "cost-model"
+     ],
+     "status": "TODO",
+     "action": "Count interactions: recompute is O(t*d) per step (quadratic overall), the cache is O(d) plus the append (linear).",
+     "predict": "doubling the prompt multiplies prefill work by ~4."
+    },
+    {
+     "id": 13,
+     "file": "rope.py",
+     "title": "norm and relative-position invariants",
+     "tags": [
+      "invariants"
+     ],
+     "status": "TODO",
+     "action": "Rotate each (x2i, x2i+1) pair by pos*freq; check the norm is preserved and dot(q@p, k@p+d) ignores p entirely.",
+     "predict": "the relative dot product is identical for every p."
+    }
+   ],
+   "files": [
+    "attention.py",
+    "check.py",
+    "kv_cache.py",
+    "rope.py",
+    "sampling.py",
+    "tokenizer.py"
+   ],
+   "entry": "check.py"
+  },
+  "A3": {
+   "id": "A3",
+   "title": "Context Caching From Scratch",
+   "kind": "ready",
+   "why": "The direct continuation of A2: page, prefix-share, evict the KV cache without changing the output. 16 checks.",
+   "prereq": [
+    "A2"
+   ],
+   "course": "context-caching",
+   "command": "cz run context-caching",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 16
+   },
+   "repo": {
+    "baseline": 94,
+    "remaining": 94,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "kv_cache.py",
+     "title": "linear algebra helpers",
+     "tags": [
+      "plumbing"
+     ],
+     "status": "TODO",
+     "action": "Implement the plain-list vector helpers (dot, softmax, matmul) first — everything above is built from them.",
+     "predict": "the shape of a 2x3 times 3x2 result."
+    },
+    {
+     "id": 2,
+     "file": "kv_cache.py",
+     "title": "KVCache append/truncate/clone",
+     "tags": [
+      "data-structure"
+     ],
+     "status": "TODO",
+     "action": "append/truncate/clone must keep keys and values aligned; clone must deep-copy rows, not share them.",
+     "predict": "mutating a clone leaves the original untouched."
+    },
+    {
+     "id": 3,
+     "file": "kv_cache.py",
+     "title": "cached == uncached attention",
+     "tags": [
+      "exactness"
+     ],
+     "status": "TODO",
+     "action": "Cached attention must equal uncached attention within tolerance — append the new K/V and attend over all rows.",
+     "predict": "the max difference between cached and uncached."
+    },
+    {
+     "id": 4,
+     "file": "kv_cache.py",
+     "title": "prefill and the cost model",
+     "tags": [
+      "cost-model"
+     ],
+     "status": "TODO",
+     "action": "Prefill is quadratic in prompt length; decode is linear. Count multiply-adds to make the difference concrete.",
+     "predict": "the ratio of prefill work at 128 vs 64 tokens."
+    },
+    {
+     "id": 5,
+     "file": "tiny_transformer.py",
+     "title": "layer_norm and gelu",
+     "tags": [
+      "numerical-stability"
+     ],
+     "status": "TODO",
+     "action": "layer_norm needs a variance epsilon; gelu uses the tanh approximation. Match the checker's tolerance exactly.",
+     "predict": "layer_norm of a constant vector."
+    },
+    {
+     "id": 6,
+     "file": "tiny_transformer.py",
+     "title": "generation matches exactly",
+     "tags": [
+      "exactness"
+     ],
+     "status": "TODO",
+     "action": "Generation with the cache must be token-identical to the no-cache path — same logits, same argmax.",
+     "predict": "the generated token sequence with and without cache."
+    },
+    {
+     "id": 7,
+     "file": "tiny_transformer.py",
+     "title": "truncate, clone, prefix reuse",
+     "tags": [
+      "aliasing"
+     ],
+     "status": "TODO",
+     "action": "truncate must cut keys and values together; clone must not share rows; prefix reuse must not mutate the source request.",
+     "predict": "reusing a prefix twice gives the same continuation."
+    },
+    {
+     "id": 8,
+     "file": "prefix_cache.py",
+     "title": "block hashing and chaining",
+     "tags": [
+      "hashing"
+     ],
+     "status": "TODO",
+     "action": "Hash each token block, then CHAIN: the child's hash includes the parent's, so identical prefixes share one key.",
+     "predict": "do two prompts sharing a prefix produce one shared block?"
+    },
+    {
+     "id": 9,
+     "file": "prefix_cache.py",
+     "title": "matching, eviction, isolation",
+     "tags": [
+      "eviction",
+      "aliasing"
+     ],
+     "status": "TODO",
+     "action": "Match the longest cached prefix, evict by policy, and keep per-request isolation — one request must not evict another's pinned blocks.",
+     "predict": "the hit length for a prompt sharing 2 of 3 blocks."
+    },
+    {
+     "id": 10,
+     "file": "radix_cache.py",
+     "title": "matching and node splitting",
+     "tags": [
+      "tree-structure"
+     ],
+     "status": "TODO",
+     "action": "Radix matching walks edge labels and SPLITS a node when a prefix ends mid-edge — test the split explicitly.",
+     "predict": "the tree shape after inserting 'abc' then 'abd'."
+    },
+    {
+     "id": 11,
+     "file": "radix_cache.py",
+     "title": "eviction and pinning",
+     "tags": [
+      "eviction"
+     ],
+     "status": "TODO",
+     "action": "Evict leaves first; pinned nodes are exempt. Walk to find a valid victim rather than evicting the root.",
+     "predict": "which node is evicted when all are leaves."
+    },
+    {
+     "id": 12,
+     "file": "paged_kv_cache.py",
+     "title": "block allocation and growth",
+     "tags": [
+      "allocation"
+     ],
+     "status": "TODO",
+     "action": "The block allocator hands out fixed-size blocks and grows the block table; track free/used and refcounts.",
+     "predict": "how many blocks a 17-token sequence with block=8 needs."
+    },
+    {
+     "id": 13,
+     "file": "paged_kv_cache.py",
+     "title": "forking and copy-on-write",
+     "tags": [
+      "cow",
+      "aliasing"
+     ],
+     "status": "TODO",
+     "action": "fork shares blocks by reference (refcount++); a WRITE to a shared block copies it first (refcount--, new block).",
+     "predict": "does writing to a fork change the parent's tokens?"
+    },
+    {
+     "id": 14,
+     "file": "semantic_cache.py",
+     "title": "exact and semantic caching",
+     "tags": [
+      "similarity",
+      "boundary"
+     ],
+     "status": "TODO",
+     "action": "Exact cache first, then a semantic threshold — tune it so near-duplicates hit but distinct prompts miss.",
+     "predict": "whether a reworded question should be a hit."
+    },
+    {
+     "id": 15,
+     "file": "cache_router.py",
+     "title": "cache-aware routing",
+     "tags": [
+      "routing"
+     ],
+     "status": "TODO",
+     "action": "Route each request to the replica that already holds its prefix; fall back to least-loaded when nobody does.",
+     "predict": "the hit rate after routing vs round-robin."
+    },
+    {
+     "id": 16,
+     "file": "serving_demo.py",
+     "title": "capstone: identical output",
+     "tags": [
+      "plumbing",
+      "exactness"
+     ],
+     "status": "TODO",
+     "action": "Capstone: wire prefix + paged + semantic caches together and keep the output identical to the uncached model.",
+     "predict": "compute saved (%) and whether output is bit-identical."
+    }
+   ],
+   "files": [
+    "cache_router.py",
+    "check.py",
+    "kv_cache.py",
+    "paged_kv_cache.py",
+    "prefix_cache.py",
+    "radix_cache.py",
+    "semantic_cache.py",
+    "serving_demo.py",
+    "tiny_transformer.py"
+   ],
+   "entry": "check.py"
+  },
+  "A4": {
+   "id": "A4",
+   "title": "ContextCite From Scratch",
+   "kind": "ready",
+   "why": "Which context caused the answer — ablation and a LASSO surrogate. The eval-flavoured course, and the bridge into RAG. 14 checks.",
+   "prereq": [
+    "A2"
+   ],
+   "course": "contextcite",
+   "command": "cz run contextcite",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 14
+   },
+   "repo": {
+    "baseline": 42,
+    "remaining": 42,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "partition.py",
+     "title": "splitting text into sources",
+     "tags": [
+      "partitioning"
+     ],
+     "status": "TODO",
+     "action": "Split text into sources with offsets precise enough to rebuild the full context byte-for-byte.",
+     "predict": "the number of sources in a 3-sentence passage."
+    },
+    {
+     "id": 2,
+     "file": "partition.py",
+     "title": "rebuilding ablated contexts",
+     "tags": [
+      "plumbing"
+     ],
+     "status": "TODO",
+     "action": "Rebuild the ablated context from a kept-source mask, preserving order and spacing exactly.",
+     "predict": "the context when only source 2 is kept."
+    },
+    {
+     "id": 3,
+     "file": "logit_probs.py",
+     "title": "logit-prob math and stability",
+     "tags": [
+      "numerical-stability"
+     ],
+     "status": "TODO",
+     "action": "logit-prob = logit[target] - logsumexp(logits); subtract the max inside logsumexp so it never overflows.",
+     "predict": "log-prob of a token with logit 0 among [0,0,0]."
+    },
+    {
+     "id": 4,
+     "file": "logit_probs.py",
+     "title": "aggregation and response score",
+     "tags": [
+      "aggregation"
+     ],
+     "status": "TODO",
+     "action": "Aggregate per-token logit-probs into one response score — pick sum or mean and apply it consistently.",
+     "predict": "sum vs mean on a 4-token response."
+    },
+    {
+     "id": 5,
+     "file": "ablation.py",
+     "title": "sampling the design matrix",
+     "tags": [
+      "attribution"
+     ],
+     "status": "TODO",
+     "action": "Sample a binary design matrix over sources; each row is a kept/dropped subset of the context.",
+     "predict": "how many distinct rows a 5-source sampler can produce."
+    },
+    {
+     "id": 6,
+     "file": "lasso.py",
+     "title": "soft threshold and standardising",
+     "tags": [
+      "optimization"
+     ],
+     "status": "TODO",
+     "action": "Coordinate-descent LASSO: soft-threshold each coordinate and standardise inputs so the penalty is comparable across sources.",
+     "predict": "soft_threshold(0.5, 1.0)."
+    },
+    {
+     "id": 7,
+     "file": "lasso.py",
+     "title": "recovering a known sparse signal",
+     "tags": [
+      "optimization"
+     ],
+     "status": "TODO",
+     "action": "Fit should recover a known sparse signal — check the support and the coefficient signs against ground truth.",
+     "predict": "which coefficients are exactly zero."
+    },
+    {
+     "id": 8,
+     "file": "contextcite.py",
+     "title": "end-to-end attribution",
+     "tags": [
+      "attribution",
+      "optimization"
+     ],
+     "status": "TODO",
+     "action": "End-to-end: abduction (drop sources) -> design matrix -> LASSO -> per-source attribution scores.",
+     "predict": "the coefficient on the source the answer actually needs."
+    },
+    {
+     "id": 9,
+     "file": "contextcite.py",
+     "title": "span attribution, zero extra calls",
+     "tags": [
+      "cost-model"
+     ],
+     "status": "TODO",
+     "action": "Span attribution reuses the same ablation samples — assert the number of model calls does NOT grow with span count.",
+     "predict": "model calls with 1 source vs 4 spans."
+    },
+    {
+     "id": 10,
+     "file": "evaluate.py",
+     "title": "spearman rank correlation",
+     "tags": [
+      "regression"
+     ],
+     "status": "TODO",
+     "action": "Spearman: rank both vectors and correlate the ranks; assign average ranks on ties.",
+     "predict": "Spearman of a perfectly reversed ranking."
+    },
+    {
+     "id": 11,
+     "file": "evaluate.py",
+     "title": "held-out LDS and top-k drop",
+     "tags": [
+      "regression"
+     ],
+     "status": "TODO",
+     "action": "Held-out LDS and top-k drop: measure whether the surrogate predicts on ablations it never saw.",
+     "predict": "LDS of a perfect ranker."
+    },
+    {
+     "id": 12,
+     "file": "applications.py",
+     "title": "verification and pruning",
+     "tags": [
+      "attribution"
+     ],
+     "status": "TODO",
+     "action": "Applications: verify a claim by ablation, and prune sources the surrogate calls dead.",
+     "predict": "whether removing the top source flips the answer."
+    },
+    {
+     "id": 13,
+     "file": "applications.py",
+     "title": "detecting a poisoned source",
+     "tags": [
+      "attribution"
+     ],
+     "status": "TODO",
+     "action": "Detect a poisoned source: its coefficient should dominate, and no honest source should be a perfect predictor.",
+     "predict": "the coefficient profile with one injected source."
+    },
+    {
+     "id": 14,
+     "file": "applications.py",
+     "title": "leave-one-out fails on redundancy",
+     "tags": [
+      "regression",
+      "attribution"
+     ],
+     "status": "TODO",
+     "action": "Leave-one-out fails under redundancy — two identical sources split the credit and each looks unimportant. Reproduce it.",
+     "predict": "each duplicate's leave-one-out score."
+    }
+   ],
+   "files": [
+    "ablation.py",
+    "applications.py",
+    "check.py",
+    "contextcite.py",
+    "evaluate.py",
+    "lasso.py",
+    "logit_probs.py",
+    "partition.py",
+    "toy_lm.py"
+   ],
+   "entry": "check.py"
+  },
+  "A5": {
+   "id": "A5",
+   "title": "System Design",
+   "kind": "legacy",
+   "why": "Optional but cheap: caching, queues, idempotency, rate limiting. Makes sqs/dynamodb in A1 click and underpins the agent half.",
+   "prereq": [],
+   "course": "system-design",
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "A6": {
+   "id": "A6",
+   "title": "Dynamo From Scratch",
+   "kind": "ready",
+   "why": "The paper behind DynamoDB, in depth: quorums, hinted handoff, Merkle anti-entropy. 17 checks.",
+   "prereq": [
+    "A1"
+   ],
+   "course": "dynamo-paper",
+   "command": "cz run dynamo-paper",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 17
+   },
+   "repo": {
+    "baseline": 70,
+    "remaining": 70,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "partitioning.py",
+     "title": "ring: add/remove/coordinator",
+     "tags": [
+      "partitioning"
+     ],
+     "status": "TODO",
+     "action": "Ring: place a node's tokens, find a key's successor clockwise, and remove the node's tokens when it leaves.",
+     "predict": "who coordinates a key between two nodes."
+    },
+    {
+     "id": 2,
+     "file": "partitioning.py",
+     "title": "preference lists (N distinct nodes)",
+     "tags": [
+      "partitioning",
+      "consistency"
+     ],
+     "status": "TODO",
+     "action": "preference_list walks virtual tokens clockwise and must SKIP nodes already chosen, returning N DISTINCT nodes.",
+     "predict": "N when the ring has fewer than N nodes."
+    },
+    {
+     "id": 3,
+     "file": "partitioning.py",
+     "title": "load balance and key migration",
+     "tags": [
+      "partitioning"
+     ],
+     "status": "TODO",
+     "action": "Adding/removing a node should move about 1/N of the keys; measure balance as max/min load across nodes.",
+     "predict": "the fraction of keys that move when one node joins."
+    },
+    {
+     "id": 4,
+     "file": "partitioning.py",
+     "title": "strategy 3: fixed partitions",
+     "tags": [
+      "partitioning"
+     ],
+     "status": "TODO",
+     "action": "Strategy 3: fixed partitions (a fixed Q), each node owns several — routing is a table lookup, not a ring walk.",
+     "predict": "how key movement compares to the ring."
+    },
+    {
+     "id": 5,
+     "file": "vector_clock.py",
+     "title": "clock ordering and merge",
+     "tags": [
+      "ordering"
+     ],
+     "status": "TODO",
+     "action": "Vector clocks compare pointwise: equal, descendant, ancestor, or concurrent — get all four cases right.",
+     "predict": "the relation between {A:1} and {A:1,B:1}."
+    },
+    {
+     "id": 6,
+     "file": "vector_clock.py",
+     "title": "reconciliation (paper Figure 3)",
+     "tags": [
+      "reconciliation"
+     ],
+     "status": "TODO",
+     "action": "On conflicting siblings, reconcile with the paper's rule and MERGE the clocks so the result dominates both.",
+     "predict": "the merged clock of two concurrent writes."
+    },
+    {
+     "id": 7,
+     "file": "vector_clock.py",
+     "title": "clock truncation",
+     "tags": [
+      "ordering"
+     ],
+     "status": "TODO",
+     "action": "Truncate the clock by dropping the oldest entries when it exceeds the cap, keeping recent causality.",
+     "predict": "which entries survive a cap of 2."
+    },
+    {
+     "id": 8,
+     "file": "quorum.py",
+     "title": "storage node keeps siblings",
+     "tags": [
+      "data-structure"
+     ],
+     "status": "TODO",
+     "action": "A storage node keeps the value plus all its siblings; a read returns every sibling, not just the newest.",
+     "predict": "the sibling count after two concurrent writes."
+    },
+    {
+     "id": 9,
+     "file": "quorum.py",
+     "title": "N/R/W put and get",
+     "tags": [
+      "consistency"
+     ],
+     "status": "TODO",
+     "action": "N/R/W put and get: write to N preference nodes, read from R, and R+W>N is what guarantees overlap.",
+     "predict": "whether R=1,W=1,N=3 can read a stale value."
+    },
+    {
+     "id": 10,
+     "file": "quorum.py",
+     "title": "siblings and read repair",
+     "tags": [
+      "consistency"
+     ],
+     "status": "TODO",
+     "action": "Reads collect siblings from R nodes; read repair pushes the newest value back to the stale replicas it saw.",
+     "predict": "which replicas get repaired on a read."
+    },
+    {
+     "id": 11,
+     "file": "hinted_handoff.py",
+     "title": "sloppy quorum writes a hint",
+     "tags": [
+      "availability",
+      "consistency"
+     ],
+     "status": "TODO",
+     "action": "Sloppy quorum: when a preference node is down, write to the next live node and store a HINT saying where it belongs.",
+     "predict": "hint count after one node is down."
+    },
+    {
+     "id": 12,
+     "file": "hinted_handoff.py",
+     "title": "hinted handoff delivery",
+     "tags": [
+      "availability"
+     ],
+     "status": "TODO",
+     "action": "Deliver hints when the owner returns, then delete the local copy — delivery must be idempotent.",
+     "predict": "what happens if the same hint is delivered twice."
+    },
+    {
+     "id": 13,
+     "file": "merkle_sync.py",
+     "title": "merkle tree build and diff",
+     "tags": [
+      "tree-structure"
+     ],
+     "status": "TODO",
+     "action": "Merkle tree: hash leaves (key ranges), hash pairs upward; the diff walks only branches whose hashes differ.",
+     "predict": "how many nodes one changed key dirties."
+    },
+    {
+     "id": 14,
+     "file": "merkle_sync.py",
+     "title": "anti-entropy is a union",
+     "tags": [
+      "consistency"
+     ],
+     "status": "TODO",
+     "action": "Anti-entropy is a UNION of values, reconciled with the same clock logic — not blind last-write-wins.",
+     "predict": "the value after syncing two divergent replicas."
+    },
+    {
+     "id": 15,
+     "file": "gossip.py",
+     "title": "gossip convergence O(log S)",
+     "tags": [
+      "membership"
+     ],
+     "status": "TODO",
+     "action": "Gossip converges in O(log S): each round every node tells a few peers; track rounds to full knowledge.",
+     "predict": "rounds for 64 nodes to all learn one fact."
+    },
+    {
+     "id": 16,
+     "file": "gossip.py",
+     "title": "local failure detection, seeds",
+     "tags": [
+      "membership"
+     ],
+     "status": "TODO",
+     "action": "Failure detection is local (heartbeat + suspicion), and seeds are how a brand-new node joins without a full member list.",
+     "predict": "how a node is declared dead with no central registry."
+    },
+    {
+     "id": 17,
+     "file": "dynamo_cluster.py",
+     "title": "capstone: cart + availability",
+     "tags": [
+      "plumbing"
+     ],
+     "status": "TODO",
+     "action": "Capstone: run the cart workload against the full cluster and hit the stated availability target.",
+     "predict": "successful-write rate under 30% node churn."
+    }
+   ],
+   "files": [
+    "check.py",
+    "dynamo_cluster.py",
+    "gossip.py",
+    "hinted_handoff.py",
+    "merkle_sync.py",
+    "partitioning.py",
+    "quorum.py",
+    "vector_clock.py"
+   ],
+   "entry": "check.py"
+  },
+  "A7": {
+   "id": "A7",
+   "title": "Deploy & Debug",
+   "kind": "ready",
+   "why": "Capacity math, SLOs, root-causing faults from metrics. The operations thread that every later course leans on. 12 checks.",
+   "prereq": [
+    "A1"
+   ],
+   "course": "deploy-and-debug",
+   "command": "cz run deploy-and-debug",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 12
+   },
+   "repo": {
+    "baseline": 34,
+    "remaining": 34,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "capacity.py",
+     "title": "KV cache and batch-size math",
+     "tags": [
+      "capacity"
+     ],
+     "status": "TODO",
+     "action": "KV cache bytes/token = 2 * layers * KV_HEADS * head_dim * bytes. Using query heads sizes the fleet 4x too large.",
+     "predict": "bytes/token for Llama-3-8B (8 KV heads)."
+    },
+    {
+     "id": 2,
+     "file": "capacity.py",
+     "title": "fleet sizing and quorum tolerance",
+     "tags": [
+      "capacity",
+      "availability"
+     ],
+     "status": "TODO",
+     "action": "Size the fleet from concurrency and tokens/s, then subtract the failure tolerance R+W>N implies.",
+     "predict": "how many nodes can die and quorum still hold."
+    },
+    {
+     "id": 3,
+     "file": "metrics.py",
+     "title": "percentiles and summaries",
+     "tags": [
+      "observability"
+     ],
+     "status": "TODO",
+     "action": "Percentiles are not averages: sort and take the rank. p99 is where the outliers live.",
+     "predict": "p50 and p99 of [1,2,3,4,100]."
+    },
+    {
+     "id": 4,
+     "file": "metrics.py",
+     "title": "queueing and fan-out tails",
+     "tags": [
+      "queueing"
+     ],
+     "status": "TODO",
+     "action": "Little's law and fan-out: one slow dependency multiplies the tail across parallel calls.",
+     "predict": "tail latency with 10 parallel 100ms calls."
+    },
+    {
+     "id": 5,
+     "file": "metrics.py",
+     "title": "SLOs, budgets and burn rate",
+     "tags": [
+      "slo"
+     ],
+     "status": "TODO",
+     "action": "SLO is an objective over a window; error budget = 1 - SLO; burn rate is how fast you are spending it.",
+     "predict": "the error budget for 99.9% over 30 days."
+    },
+    {
+     "id": 6,
+     "file": "diagnose.py",
+     "title": "diagnose 6 serving faults",
+     "tags": [
+      "diagnosis"
+     ],
+     "status": "TODO",
+     "action": "Map each fault to its metric signature: KV full -> cache-miss spike; overload -> queue growth.",
+     "predict": "the signature of a full KV cache."
+    },
+    {
+     "id": 7,
+     "file": "diagnose.py",
+     "title": "undersized KV vs overload",
+     "tags": [
+      "diagnosis"
+     ],
+     "status": "TODO",
+     "action": "Undersized KV and overload look similar — separate them by cache-hit rate and memory, not latency alone.",
+     "predict": "which metric distinguishes the two."
+    },
+    {
+     "id": 8,
+     "file": "diagnose.py",
+     "title": "diagnose 5 store faults",
+     "tags": [
+      "diagnosis"
+     ],
+     "status": "TODO",
+     "action": "Store faults: node down, hint backlog, and gossip disagreement each have a distinct fingerprint.",
+     "predict": "the fingerprint of hinted-handoff backlog."
+    },
+    {
+     "id": 9,
+     "file": "diagnose.py",
+     "title": "node down vs strict quorum",
+     "tags": [
+      "diagnosis"
+     ],
+     "status": "TODO",
+     "action": "Node down with QUORUM MET (hint backlog) differs from STRICT-quorum failure (write errors).",
+     "predict": "which one still serves reads."
+    },
+    {
+     "id": 10,
+     "file": "rollout.py",
+     "title": "liveness vs readiness probes",
+     "tags": [
+      "lifecycle"
+     ],
+     "status": "TODO",
+     "action": "Liveness RESTARTS a hung process; readiness REMOVES it from the load balancer. Do not confuse the two.",
+     "predict": "what a failing readiness probe does."
+    },
+    {
+     "id": 11,
+     "file": "rollout.py",
+     "title": "canary analysis and staging",
+     "tags": [
+      "rollout"
+     ],
+     "status": "TODO",
+     "action": "Canary: compare canary against control on the same traffic, with enough samples to see the effect.",
+     "predict": "whether 90 samples can detect a 2% regression."
+    },
+    {
+     "id": 12,
+     "file": "rollout.py",
+     "title": "budget-based auto-rollback",
+     "tags": [
+      "rollout"
+     ],
+     "status": "TODO",
+     "action": "Auto-rollback on burn-rate, not a single blip — a 30-second spike must not page.",
+     "predict": "whether a 30s spike trips a 1h-budget alarm."
+    }
+   ],
+   "files": [
+    "capacity.py",
+    "check.py",
+    "deployment.py",
+    "diagnose.py",
+    "metrics.py",
+    "rollout.py"
+   ],
+   "entry": "check.py"
+  },
+  "B1": {
+   "id": "B1",
+   "title": "RAG From Scratch",
+   "kind": "ready",
+   "why": "Built and ready: chunking, TF-IDF, a vector index, BM25, rank fusion, reranking, citations, tenant isolation, recall@k. 9 checks.",
+   "prereq": [
+    "A2",
+    "A4"
+   ],
+   "course": "rag-from-scratch",
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "B2": {
+   "id": "B2",
+   "title": "Vector Index From Scratch",
+   "kind": "author",
+   "why": "Brute force -> IVF -> HNSW, with recall/latency measured against the exact index you built in B1. The stage that makes 'approximate' mean something.",
+   "prereq": [
+    "B1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "C1": {
+   "id": "C1",
+   "title": "Evals From Scratch",
+   "kind": "author",
+   "why": "Datasets, exact/F1 metrics, LLM-as-judge and its calibration, statistical significance, regression gating. Do this before agents.",
+   "prereq": [
+    "A4"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "C2": {
+   "id": "C2",
+   "title": "Agents From Scratch",
+   "kind": "author",
+   "why": "The ReAct loop, tool schemas, retries and timeouts, memory, multi-turn state, failure recovery, sandboxing.",
+   "prereq": [
+    "C1",
+    "B1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "D1": {
+   "id": "D1",
+   "title": "MCP From Scratch",
+   "kind": "author",
+   "why": "JSON-RPC 2.0, stdio and streamable-HTTP transports, the capability handshake, tools/resources/prompts, and tool design for an unreliable caller (idempotency, read-only first).",
+   "prereq": [
+    "C2"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "E1": {
+   "id": "E1",
+   "title": "Agent Harness From Scratch",
+   "kind": "author",
+   "why": "The runtime around the model: tool dispatch, context assembly and compaction, streaming, retries, sandboxing, tracing. What makes an agent usable rather than a demo.",
+   "prereq": [
+    "C2",
+    "D1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "F1": {
+   "id": "F1",
+   "title": "Benchmark From Scratch (Mus)",
+   "kind": "salvage",
+   "why": "Reimplement the measurement machinery of your own mus-benchmark (2v2 Mus against LLM teams): strict turn-gated engine, one JSONL record per decision, scorecards, calibration probes (Brier/AUC), mirrored seating to cancel bias. Reference repo: ~/Desarrollo/mus-benchmark.",
+   "prereq": [
+    "C1",
+    "E1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "salvage",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "F2": {
+   "id": "F2",
+   "title": "Eval Framework From Scratch",
+   "kind": "author",
+   "why": "A reusable eval runner: suite config, metric plugins, judge protocol, significance, and CI gating. The tool you keep using.",
+   "prereq": [
+    "F1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "G1": {
+   "id": "G1",
+   "title": "Compiler + Virtual GPU",
+   "kind": "ready",
+   "why": "One ISA, two machines: assembler, front end, register allocation with spilling, SIMT divergence. 12 checks. The right first systems course before real CUDA.",
+   "prereq": [],
+   "course": "compiler-and-vgpu",
+   "command": "cz run compiler-and-vgpu",
+   "state": "ready",
+   "checks": {
+    "passed": 0,
+    "total": 12
+   },
+   "repo": {
+    "baseline": 53,
+    "remaining": 53,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "stages": [
+    {
+     "id": 1,
+     "file": "isa.py",
+     "title": "instruction encoding round-trip",
+     "tags": [
+      "encoding"
+     ],
+     "status": "TODO",
+     "action": "Instruction encoding must round-trip: decode(encode(x)) == x for every field width and opcode.",
+     "predict": "the encoding of an R-type instruction."
+    },
+    {
+     "id": 2,
+     "file": "assembler.py",
+     "title": "two-pass assembly with labels",
+     "tags": [
+      "assembly",
+      "symbol-resolution"
+     ],
+     "status": "TODO",
+     "action": "Two passes: pass 1 collects labels/addresses, pass 2 emits with resolved operands and rejects bad registers or labels.",
+     "predict": "why a forward jump needs two passes."
+    },
+    {
+     "id": 3,
+     "file": "cpu.py",
+     "title": "arithmetic, comparison, memory",
+     "tags": [
+      "execution"
+     ],
+     "status": "TODO",
+     "action": "CPU arithmetic, comparisons and loads/stores over a register file plus byte-addressed memory.",
+     "predict": "the register after an arithmetic op."
+    },
+    {
+     "id": 4,
+     "file": "cpu.py",
+     "title": "control flow and error reporting",
+     "tags": [
+      "execution"
+     ],
+     "status": "TODO",
+     "action": "Branches update PC; report runtime faults (div by zero, out-of-range address, non-terminating loop).",
+     "predict": "which fault an infinite loop reports."
+    },
+    {
+     "id": 5,
+     "file": "frontend.py",
+     "title": "lexer and keywords",
+     "tags": [
+      "parsing"
+     ],
+     "status": "TODO",
+     "action": "Lexer: keywords, identifiers, operators, with positions, and reject unknown characters.",
+     "predict": "the token stream for 'x = 1;'."
+    },
+    {
+     "id": 6,
+     "file": "frontend.py",
+     "title": "parser: precedence and blocks",
+     "tags": [
+      "parsing"
+     ],
+     "status": "TODO",
+     "action": "Recursive-descent parser: precedence climbing for expressions, brace blocks for statements.",
+     "predict": "the parse of 1 + 2 * 3."
+    },
+    {
+     "id": 7,
+     "file": "codegen.py",
+     "title": "v1-v2: expressions and control flow",
+     "tags": [
+      "codegen"
+     ],
+     "status": "TODO",
+     "action": "v1-v2: lower trees to instructions with labels for control flow; keep each node's value in a register.",
+     "predict": "the instruction count for a simple if."
+    },
+    {
+     "id": 8,
+     "file": "codegen.py",
+     "title": "v3: allocation and spilling",
+     "tags": [
+      "register-allocation"
+     ],
+     "status": "TODO",
+     "action": "v3: only 16 real registers force linear-scan allocation and spilling to stack slots; mind live ranges across calls.",
+     "predict": "when a value must be spilled."
+    },
+    {
+     "id": 9,
+     "file": "vgpu.py",
+     "title": "uniform SIMT execution",
+     "tags": [
+      "simt-divergence"
+     ],
+     "status": "TODO",
+     "action": "Uniform SIMT: all lanes execute in lockstep; TID is a GPU-only instruction the scalar CPU rejects.",
+     "predict": "what happens on a scalar CPU given TID."
+    },
+    {
+     "id": 10,
+     "file": "vgpu.py",
+     "title": "v4: divergence, nesting, ragged loops",
+     "tags": [
+      "simt-divergence"
+     ],
+     "status": "TODO",
+     "action": "Divergence: a branch splits the warp; a mask stack re-converges nested branches and ragged loops.",
+     "predict": "which lanes are active after an if/else."
+    },
+    {
+     "id": 11,
+     "file": "vgpu.py",
+     "title": "barrier deadlock and disagreeing branches",
+     "tags": [
+      "synchronization"
+     ],
+     "status": "TODO",
+     "action": "Barrier deadlock: detect when lanes wait on a barrier the active mask can never reach.",
+     "predict": "whether a barrier inside a diverged branch can complete."
+    },
+    {
+     "id": 12,
+     "file": "capstone.py",
+     "title": "one program, two machines",
+     "tags": [
+      "plumbing"
+     ],
+     "status": "TODO",
+     "action": "Capstone: compile ONE program and run it on both the CPU and the vGPU — the results must agree.",
+     "predict": "whether CPU and GPU outputs match."
+    }
+   ],
+   "files": [
+    "assembler.py",
+    "capstone.py",
+    "check.py",
+    "codegen.py",
+    "cpu.py",
+    "frontend.py",
+    "isa.py",
+    "vgpu.py"
+   ],
+   "entry": "check.py"
+  },
+  "G2": {
+   "id": "G2",
+   "title": "CUDA From Scratch",
+   "kind": "legacy",
+   "why": "Kernels from vector add to a network. Needs a GPU and a checker wrapper to join codecraft.",
+   "prereq": [
+    "G1"
+   ],
+   "course": "cuda-from-scratch",
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "G3": {
+   "id": "G3",
+   "title": "CPU From Scratch",
+   "kind": "author",
+   "why": "A real datapath: decoder, register file, ALU, control unit, memory and pipelining, simulated and tested. Missing from the repo.",
+   "prereq": [
+    "G1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "G4": {
+   "id": "G4",
+   "title": "OS From Scratch",
+   "kind": "salvage",
+   "why": "A linux-from-scratch curriculum exists on a branch; port it, then give it a checker.",
+   "prereq": [
+    "G3"
+   ],
+   "course": null,
+   "command": null,
+   "state": "salvage",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "G5": {
+   "id": "G5",
+   "title": "C Compiler",
+   "kind": "legacy",
+   "why": "Lexer, parser, semantic analysis, codegen, optimizer. Templates and solutions exist; it needs a checker to join codecraft.",
+   "prereq": [
+    "G1"
+   ],
+   "course": "c-compiler",
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "G6": {
+   "id": "G6",
+   "title": "The C systems set",
+   "kind": "legacy",
+   "why": "bash-from-scratch, http-server, dns-server, firewall-from-scratch, toralizer, communication-protocols, cryptographic-library, quantum-computing-lang. One at a time; each needs a checker.",
+   "prereq": [],
+   "course": null,
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "H1": {
+   "id": "H1",
+   "title": "Distributed Training",
+   "kind": "legacy",
+   "why": "Data and model parallelism.",
+   "prereq": [
+    "A2"
+   ],
+   "course": "distributed-training",
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "H2": {
+   "id": "H2",
+   "title": "Inference and serving",
+   "kind": "salvage",
+   "why": "vllm-engine, tensorrt-inference, ml-inference, sgl-lang. Three are README-only on main; an inference-from-scratch set exists on a branch.",
+   "prereq": [
+    "A3"
+   ],
+   "course": null,
+   "command": null,
+   "state": "salvage",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "H3": {
+   "id": "H3",
+   "title": "Generative models",
+   "kind": "legacy",
+   "why": "diffusion-models, world-models (10k lines of PyTorch), deepfake creation and detection.",
+   "prereq": [
+    "C1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  },
+  "H4": {
+   "id": "H4",
+   "title": "Long tail",
+   "kind": "legacy",
+   "why": "quantitative-trading, spectral-graphs, lean-proofs, haskell-projects, mlops, ml-in-production, sas-lineage-tool, web-scraping.",
+   "prereq": [],
+   "course": null,
+   "command": null,
+   "state": "legacy",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "repo": null,
+   "stages": [],
+   "files": []
+  }
+ }
+}

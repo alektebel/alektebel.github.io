@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>forja — learn it by building it</title>
+<meta name="description" content="Construye AWS, compiladores, LLMs y sistemas distribuidos desde cero — pasa los checks en tu navegador.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='2' y='13' font-family='monospace' font-size='12' fill='%23ff3b1f'%3E%E2%9A%92%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"><style>@keyframes flow{to{stroke-dashoffset:-16}}@keyframes breathe{0%,100%{opacity:.35}50%{opacity:1}}body{margin:0}a{color:var(--color-accent)}a:hover{color:var(--color-accent-300)}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(900px 420px at 8% -8%, color-mix(in srgb, var(--color-accent) 11%, transparent), transparent 70%), radial-gradient(700px 400px at 100% 0%, color-mix(in srgb, var(--color-section-glow) 18%, transparent), transparent 70%), var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+  <header style="position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:28px;padding:12px 28px;backdrop-filter:blur(10px);background:linear-gradient(to right, transparent, var(--color-divider) 48px, var(--color-divider) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px, color-mix(in srgb, var(--color-bg) 70%, transparent)">
+    <div style="display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:16px;font-weight:500;letter-spacing:-0.03em">
+      <svg width="26" height="26" viewBox="0 0 48 48" style="filter:drop-shadow(0 0 10px color-mix(in srgb, var(--color-accent) 45%, transparent))"><path d="M3 13H43V19L33 26H29V32H35V39H11V32H17V26H13Z" style="fill:var(--color-accent)"></path><path d="M18 15.5L23 19.5L18 23.5" fill="none" style="stroke:var(--color-bg)" stroke-width="3.2" stroke-linecap="square"></path><rect x="25" y="21" width="8" height="3.2" style="fill:var(--color-bg)"></rect><path d="M37 9L39 4M42 10L46 6" style="stroke:var(--color-accent-400)" stroke-width="3.2" stroke-linecap="square"></path></svg><span>forja<span style="color:var(--color-accent)">_</span></span>
+    </div>
+    <nav style="display:flex;gap:4px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.onClick }}" style="display:flex;align-items:center;gap:7px;background:{{ t.bg }};color:{{ t.color }};border:0;border-radius:var(--radius-md);padding:6px 12px;font:inherit;font-size:14px;cursor:pointer" style-hover="color:var(--color-text)"><i class="{{ t.icon }}"></i>{{ t.label }}</button>
+      </sc-for>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:14px;font-size:13px;color:var(--color-neutral-400)">
+      <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:12px">{{ doneCount }} hechos · {{ progCount }} en curso</span>
+      <span style="width:30px;height:30px;border-radius:50%;background:var(--color-accent-900);color:var(--color-accent-300);display:grid;place-items:center;font-size:12px;font-weight:500">JL</span>
+    </div>
+  </header>
+
+  <sc-if value="{{ isMap }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex:1;min-height:0;flex-wrap:wrap">
+      <main style="flex:1 1 640px;min-width:0;padding:28px 32px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap">
+          <div style="margin-right:auto">
+            <div style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.08em;color:var(--color-accent-400);margin-bottom:8px">~/forja/mapa</div><h2 style="margin:0 0 6px;font-size:34px;letter-spacing:-0.025em">Mapa de proyectos</h2>
+            <p style="margin:0;color:var(--color-neutral-400);font-size:14px">Qué construir y en qué orden. Cada proyecto desbloquea los siguientes.</p>
+          </div>
+          <div style="display:flex;border:1px solid var(--color-divider);border-radius:var(--radius-md);overflow:hidden">
+            <button onClick="{{ setFilterAll }}" style="background:transparent;border:0;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;color:{{ fAllColor }};box-shadow:{{ fAllShadow }}">Todos</button>
+            <button onClick="{{ setFilterStar }}" style="display:flex;align-items:center;gap:6px;background:transparent;border:0;border-left:1px solid var(--color-divider);padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;color:{{ fStarColor }};box-shadow:{{ fStarShadow }}"><i class="ph ph-star"></i>Me interesan</button>
+          </div>
+        </div>
+        <sc-if value="{{ hasNextStep }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ nextStep.open }}" style="display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:var(--radius-lg);border:1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);background:linear-gradient(100deg, color-mix(in srgb, var(--color-accent) 13%, transparent), color-mix(in srgb, var(--color-accent) 2%, transparent) 60%);color:var(--color-text);font:inherit;cursor:pointer;text-align:left;box-shadow:0 0 40px -18px var(--color-accent)" style-hover="border-color:var(--color-accent)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);box-shadow:0 0 10px var(--color-accent);animation:breathe 2.4s ease-in-out infinite;flex:none"></span>
+            <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.06em;color:var(--color-accent-400)">SIGUIENTE PASO</span>
+              <span style="font-size:15px"><span style="font-weight:500">{{ nextStep.title }}</span><span style="color:var(--color-neutral-400)"> · Stage {{ nextStep.cur }}: {{ nextStep.stageName }}</span></span>
+            </span>
+            <span style="margin-left:auto;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:12px;color:var(--color-neutral-400);white-space:nowrap">{{ nextStep.cur }}/{{ nextStep.stages }}</span>
+            <i class="ph ph-arrow-right" style="color:var(--color-accent-300);font-size:16px"></i>
+          </button>
+        </sc-if>
+        <div style="display:flex;gap:18px;font-size:12px;color:var(--color-neutral-400);flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph-fill ph-check-circle" style="color:var(--color-accent)"></i>Completado</span>
+          <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-circle-half" style="color:var(--color-accent-300)"></i>En curso</span>
+          <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-circle" style="color:var(--color-neutral-400)"></i>Disponible</span>
+          <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-lock-simple" style="color:var(--color-neutral-600)"></i>Bloqueado</span>
+        </div>
+        <div style="overflow:auto;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);background-color:color-mix(in srgb, var(--color-surface) 35%, var(--color-bg));background-image:radial-gradient(var(--color-neutral-900) 1px, transparent 1px);background-size:20px 20px">
+          <div style="position:relative;width:1040px;height:580px">
+            <div style="position:absolute;left:0;right:0;top:0;height:330px;background:linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 4%, transparent), transparent 40%)"></div><div style="position:absolute;left:0;right:0;top:332px;height:1px;background:linear-gradient(to right, transparent, var(--color-divider) 48px, var(--color-divider) calc(100% - 48px), transparent)"></div>{{ colLabels }}
+            {{ edges }}
+            <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="15">
+              <button onClick="{{ n.onClick }}" style="position:absolute;left:{{ n.x }}px;top:{{ n.y }}px;width:200px;height:68px;box-sizing:border-box;padding:10px 12px;text-align:left;font:inherit;color:var(--color-text);cursor:pointer;border-radius:var(--radius-md);border:{{ n.border }};background:{{ n.bg }};box-shadow:{{ n.shadow }};opacity:{{ n.op }};display:flex;flex-direction:column;justify-content:space-between;transition:box-shadow .15s, opacity .15s">
+                <span style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500"><i class="{{ n.icon }}" style="color:{{ n.ic }};font-size:16px"></i>{{ n.title }}<i class="{{ n.starIcon }}" style="margin-left:auto;color:var(--color-accent-400);font-size:13px"></i></span>
+                <span style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-neutral-400);font-family:'JetBrains Mono',ui-monospace,Menlo,monospace">
+                  <span>{{ n.sub }}</span>
+                  <sc-if value="{{ n.isProg }}" hint-placeholder-val="{{ false }}">
+                    <span style="flex:1;height:3px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden"><span style="display:block;height:100%;width:{{ n.pct }}%;background:var(--color-accent)"></span></span>
+                  </sc-if>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </main>
+      <aside style="flex:0 1 340px;min-width:280px;padding:28px;border-left:1px solid var(--color-divider);display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent-400)">{{ sel.track }}</span>
+          <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:{{ sel.st.tagBg }};color:{{ sel.st.tagFg }}">{{ sel.st.label }}</span>
+          <button onClick="{{ toggleStar }}" title="Me interesa" style="margin-left:auto;width:32px;height:32px;border-radius:var(--radius-md);border:1px solid var(--color-divider);background:transparent;color:var(--color-accent-300);cursor:pointer;display:grid;place-items:center;font-size:15px" style-hover="background:color-mix(in srgb, var(--color-accent) 12%, transparent)"><i class="{{ sel.starBtn }}"></i></button>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px;font-size:23px">Construye tu propio {{ sel.title }}</h3>
+          <p style="margin:0;font-size:14px;color:var(--color-neutral-300);text-wrap:pretty">{{ sel.desc }}</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:var(--color-neutral-800);color:var(--color-neutral-100)">{{ sel.lang }}</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:var(--color-neutral-800);color:var(--color-neutral-100)">{{ sel.stages }} stages</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:var(--color-neutral-800);color:var(--color-neutral-100)">Dificultad {{ sel.diff }}</span>
+        </div>
+        <sc-if value="{{ sel.hasProg }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span>Stage {{ sel.cur }} de {{ sel.stages }}</span><span style="color:var(--color-neutral-400)">{{ sel.pct }}%</span></div>
+            <div style="display:flex;gap:3px">
+              <sc-for list="{{ sel.segs }}" as="s"><span style="flex:1;height:5px;border-radius:2px;background:{{ s.bg }}"></span></sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Requiere</h6>
+          <sc-if value="{{ sel.noReq }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--color-neutral-400)">Punto de entrada — sin requisitos.</span></sc-if>
+          <sc-for list="{{ sel.req }}" as="r">
+            <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-text);cursor:pointer;text-align:left"><i class="{{ r.icon }}" style="color:{{ r.ic }}"></i>{{ r.title }}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Desbloquea</h6>
+          <sc-if value="{{ sel.noUnl }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--color-neutral-400)">Final de la ruta.</span></sc-if>
+          <sc-for list="{{ sel.unl }}" as="r">
+            <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-text);cursor:pointer;text-align:left"><i class="ph ph-arrow-right" style="color:var(--color-neutral-500)"></i>{{ r.title }}<sc-if value="{{ r.rec }}"><span style="font-size:10px;padding:1px 7px;border-radius:5px;border:1px solid var(--color-accent);color:var(--color-accent-300)">recomendado</span></sc-if></button>
+          </sc-for>
+        </div>
+        <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+          <button onClick="{{ sel.action }}" disabled="{{ sel.locked }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:var(--radius-md);border:1px solid var(--color-accent);background:transparent;color:var(--color-accent-300);font:inherit;font-size:14px;font-weight:500;cursor:pointer;opacity:{{ sel.btnOp }}" style-hover="background:color-mix(in srgb, var(--color-accent) 12%, transparent)"><i class="{{ sel.btnIcon }}"></i>{{ sel.btnLabel }}</button>
+          <sc-if value="{{ sel.locked }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:var(--color-neutral-500);text-align:center">Completa los requisitos para desbloquearlo.</span></sc-if>
+        </div>
+      </aside>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isProgress }}" hint-placeholder-val="{{ false }}">
+    <main style="max-width:980px;width:100%;box-sizing:border-box;padding:32px;display:flex;flex-direction:column;gap:28px">
+      <div>
+        <div style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.08em;color:var(--color-accent-400);margin-bottom:8px">~/forja/en-curso</div><h2 style="margin:0 0 6px;font-size:34px;letter-spacing:-0.025em">En curso</h2>
+        <p style="margin:0;color:var(--color-neutral-400);font-size:14px">Retoma donde lo dejaste.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ inProgress }}" as="p" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 24px;align-items:center;padding:22px 24px;border-radius:var(--radius-lg);background:linear-gradient(160deg, color-mix(in srgb, var(--color-surface) 100%, transparent), color-mix(in srgb, var(--color-surface) 55%, var(--color-bg)));box-shadow:var(--shadow-sm)" style-hover="box-shadow:var(--shadow-md)">
+            <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+              <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+                <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent-400)">{{ p.track }}</span>
+                <span style="font-size:19px;font-weight:500">{{ p.title }}</span>
+                <span style="font-size:12px;color:var(--color-neutral-400);white-space:nowrap">{{ p.lang }} · {{ p.last }}</span>
+              </div>
+              <div style="display:flex;gap:3px">
+                <sc-for list="{{ p.segs }}" as="s"><span style="flex:1;height:6px;border-radius:2px;background:{{ s.bg }}"></span></sc-for>
+              </div>
+              <div style="display:flex;gap:16px;font-size:13px;flex-wrap:wrap">
+                <span><span style="color:var(--color-neutral-400)">Stage {{ p.cur }} de {{ p.stages }} ·</span> {{ p.stageName }}</span>
+                <span style="color:var(--color-neutral-500);display:flex;align-items:center;gap:6px"><i class="ph ph-arrow-bend-down-right"></i>Después: {{ p.next }}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:20px"><span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:30px;font-weight:400;letter-spacing:-0.04em;color:var(--color-neutral-200)">{{ p.pct }}<span style="font-size:14px;color:var(--color-neutral-500)">%</span></span><button onClick="{{ p.open }}" style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--radius-md);border:1px solid var(--color-accent);background:transparent;color:var(--color-accent-300);font:inherit;font-size:14px;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-accent) 12%, transparent)">Continuar<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noProgress }}" hint-placeholder-val="{{ false }}"><p style="color:var(--color-neutral-400);font-size:14px">Nada en curso. Elige un proyecto en el mapa.</p></sc-if>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Listos para empezar</h6>
+          <sc-for list="{{ available }}" as="a">
+            <button onClick="{{ a.onClick }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--color-neutral-800);background:transparent;color:var(--color-text);font:inherit;font-size:14px;cursor:pointer;text-align:left" style-hover="border-color:var(--color-neutral-600)"><i class="ph ph-circle" style="color:var(--color-neutral-400)"></i>{{ a.title }}<span style="margin-left:auto;font-size:12px;color:var(--color-neutral-500)">{{ a.stages }} stages · {{ a.lang }}</span><i class="{{ a.starIcon }}" style="color:var(--color-accent-400)"></i></button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Completados</h6>
+          <sc-for list="{{ completed }}" as="a">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:14px"><i class="ph-fill ph-check-circle" style="color:var(--color-accent)"></i>{{ a.title }}<span style="margin-left:auto;font-size:12px;color:var(--color-neutral-500)">{{ a.stages }}/{{ a.stages }} · {{ a.lang }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex:1;min-height:0;flex-wrap:wrap">
+      <aside style="flex:0 0 250px;padding:24px 16px 24px 24px;border-right:1px solid var(--color-divider);display:flex;flex-direction:column;gap:14px">
+        <button onClick="{{ goMap }}" style="display:flex;align-items:center;gap:6px;background:transparent;border:0;padding:0;font:inherit;font-size:12px;color:var(--color-neutral-400);cursor:pointer" style-hover="color:var(--color-text)"><i class="ph ph-arrow-left"></i>Mapa</button>
+        <div>
+          <div style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent-400);margin-bottom:4px">{{ proj.track }}</div>
+          <div style="font-size:20px;font-weight:500">{{ proj.title }}</div>
+          <div style="font-size:12px;color:var(--color-neutral-400);margin-top:2px">{{ proj.done }} de {{ proj.stages }} stages · {{ proj.lang }}</div>
+        </div>
+        <div style="display:flex;gap:3px">
+          <sc-for list="{{ proj.segs }}" as="s"><span style="flex:1;height:4px;border-radius:2px;background:{{ s.bg }}"></span></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;margin-top:4px">
+          <sc-for list="{{ stageList }}" as="s" hint-placeholder-count="9">
+            <button onClick="{{ s.onClick }}" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--radius-md);border:0;background:{{ s.bg }};color:{{ s.color }};font:inherit;font-size:13px;cursor:pointer;text-align:left" style-hover="background:color-mix(in srgb, var(--color-text) 6%, transparent)">
+              <span style="width:22px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;color:var(--color-neutral-500)">{{ s.nn }}</span>
+              <span style="flex:1">{{ s.name }}</span>
+              <i class="{{ s.icon }}" style="color:{{ s.ic }}"></i>
+            </button>
+          </sc-for>
+        </div>
+      </aside>
+
+      <main style="flex:1 1 460px;min-width:0;padding:28px 36px;display:flex;flex-direction:column;gap:22px;max-width:760px">
+        <div>
+          <div style="display:flex;align-items:flex-end;gap:18px"><span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:64px;line-height:0.85;letter-spacing:-0.06em;color:transparent;-webkit-text-stroke:1px var(--color-accent-600)">{{ guide.nn }}</span><div><div style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.06em;color:var(--color-neutral-500);margin-bottom:6px">STAGE {{ guide.n }} / {{ proj.stages }}</div><h2 style="margin:0;font-size:30px;letter-spacing:-0.02em">{{ guide.name }}</h2></div></div>
+        </div>
+        <sc-if value="{{ guide.locked }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;padding:18px;border-radius:var(--radius-md);border:1px dashed var(--color-neutral-700);color:var(--color-neutral-400);font-size:14px"><i class="ph ph-lock-simple"></i>Completa el stage anterior para ver las instrucciones.</div>
+        </sc-if>
+        <sc-if value="{{ guide.open }}" hint-placeholder-val="{{ true }}">
+          <p style="margin:0;font-size:15px;line-height:1.65;color:var(--color-neutral-200);text-wrap:pretty">{{ guide.intro }}</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Requisitos</h6>
+            <sc-for list="{{ guide.reqs }}" as="r">
+              <div style="display:flex;gap:10px;font-size:14px;line-height:1.55;color:var(--color-neutral-200)"><i class="ph ph-check" style="color:var(--color-accent);margin-top:4px;flex:none"></i><span>{{ r }}</span></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Ejemplo</h6>
+            <pre style="margin:0;padding:16px 18px;border-radius:var(--radius-md);background:var(--color-surface);box-shadow:var(--shadow-sm);font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--color-neutral-200);overflow:auto">{{ guide.example }}</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button onClick="{{ toggleHint }}" style="display:flex;align-items:center;gap:8px;align-self:flex-start;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-accent-300);cursor:pointer"><i class="ph ph-lightbulb"></i>{{ hintLabel }}</button>
+            <sc-if value="{{ showHint }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:var(--radius-md);background:var(--color-accent-900)">
+                <sc-for list="{{ guide.hints }}" as="h"><div style="font-size:13px;line-height:1.55;color:var(--color-accent-200)">{{ h }}</div></sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </main>
+
+      <aside style="flex:1 1 360px;max-width:440px;min-width:300px;padding:28px 28px 28px 24px;border-left:1px solid var(--color-divider);display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h5 style="margin:0;font-size:15px">Tests</h5>
+          <span style="font-size:12px;color:var(--color-neutral-400)">{{ passCount }}/{{ checkCount }} pasan</span>
+          <span style="margin-left:auto;font-size:11px;padding:2px 9px;border-radius:6px;background:{{ runTagBg }};color:{{ runTagFg }}">{{ runLabel }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;border-radius:var(--radius-md);box-shadow:var(--shadow-sm);overflow:hidden">
+          <sc-for list="{{ checks }}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--color-neutral-900);background:var(--color-surface)">
+              <i class="{{ c.icon }}" style="color:{{ c.color }};font-size:16px"></i>
+              <span style="flex:1;opacity:{{ c.op }}">{{ c.name }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ canRun }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ runTests }}" disabled="{{ running }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:var(--radius-md);border:1px solid var(--color-accent);background:transparent;color:var(--color-accent-300);font:inherit;font-size:14px;font-weight:500;cursor:pointer;opacity:{{ runBtnOp }}" style-hover="background:color-mix(in srgb, var(--color-accent) 12%, transparent)"><i class="ph ph-play"></i>{{ runBtnLabel }}</button>
+          <div style="font-size:12px;color:var(--color-neutral-500);display:flex;gap:6px;flex-wrap:wrap">o desde tu terminal: <code style="font-family:ui-monospace,Menlo,monospace;color:var(--color-neutral-300)">forja test</code> · <code style="font-family:ui-monospace,Menlo,monospace;color:var(--color-neutral-300)">git push</code></div>
+        </sc-if>
+        <sc-if value="{{ stagePassed }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--radius-md);border:1px solid var(--color-accent);background:color-mix(in srgb, var(--color-accent) 8%, transparent)">
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--color-accent-200)"><i class="ph-fill ph-check-circle" style="color:var(--color-accent)"></i>Todos los checks pasan</div>
+            <button onClick="{{ nextStage }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:9px;border-radius:var(--radius-md);border:1px solid var(--color-accent);background:transparent;color:var(--color-accent-200);font:inherit;font-size:14px;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-accent) 14%, transparent)">{{ nextLabel }}<i class="ph ph-arrow-right"></i></button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showAI }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:14px 16px;border-radius:var(--radius-md);background:linear-gradient(160deg, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 70%);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <i class="ph ph-sparkle" style="color:var(--color-accent-300);font-size:15px"></i>
+              <span style="font-size:13px;font-weight:500">Mentor IA</span>
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.06em;color:var(--color-neutral-500)">OPCIONAL</span>
+              <sc-if value="{{ aiHasResult }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearAI }}" style="margin-left:auto;background:transparent;border:0;padding:0;color:var(--color-neutral-500);cursor:pointer;font-size:14px" style-hover="color:var(--color-text)"><i class="ph ph-x"></i></button></sc-if>
+            </div>
+            <sc-if value="{{ aiIdle }}" hint-placeholder-val="{{ true }}">
+              <p style="margin:0;font-size:12px;line-height:1.55;color:var(--color-neutral-400)">{{ aiPrompt }}</p>
+              <button onClick="{{ askAI }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;border-radius:var(--radius-md);border:1px solid var(--color-divider);background:transparent;color:var(--color-accent-200);font:inherit;font-size:13px;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-accent) 10%, transparent);border-color:var(--color-accent)"><i class="ph ph-chat-circle-text"></i>{{ aiBtnLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ aiLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-neutral-400)"><span style="width:6px;height:6px;border-radius:50%;background:var(--color-accent);animation:breathe 1s ease-in-out infinite"></span>Leyendo tu último envío…</div>
+            </sc-if>
+            <sc-if value="{{ aiHasResult }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.06em;color:var(--color-accent-400)">DÓNDE</span><span style="font-size:13px;line-height:1.55;color:var(--color-neutral-200);text-wrap:pretty">{{ ai.donde }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.06em;color:var(--color-accent-400)">POR QUÉ</span><span style="font-size:13px;line-height:1.55;color:var(--color-neutral-200);text-wrap:pretty">{{ ai.porque }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.06em;color:var(--color-accent-400)">QUÉ REPASAR</span>
+                  <sc-for list="{{ ai.repasar }}" as="r"><div style="display:flex;gap:8px;font-size:13px;line-height:1.5;color:var(--color-neutral-200)"><i class="ph ph-book-open" style="color:var(--color-accent-300);margin-top:3px;flex:none"></i><span>{{ r }}</span></div></sc-for>
+                </div>
+                <span style="font-size:11px;color:var(--color-neutral-600)">Pistas conceptuales, sin darte la solución.</span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;flex:1;min-height:200px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--color-bg) 70%, black);box-shadow:var(--shadow-sm);overflow:hidden">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:11px;color:var(--color-neutral-500);border-bottom:1px solid var(--color-neutral-900)"><i class="ph ph-terminal-window"></i>salida del tester</div>
+          <div style="padding:12px 14px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:12px;line-height:1.75;overflow:auto;display:flex;flex-direction:column">
+            <sc-if value="{{ noLog }}" hint-placeholder-val="{{ true }}"><span style="color:var(--color-neutral-600)">Ejecuta los tests para ver la salida.</span></sc-if>
+            <sc-for list="{{ log }}" as="l"><span style="color:{{ l.color }};white-space:pre-wrap">{{ l.text }}</span></sc-for>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;palette&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;fragua&quot;,&quot;candente&quot;,&quot;cobre&quot;,&quot;forjado&quot;,&quot;brasa&quot;,&quot;terminal&quot;,&quot;acero&quot;,&quot;papel&quot;],&quot;default&quot;:&quot;fragua&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Paleta&quot;}}">
+const FAIL = 'oklch(0.66 0.14 25)';
+
+/* ── live data from the codecraft engine ─────────────────────────────────
+   data.json is baked from the engine by scripts/forja_data.py. Each phase becomes a track;
+   each course a node; stages come from the course manifest. Status mapping:
+   complete→done, doing→progress, ready→available (if prereqs met) or locked,
+   author/salvage/legacy→locked with the reason in the description. */
+let P = {}, TRACK = {}, NAMES = {}, COURSE_CMD = {}, COURSE_ID = {}, STAGE_ROWS = {}, ORDER = [];
+let STATE = null;
+
+function buildFromState(s) {
+  TRACK = {}; P = {}; NAMES = {}; COURSE_CMD = {}; COURSE_ID = {}; STAGE_ROWS = {}; ORDER = [];
+  const phaseName = {};
+  s.phases.forEach((ph, pi) => {
+    const code = ph.code;
+    TRACK[code] = ph.title;
+    phaseName[ph.title] = code;
+    ph.items.forEach((it) => {
+      const id = it.id;
+      ORDER.push(id);
+      const checks = it.checks || {};
+      const stages = it.stages || [];
+      const stagesN = stages.length || checks.total || 0;
+      // progress: passed checks, clamped to stage count
+      const passed = Math.min(checks.passed || 0, stagesN || checks.passed || 0);
+      const st = stages[0] || {};
+      P[id] = {
+        title: it.title, track: code, lang: it.kind,
+        stages: stagesN, req: (it.prereq || []).slice(),
+        desc: it.why || '',
+        cmd: it.command || null,
+        stageMeta: stages,
+      };
+      if (passed > 0 || (it.state === 'doing')) P[id].last = 'en curso';
+      if (stagesN) NAMES[id] = stages.map(st => st.title);
+      COURSE_CMD[id] = it.command;
+      COURSE_ID[id] = it.course || id;
+      STAGE_ROWS[id] = {};
+      stages.forEach(st => { STAGE_ROWS[id][st.id] = st.status; });
+    });
+  });
+  assignLayout();
+}
+
+/* Deterministic map layout: phases as columns (left→right in plan order),
+   courses stacked within each column. Computed once from ORDER. */
+function assignLayout() {
+  const colIdx = {}; const phaseOrder = [];
+  ORDER.forEach(id => { const t = P[id].track;
+    if (!(t in colIdx)) { colIdx[t] = phaseOrder.length; phaseOrder.push(t); }
+    P[id].col = colIdx[t]; });
+  const rows = {};
+  ORDER.forEach(id => { const c = P[id].col;
+    P[id].row = (rows[c] = (rows[c] ?? -1) + 1) * 1.05; });
+}
+
+const STEPS=[100,200,300,400,500,600,700,800,900], LS=[0.97,0.93,0.87,0.78,0.68,0.58,0.48,0.38,0.28], CF=[0.25,0.45,0.7,0.95,1,0.95,0.8,0.6,0.4];
+const ramp=(h,c,inv)=>STEPS.map((s,i)=>[s,`oklch(${LS[inv?8-i:i]} ${(c*CF[inv?8-i:i]).toFixed(3)} ${h})`]);
+const PAL={
+  fragua:{bg:'oklch(0.175 0.018 250)',surface:'oklch(0.23 0.02 250)',text:'oklch(0.94 0.01 240)',accent:'oklch(0.73 0.16 52)',ah:52,ac:0.16,nh:250,nc:0.018},
+  candente:{bg:'oklch(0.165 0.008 265)',surface:'oklch(0.215 0.01 265)',text:'oklch(0.95 0.008 80)',accent:'oklch(0.82 0.15 78)',ah:78,ac:0.15,nh:265,nc:0.01},
+  cobre:{bg:'oklch(0.17 0.014 185)',surface:'oklch(0.225 0.016 185)',text:'oklch(0.94 0.012 150)',accent:'oklch(0.72 0.11 45)',ah:45,ac:0.11,nh:185,nc:0.014},
+  forjado:{bg:'oklch(0.16 0.016 285)',surface:'oklch(0.215 0.018 285)',text:'oklch(0.94 0.01 60)',accent:'oklch(0.68 0.18 33)',ah:33,ac:0.17,nh:285,nc:0.016},
+  brasa:{bg:'oklch(0.18 0.012 50)',surface:'oklch(0.235 0.014 50)',text:'oklch(0.94 0.012 70)',accent:'oklch(0.72 0.15 48)',ah:48,ac:0.15,nh:50,nc:0.014},
+  terminal:{bg:'oklch(0.17 0.012 160)',surface:'oklch(0.22 0.014 160)',text:'oklch(0.94 0.02 150)',accent:'oklch(0.80 0.17 150)',ah:150,ac:0.16,nh:160,nc:0.012},
+  acero:{bg:'oklch(0.18 0.016 245)',surface:'oklch(0.235 0.018 245)',text:'oklch(0.94 0.01 240)',accent:'oklch(0.76 0.11 215)',ah:215,ac:0.11,nh:245,nc:0.016},
+  papel:{bg:'oklch(0.965 0.007 80)',surface:'oklch(0.99 0.004 80)',text:'oklch(0.23 0.012 60)',accent:'oklch(0.55 0.15 38)',ah:38,ac:0.15,nh:70,nc:0.012,light:true}
+};
+const VARS=['--color-bg','--color-surface','--color-text','--color-accent','--color-divider','--color-section-glow','--shadow-sm','--shadow-md','--shadow-lg',...STEPS.flatMap(s=>['--color-neutral-'+s,'--color-accent-'+s])];
+class Component extends DCLogic {
+  componentDidMount(){ this.applyPal(); }
+  componentDidUpdate(){ this.applyPal(); }
+  applyPal(){ const k=this.props.palette||'nocturne'; if(this._pal===k) return; this._pal=k; const st=document.documentElement.style;
+    VARS.forEach(v=>st.removeProperty(v)); const p=PAL[k]; if(!p) return;
+    st.setProperty('--color-bg',p.bg); st.setProperty('--color-surface',p.surface); st.setProperty('--color-text',p.text); st.setProperty('--color-accent',p.accent);
+    st.setProperty('--color-divider',`color-mix(in oklch, ${p.text} 16%, transparent)`);
+    ramp(p.nh,p.nc,p.light).forEach(([s,c])=>st.setProperty('--color-neutral-'+s,c));
+    ramp(p.ah,p.ac,p.light).forEach(([s,c])=>st.setProperty('--color-accent-'+s,c));
+    st.setProperty('--color-section-glow',`oklch(0.45 ${p.ac} ${p.ah})`);
+    if(p.light){ st.setProperty('--shadow-sm','0 0 0 1px oklch(0.88 0.01 70)'); st.setProperty('--shadow-md','0 0 0 1px oklch(0.85 0.01 70), 0 6px 18px rgba(60,40,20,0.10)'); st.setProperty('--shadow-lg','0 0 0 1px oklch(0.8 0.01 70), 0 16px 40px rgba(60,40,20,0.14)'); }
+    else { st.setProperty('--shadow-sm',`0 0 0 1px oklch(0.38 ${p.nc} ${p.nh})`); st.setProperty('--shadow-md',`0 0 0 1px oklch(0.48 ${p.nc} ${p.nh}), 0 6px 18px rgba(0,0,0,0.55)`); st.setProperty('--shadow-lg',`0 0 0 1px oklch(0.68 ${p.nc} ${p.nh}), 0 16px 40px rgba(0,0,0,0.65)`); }
+  }
+  state = { view:'map', sel:null, pid:null, stage:0, filter:'all', hint:false,
+    interest:{}, run:'idle', results:[], log:[], runs:{}, aiState:'idle', ai:null };
+  componentDidMount(){ this.applyPal();
+    // pick initial selection once live data is present; poll — the fetch may
+    // still be in flight when React mounts
+    const pick = () => { if (ORDER.length) { this.setState({ sel: ORDER[0], pid: null }); return; }
+      this._pickTimer = setTimeout(pick, 200); };
+    pick();
+  }
+  componentWillUnmount(){ super.componentWillUnmount && super.componentWillUnmount(); clearTimeout(this._pickTimer); }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  status(id){ const d=P[id]; if(!d) return 'locked';
+    const st=d.stageMeta||[];
+    const total=st.length;
+    const passed=st.filter(s=>stagePassed(id,s.id)).length;
+    if(total&&passed===total) return 'done';
+    if(passed>0) return 'progress';
+    // no checker (legacy/author/salvage): locked until prereqs are done
+    if(!d.cmd) return d.req.every(r=>this.status(r)==='done')?'available':'locked';
+    return d.req.every(r=>this.status(r)==='done')?'available':'locked'; }
+  names(id){ if(!P[id]) return []; return NAMES[id] || Array.from({length:P[id].stages},(_,i)=>'Etapa '+(i+1)); }
+  stageNum(id,i){ const m=(P[id].stageMeta||[])[i]; return m?m.id:i+1; }
+  unlocks(id){ return Object.keys(P).filter(k=>P[k].req.includes(id)); }
+  recNext(id){ const u=this.unlocks(id); return u.find(k=>this.state.interest[k]) || u[0]; }
+  guide(id,i){ if(!P[id]) return {intro:'',reqs:[],example:'',hints:[],checks:[]};
+    const meta=(P[id].stageMeta||[])[i]||{}; const name=this.names(id)[i];
+    return {intro:meta.action || `Implementa «${name}» en tu ${P[id].title}.`,
+      reqs:[meta.predict ? `Predicción antes de ejecutar: ${meta.predict}` : 'Ejecuta los checks para verificar tu implementación.'].filter(Boolean),
+      example:`$ ${P[id].cmd||'cz run <curso>'}` + (meta.file ? `  # ${meta.file}` : ''),
+      hints:[(meta.tags||[]).join(', ')].filter(Boolean),
+      checks:this.stageChecks(id,meta)}; }
+  stageChecks(id,meta){ const m=(P[id].stageMeta||[]);
+    // one real check per stage across the course, plus this stage's status
+    return m.map((st,j)=>({name:`${String(st.id).padStart(2,'0')} · ${st.title}`,
+      pass:stagePassed(id,st.id)})); }
+  progressOf(id){ const n=P[id]; if(!n) return 0; const m=n.stageMeta||[]; let d=0; while(d<m.length&&stagePassed(id,m[d].id)) d++; return d; }
+  segs(id){ const n=P[id].stages, d=this.progressOf(id);
+    return Array.from({length:n},(_,i)=>({bg:i<d?'var(--color-accent)':i===d?'var(--color-accent-700)':'var(--color-neutral-800)'})); }
+  open(id){ clearInterval(this.timer); const d=this.progressOf(id);
+    this.setState({view:'project',pid:id,stage:Math.min(d,P[id].stages-1),run:'idle',results:[],log:[],hint:false,aiState:'idle',ai:null}); }
+  start(id){ this.open(id); }
+  selectStage(i){ clearInterval(this.timer); this.setState({stage:i,run:'idle',results:[],log:[],hint:false,aiState:'idle',ai:null}); }
+  runTests = () => {
+    const {pid,stage}=this.state; if(this.state.run==='running') return;
+    const d=P[pid]; if(!d) return;
+    const L=(text,color)=>({text,color});
+    if(!d.cmd || !(d.files||[]).length){ this.setState({run:'fail',results:[],log:[L('[forja] Este proyecto aún no tiene checker ejecutable.','var(--color-neutral-400)'),L('[forja] Vía CLI cuando exista: '+(COURSE_CMD[pid]||'autorría el curso primero.'),FAIL)]}); return; }
+    this.setState({aiState:'idle',ai:null,run:'running',results:[],log:[L(`[forja] Stage #${stage+1}: ${this.names(pid)[stage]}`,'var(--color-neutral-400)'),L('[forja] Arrancando Python en tu navegador (Pyodide)…','var(--color-neutral-500)')]});
+    runChecker(COURSE_ID[pid]||pid)
+      .then(buf=>{
+        const rows=parseChecker(buf);
+        if(!rows.length) throw new Error('el checker no produjo salida parseable');
+        const stageId=this.stageNum(pid,stage);
+        const lines=rows.map(r=>L((r.status==='PASS'?'✓ ':r.status==='FAIL'?'✗ ':'· ')+String(r.id).padStart(2,'0')+' '+r.title,
+          r.status==='PASS'?'var(--color-accent-300)':r.status==='FAIL'?FAIL:'var(--color-neutral-500)'));
+        const cur=rows.find(r=>String(r.id)===String(stageId));
+        const stageOk=cur&&cur.status==='PASS';
+        // persist YOUR results locally; baked data.json stays the base truth
+        STATUS = loadStatus();
+        rows.forEach(r=>{ if(r.status==='PASS') STATUS[(COURSE_ID[pid]||pid)+':'+r.id]='PASS';
+          else delete STATUS[(COURSE_ID[pid]||pid)+':'+r.id]; });
+        saveStatus(STATUS);
+        const passed=rows.filter(r=>r.status==='PASS').length;
+        this.setState(s=>({run:stageOk?'pass':'fail',
+          results:rows.map(r=>r.status==='PASS'?'pass':r.status==='FAIL'?'fail':'idle'),
+          log:[...s.log,...lines,L(`[forja] ${passed}/${rows.length} checks pasan — stage #${stage+1} ${stageOk?'PASA':'aún no pasa'}.`,stageOk?'var(--color-accent-300)':FAIL)]}));
+      })
+      .catch(err=>this.setState(s=>({run:'fail',log:[...s.log,L('[forja] '+(err&&err.message||err),FAIL)]})));
+  };
+  askAI = async () => {
+    const {pid,stage,run,log}=this.state, g=this.guide(pid,stage), name=this.names(pid)[stage];
+    this.setState({aiState:'loading'});
+    const failed=run==='fail'?(g.checks.find(c=>c.pass===false)||null):null;
+    const fallback=failed?{
+      donde:`Falló el check «${failed.name}». Ejecuta el checker por la CLI para ver el fallo completo: ${COURSE_CMD[pid]||'cz run'}.`,
+      porque:'El checker compara el comportamiento real del stage contra su especificación; la web solo lee el resultado.',
+      repasar:['Releer la acción del stage y la predicción esperada.','Ejecutar '+(COURSE_CMD[pid]||'cz run')+' y leer el mensaje de fallo completo.','Volver a predecir ANTES de mirar la solución.']
+    }:{donde:'No hay fallos en tu último envío.',porque:'Los checks del proyecto pasan.',repasar:['Revisa si tu solución escalará al siguiente stage: '+(this.names(pid)[stage+1]||'fin del proyecto')+'.','Refactoriza duplicaciones antes de seguir.']};
+    try{
+      if(!window.claude||!window.claude.complete) throw 0;
+      const prompt=`Eres un mentor de programación en una plataforma tipo CodeCrafters. NO des la solución en código. Responde SOLO con JSON válido: {"donde": string, "porque": string, "repasar": [string, string, string]} en español, frases breves.
+Proyecto: ${P[pid].title}. Stage ${stage+1}: ${name}.
+Enunciado: ${g.intro}
+Requisitos: ${g.reqs.join(' | ')}
+Resultado: ${run==='fail'?'FALLA':'PASA'}
+Salida del tester:
+${log.map(l=>l.text).join('\n')}`;
+      const txt=await window.claude.complete(prompt);
+      const ai=JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));
+      if(!ai.donde||!Array.isArray(ai.repasar)) throw 0;
+      this.setState({aiState:'done',ai});
+    }catch(e){ this.setState({aiState:'done',ai:fallback}); }
+  };
+  nextStage = () => { const {pid,stage}=this.state, n=P[pid].stages;
+    if(stage+1<n) this.selectStage(stage+1); else this.setState({view:'map',sel:pid}); };
+
+  renderVals(){
+    const s=this.state, ids=Object.keys(P);
+    if (!ids.length || !s.sel || !P[s.sel]) {
+      return { tabs:[], doneCount:0, progCount:0, isMap:true, isProgress:false, isProject:false,
+        nodes:[], edges:null, hasNextStep:false, inProgress:[], noProgress:true,
+        available:[], completed:[], sel:{track:'',st:{label:'…',tagBg:'transparent',tagFg:'inherit'},title:'Cargando',desc:'Cargando el plan…',lang:'',stages:0,diff:'',hasProg:false,segs:[],noReq:true,req:[],noUnl:true,unl:[],locked:false,btnOp:0.5,btnLabel:'…',btnIcon:'ph ph-circle'},
+        noLog:true, log:[], checks:[], passCount:0, checkCount:0 };
+    }
+    const ST={
+      done:{border:'1px solid var(--color-accent-700)',bg:'var(--color-surface)',icon:'ph-fill ph-check-circle',ic:'var(--color-accent)',label:'Completado',tagBg:'var(--color-accent-800)',tagFg:'var(--color-accent-100)'},
+      progress:{border:'1px solid var(--color-accent)',bg:'var(--color-surface)',icon:'ph ph-circle-half',ic:'var(--color-accent-300)',label:'En curso',tagBg:'var(--color-accent-800)',tagFg:'var(--color-accent-100)'},
+      available:{border:'1px solid var(--color-neutral-700)',bg:'var(--color-surface)',icon:'ph ph-circle',ic:'var(--color-neutral-400)',label:'Disponible',tagBg:'var(--color-neutral-800)',tagFg:'var(--color-neutral-100)'},
+      locked:{border:'1px dashed var(--color-neutral-700)',bg:'transparent',icon:'ph ph-lock-simple',ic:'var(--color-neutral-600)',label:'Bloqueado',tagBg:'var(--color-neutral-900)',tagFg:'var(--color-neutral-400)'}};
+    const pos=id=>{const d=P[id]; return {x:24+d.col*126, y:48+d.row*76};};
+    const stOf={}; ids.forEach(id=>stOf[id]=this.status(id));
+    const dim=id=>s.filter==='star' && !s.interest[id];
+    const selRel=new Set([s.sel,...P[s.sel].req,...this.unlocks(s.sel)]);
+    const nodes=ids.map(id=>{ const d=P[id], st=stOf[id], t=ST[st], p=pos(id), prog=this.progressOf(id);
+      const sub=st==='done'?`${d.stages}/${d.stages} · ${d.lang}`:st==='progress'?`${prog}/${d.stages}`:st==='available'?`${d.stages} stages · ${d.lang}`:'Requiere '+d.req.map(r=>(P[r]||{}).title||r).join(', ');
+      const ring=st==='progress'?'0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent), 0 0 32px -6px color-mix(in srgb, var(--color-accent) 70%, transparent)':'none';
+      return {x:p.x,y:p.y,title:d.title,sub,border:t.border,bg:t.bg,icon:t.icon,ic:t.ic,isProg:st==='progress',pct:Math.round(prog/d.stages*100),
+        starIcon:s.interest[id]?'ph-fill ph-star':'',op:dim(id)?0.28:st==='locked'?0.7:1,
+        shadow:id===s.sel?'0 0 0 2px var(--color-bg), 0 0 0 3px var(--color-accent), 0 10px 30px rgba(0,0,0,0.5)':ring,
+        onClick:()=>this.setState({sel:id})}; });
+    const paths=[];
+    ids.forEach(id=>P[id].req.forEach(r=>{ if(!P[r]) return; const a=pos(r), b=pos(id), x1=a.x+200, y1=a.y+34, x2=b.x, y2=b.y+34, mx=(x1+x2)/2;
+      const hi=(id===s.sel||r===s.sel), done=stOf[r]==='done', active=(stOf[r]==='progress'&&stOf[id]!=='done')||(done&&stOf[id]==='progress');
+      paths.push(React.createElement('path',{key:r+id,d:`M${x1} ${y1} C${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`,fill:'none',
+        stroke:hi||active?'var(--color-accent)':done?'var(--color-accent-700)':'var(--color-neutral-700)',strokeWidth:hi?1.6:1.2,
+        strokeDasharray:active?'5 3':done||hi?'none':'4 4',style:active?{animation:'flow 0.9s linear infinite',filter:'drop-shadow(0 0 4px var(--color-accent))'}:undefined,opacity:(dim(id)||dim(r))?0.25:1})); }));
+    const edges=React.createElement('svg',{width:1040,height:580,style:{position:'absolute',left:0,top:0,pointerEvents:'none'}},paths);
+
+    const sd=P[s.sel], sst=stOf[s.sel], sp=this.progressOf(s.sel), rec=this.recNext(s.sel);
+    const sel={title:sd.title,track:TRACK[sd.track],desc:sd.desc,lang:sd.lang,stages:sd.stages,diff:sd.diff,st:ST[sst],
+      starBtn:s.interest[s.sel]?'ph-fill ph-star':'ph ph-star',hasProg:sst==='progress',cur:Math.min(sp+1,sd.stages),pct:Math.round(sp/sd.stages*100),segs:this.segs(s.sel),
+      noReq:!sd.req.length,req:sd.req.map(r=>({title:P[r].title,icon:ST[stOf[r]].icon,ic:ST[stOf[r]].ic,onClick:()=>this.setState({sel:r})})),
+      unl:this.unlocks(s.sel).map(u=>({title:P[u].title,rec:u===rec,onClick:()=>this.setState({sel:u})})),noUnl:!this.unlocks(s.sel).length,
+      locked:sst==='locked',btnOp:sst==='locked'?0.45:1,
+      btnLabel:{done:'Revisar proyecto',progress:`Continuar · stage ${sp+1}`,available:'Empezar proyecto',locked:'Bloqueado'}[sst],
+      btnIcon:{done:'ph ph-eye',progress:'ph ph-play',available:'ph ph-play',locked:'ph ph-lock-simple'}[sst],
+      action:()=>{ if(sst==='available') this.start(s.sel); else if(sst!=='locked') this.open(s.sel); }};
+
+    const inProgress=ids.filter(id=>stOf[id]==='progress').map(id=>{ const d=P[id], p=this.progressOf(id); const nx=this.recNext(id);
+      return {pct:Math.round(p/d.stages*100),title:d.title,track:TRACK[d.track],lang:d.lang,last:d.last||'hoy',stages:d.stages,cur:p+1,stageName:this.names(id)[p],segs:this.segs(id),next:nx?P[nx].title:'—',open:()=>this.open(id)}; });
+
+    const pd=P[s.pid]||null, pdone=pd?this.progressOf(s.pid):0, names=this.names(s.pid);
+    const stageList=names.map((n,i)=>{ const state=i<pdone?'done':i===pdone?'current':'locked', act=i===s.stage;
+      return {n:i+1,nn:String(i+1).padStart(2,'0'),name:n,bg:act?'var(--color-accent-900)':'transparent',color:state==='locked'?'var(--color-neutral-500)':act?'var(--color-accent-200)':'var(--color-text)',
+        icon:state==='done'?'ph-fill ph-check-circle':state==='current'?'ph ph-circle-half':'ph ph-lock-simple',
+        ic:state==='done'?'var(--color-accent)':state==='current'?'var(--color-accent-300)':'var(--color-neutral-700)',onClick:()=>this.selectStage(i)}; });
+    const vState=s.stage<pdone?'done':s.stage===pdone?'current':'locked';
+    const g=this.guide(s.pid,s.stage);
+    // default view: real checker state per stage; after a run: the run's verdict
+    const realRes=g.checks.map(c=>c.pass===true?'pass':c.pass===false?'fail':'idle');
+    const res=s.results.length?s.results:realRes;
+    const runMeta={idle:vState==='done'?['Superado','var(--color-accent-800)','var(--color-accent-100)']:vState==='locked'?['Bloqueado','var(--color-neutral-900)','var(--color-neutral-400)']:['Sin ejecutar','var(--color-neutral-800)','var(--color-neutral-200)'],
+      running:['Ejecutando…','var(--color-accent-900)','var(--color-accent-200)'],pass:['Pasa','var(--color-accent-800)','var(--color-accent-100)'],fail:['Falla','color-mix(in srgb, '+FAIL+' 22%, transparent)',FAIL]}[s.run];
+    const tab=(v,label,icon,onClick)=>({label,icon,onClick,bg:s.view===v?'color-mix(in srgb, var(--color-text) 7%, transparent)':'transparent',color:s.view===v?'var(--color-text)':'var(--color-neutral-400)'});
+    // column labels: one per phase, positioned above its column of nodes
+    const colIdxOf={}; Object.keys(TRACK).forEach((t,i)=>colIdxOf[t]=i);
+    const colLabels=Object.keys(TRACK).map((t,i)=>React.createElement('div',{key:t,style:{position:'absolute',left:24+i*126,top:16,fontFamily:"'JetBrains Mono',ui-monospace,Menlo,monospace",fontSize:11,letterSpacing:'0.08em',textTransform:'uppercase',color:'var(--color-neutral-500)'}},String(i+1).padStart(2,'0')+' · '+TRACK[t]));
+    const sAll=s.filter==='all';
+    const CI={idle:['ph ph-circle','var(--color-neutral-600)',0.75],pending:['ph ph-circle-dashed','var(--color-neutral-500)',0.75],running:['ph ph-dots-three-circle','var(--color-accent-300)',1],pass:['ph-fill ph-check-circle','var(--color-accent)',1],fail:['ph-fill ph-x-circle',FAIL,1]};
+    const checks=g.checks.map((c,i)=>({name:c.name,icon:CI[res[i]][0],color:CI[res[i]][1],op:CI[res[i]][2]}));
+    const passCount=res.filter(x=>x==='pass').length;
+    return {
+      colLabels,
+      doneCount:ids.filter(id=>stOf[id]==='done').length, progCount:inProgress.length,
+      isMap:s.view==='map',isProgress:s.view==='progress',isProject:s.view==='project'&&!!s.pid&&!!P[s.pid],
+      setFilterAll:()=>this.setState({filter:'all'}),setFilterStar:()=>this.setState({filter:'star'}),
+      fAllColor:sAll?'var(--color-accent-300)':'var(--color-neutral-400)',fAllShadow:sAll?'inset 0 0 0 1px var(--color-accent)':'none',
+      fStarColor:!sAll?'var(--color-accent-300)':'var(--color-neutral-400)',fStarShadow:!sAll?'inset 0 0 0 1px var(--color-accent)':'none',
+      nodes,edges,sel,toggleStar:()=>this.setState(st=>({interest:{...st.interest,[st.sel]:st.interest[st.sel]?0:1}})),
+      inProgress,noProgress:!inProgress.length,hasNextStep:!!inProgress.length,nextStep:inProgress[0]||{},
+      available:ids.filter(id=>stOf[id]==='available').map(id=>({title:P[id].title,stages:P[id].stages,lang:P[id].lang,starIcon:s.interest[id]?'ph-fill ph-star':'',onClick:()=>this.setState({view:'map',sel:id})})),
+      completed:ids.filter(id=>stOf[id]==='done').map(id=>({title:P[id].title,stages:P[id].stages,lang:P[id].lang})),
+      goMap:()=>this.setState({view:'map',sel:s.pid}),
+      proj:pd?{title:pd.title,track:TRACK[pd.track],lang:pd.lang,stages:pd.stages,done:pdone,segs:this.segs(s.pid)}:{title:'—',track:'',lang:'',stages:0,done:0,segs:[]},
+      stageList,
+      guide:{...g,nn:String(s.stage+1).padStart(2,'0'),n:s.stage+1,name:names[s.stage],locked:vState==='locked',open:vState!=='locked'},
+      showHint:s.hint,hintLabel:s.hint?'Ocultar pistas':'Ver pistas',toggleHint:()=>this.setState(st=>({hint:!st.hint})),
+      checks,passCount,checkCount:g.checks.length,
+      runLabel:runMeta[0],runTagBg:runMeta[1],runTagFg:runMeta[2],
+      canRun:vState!=='locked',running:s.run==='running',runBtnOp:s.run==='running'?0.5:1,
+      runBtnLabel:s.run==='running'?'Ejecutando…':s.run==='idle'?'Ejecutar tests':'Volver a ejecutar',runTests:this.runTests,
+      stagePassed:vState==='current'&&s.run==='pass',nextLabel:!pd||s.stage+1<pd.stages?'Siguiente stage':'Completar proyecto',nextStage:this.nextStage,
+      log:s.log,noLog:!s.log.length,
+      showAI:(this.props.aiMentor ?? true)&&(s.run==='pass'||s.run==='fail'),aiIdle:s.aiState==='idle',aiLoading:s.aiState==='loading',aiHasResult:s.aiState==='done'&&!!s.ai,ai:s.ai||{repasar:[]},
+      aiPrompt:s.run==='fail'?'¿No entiendes por qué falla? Pide un análisis de tu último envío: dónde te equivocaste, por qué y qué conceptos repasar.':'Pasa todo. Puedes pedir feedback sobre qué afianzar antes del siguiente stage.',
+      aiBtnLabel:s.run==='fail'?'Explícame el fallo':'Pedir feedback',askAI:this.askAI,clearAI:()=>this.setState({aiState:'idle',ai:null})
+    };
+  }
+}
+
+
+/* ── static deployment: data.json + Pyodide runner ──────────────────────
+   No Python server. The engine state is baked into data.json by
+   scripts/forja_data.py in the repo; checkers run IN YOUR BROWSER via
+   Pyodide against the templates fetched from raw.githubusercontent.
+   Progress (which stages you passed) lives in localStorage — this page
+   never fakes a pass: the checkers decide. */
+const DATA_URL = 'data.json';
+const RAW = 'https://raw.githubusercontent.com/alektebel/learn-stuff-from-scratch/main/';
+const PYODIDE_VERSION = 'v0.26.4';
+const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/' + PYODIDE_VERSION + '/full/';
+let PY = null, PY_LOADING = null;
+
+async function __forgeBoot() {
+  const res = await fetch(DATA_URL, { cache: 'no-store' });
+  STATE = await res.json();
+  buildFromState(STATE);
+  // real checker truth wins over the baked file: re-derive from localStorage
+  window.__forgeReady = true;
+}
+
+/* localStorage-backed status, keyed course:stageId */
+function lsKey(){ return 'forja:status'; }
+function loadStatus(){ try { return JSON.parse(localStorage.getItem(lsKey())||'{}'); } catch(e){ return {}; } }
+function saveStatus(st){ try { localStorage.setItem(lsKey(), JSON.stringify(st)); } catch(e){} }
+let STATUS = loadStatus();
+function stagePassed(id, i) { return (STATUS[id+':'+i] || (STAGE_ROWS[id]||{})[i]) === 'PASS'; }
+
+/* Pyodide boot + checker execution, mirroring learn/index.html */
+function stripAnsi(s){ return String(s).replace(/\x1b\[[0-9;]*m/g,''); }
+function loadScript(u){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=u; s.onload=res; s.onerror=()=>rej(new Error('no pude cargar '+u)); document.head.appendChild(s); }); }
+async function ensurePy(){
+  if (PY) return PY;
+  if (!PY_LOADING) PY_LOADING = (async () => {
+    if (!window.loadPyodide) await loadScript(PYODIDE_BASE + 'pyodide.js');
+    PY = await window.loadPyodide({ indexURL: PYODIDE_BASE });
+    return PY;
+  })();
+  return PY_LOADING;
+}
+async function fetchText(url){ const r = await fetch(url, {cache:'no-store'}); if (!r.ok) throw new Error('HTTP '+r.status+' al traer '+url); return r.text(); }
+
+async function runChecker(course, out) {
+  const d = P[course]; if (!d) throw new Error('curso desconocido');
+  const py = await ensurePy();
+  const dir = '/work/' + course;
+  try { py.FS.mkdirTree(dir); } catch (e) {}
+  for (const name of (d.files||[])) {
+    const text = await fetchText(RAW + d.course + '/' + name);
+    py.FS.writeFile(dir + '/' + name, text);
+  }
+  let buf = '';
+  py.setStdout({ batched: (s) => { buf += s + '\n'; } });
+  py.setStderr({ batched: (s) => { buf += s + '\n'; } });
+  const code = [
+    'import os, sys, importlib.util',
+    'os.chdir(' + JSON.stringify(dir) + ')',
+    'sys.path.insert(0, os.getcwd())',
+    'spec = importlib.util.spec_from_file_location("checkmod", "check.py")',
+    'mod = importlib.util.module_from_spec(spec)',
+    'spec.loader.exec_module(mod)',
+    'mod.main(["--all"])'
+  ].join('\n');
+  await py.runPythonAsync(code);
+  return buf;
+}
+
+function parseChecker(buf) {
+  const lines = stripAnsi(buf).split('\n');
+  const rows = []; let cur = null;
+  for (const line of lines) {
+    const m = line.match(/^\s*([\u2713\u00b7\u2717])\s+(\d+)\.\s+(\S+)\s*(.*)$/);
+    if (m) { cur = { id: parseInt(m[2],10), file: m[3], title: m[4].trim(),
+      status: m[1]==='\u2713'?'PASS':m[1]==='\u00b7'?'TODO':'FAIL', detail:'' };
+      rows.push(cur); continue; }
+    if (cur && line.trim() && !/^\s*\d+\/\d+ passing/.test(line) && !/^\s*(Next:|The docstrings)/.test(line))
+      cur.detail += (cur.detail?' ':'') + line.trim();
+  }
+  return rows;
+}
+__forgeBoot();
+</script>
+</body>
+</html>
