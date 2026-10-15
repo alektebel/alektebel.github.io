@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-15T23:20:05",
+ "generated": "2026-10-15T23:35:38",
  "repo": "alektebel/learn-stuff-from-scratch",
  "ref": "main",
  "phases": [
@@ -90,12 +90,6 @@
    "checks": {
     "passed": 0,
     "total": 18
-   },
-   "repo": {
-    "baseline": 95,
-    "remaining": 95,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -312,8 +306,7 @@
     "sns.py",
     "sqs.py",
     "vpc.py"
-   ],
-   "entry": "check.py"
+   ]
   },
   "A2": {
    "id": "A2",
@@ -327,12 +320,6 @@
    "checks": {
     "passed": 0,
     "total": 13
-   },
-   "repo": {
-    "baseline": 26,
-    "remaining": 26,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -490,8 +477,7 @@
     "rope.py",
     "sampling.py",
     "tokenizer.py"
-   ],
-   "entry": "check.py"
+   ]
   },
   "A3": {
    "id": "A3",
@@ -507,12 +493,6 @@
    "checks": {
     "passed": 0,
     "total": 16
-   },
-   "repo": {
-    "baseline": 94,
-    "remaining": 94,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -706,8 +686,7 @@
     "semantic_cache.py",
     "serving_demo.py",
     "tiny_transformer.py"
-   ],
-   "entry": "check.py"
+   ]
   },
   "A4": {
    "id": "A4",
@@ -723,12 +702,6 @@
    "checks": {
     "passed": 0,
     "total": 14
-   },
-   "repo": {
-    "baseline": 42,
-    "remaining": 42,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -896,10 +869,8 @@
     "evaluate.py",
     "lasso.py",
     "logit_probs.py",
-    "partition.py",
-    "toy_lm.py"
-   ],
-   "entry": "check.py"
+    "partition.py"
+   ]
   },
   "A5": {
    "id": "A5",
@@ -914,7 +885,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -932,12 +902,6 @@
    "checks": {
     "passed": 0,
     "total": 17
-   },
-   "repo": {
-    "baseline": 70,
-    "remaining": 70,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -1139,8 +1103,7 @@
     "partitioning.py",
     "quorum.py",
     "vector_clock.py"
-   ],
-   "entry": "check.py"
+   ]
   },
   "A7": {
    "id": "A7",
@@ -1156,12 +1119,6 @@
    "checks": {
     "passed": 0,
     "total": 12
-   },
-   "repo": {
-    "baseline": 34,
-    "remaining": 34,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -1301,12 +1258,10 @@
    "files": [
     "capacity.py",
     "check.py",
-    "deployment.py",
     "diagnose.py",
     "metrics.py",
     "rollout.py"
-   ],
-   "entry": "check.py"
+   ]
   },
   "B1": {
    "id": "B1",
@@ -1324,7 +1279,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1343,7 +1297,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1362,7 +1315,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1382,7 +1334,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1401,7 +1352,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1421,7 +1371,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1441,7 +1390,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1460,7 +1408,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1476,12 +1423,6 @@
    "checks": {
     "passed": 0,
     "total": 12
-   },
-   "repo": {
-    "baseline": 53,
-    "remaining": 53,
-    "written": 0,
-    "fraction": 0.0
    },
    "stages": [
     {
@@ -1627,8 +1568,7 @@
     "frontend.py",
     "isa.py",
     "vgpu.py"
-   ],
-   "entry": "check.py"
+   ]
   },
   "G2": {
    "id": "G2",
@@ -1645,7 +1585,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1664,7 +1603,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1683,7 +1621,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1702,7 +1639,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1719,7 +1655,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1738,7 +1673,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1757,7 +1691,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1776,7 +1709,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   },
@@ -1793,7 +1725,6 @@
     "passed": 0,
     "total": 0
    },
-   "repo": null,
    "stages": [],
    "files": []
   }
