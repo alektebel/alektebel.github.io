@@ -314,10 +314,11 @@ function buildFromState(s) {
       const passed = Math.min(checks.passed || 0, stagesN || checks.passed || 0);
       const st = stages[0] || {};
       P[id] = {
-        title: it.title, track: code, lang: it.kind,
+        id: id, title: it.title, track: code, lang: it.kind,
         stages: stagesN, req: (it.prereq || []).slice(),
         desc: it.why || '',
         cmd: it.command || null,
+        course: it.course || null,
         stageMeta: stages,
         files: it.files || [],
       };
