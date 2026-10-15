@@ -603,9 +603,11 @@ async function ensurePy(){
 async function fetchText(url){ const r = await fetch(url, {cache:'no-store'}); if (!r.ok) throw new Error('HTTP '+r.status+' al traer '+url); return r.text(); }
 
 async function runChecker(course, out) {
-  const d = P[course]; if (!d) throw new Error('curso desconocido');
+  const d = P[course] || Object.values(P).find(c => c.course === course) || P[course];
+  const key = P[course] ? course : (Object.keys(P).find(k => P[k].course === course) || course);
+  if (!d) throw new Error('curso desconocido');
   const py = await ensurePy();
-  const dir = '/work/' + course;
+  const dir = '/work/' + key;
   try { py.FS.mkdirTree(dir); } catch (e) {}
   for (const name of (d.files||[])) {
     const text = await fetchText(RAW + d.course + '/' + name);
