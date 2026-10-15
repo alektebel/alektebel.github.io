@@ -521,7 +521,7 @@ ${log.map(l=>l.text).join('\n')}`;
     const g=this.guide(s.pid,s.stage);
     // default view: real checker state per stage; after a run: the run's verdict
     // visitor's own passes (localStorage) take priority over the baked status
-    const key0=COURSE_ID[s.pid]||s.pid, st0=P[s.pid].stageMeta||[];
+    const key0=COURSE_ID[s.pid]||s.pid, st0=(s.pid&&P[s.pid])?(P[s.pid].stageMeta||[]):[];
     const realRes=g.checks.map((c,i)=>{ const sid=st0[i]?st0[i].id:i+1;
       return STATUS[key0+':'+sid]==='PASS' ? 'pass'
         : c.pass===true?'pass':c.pass===false?'fail':'idle'; });
