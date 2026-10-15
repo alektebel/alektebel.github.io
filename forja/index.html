@@ -303,7 +303,8 @@ function buildFromState(s) {
     const code = ph.code;
     TRACK[code] = ph.title;
     phaseName[ph.title] = code;
-    ph.items.forEach((it) => {
+    ph.items.forEach((entry) => {
+      const it = typeof entry === 'string' ? s.courses[entry] : entry;
       const id = it.id;
       ORDER.push(id);
       const checks = it.checks || {};
