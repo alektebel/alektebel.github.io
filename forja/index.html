@@ -591,7 +591,8 @@ function lsKey(){ return 'forja:status'; }
 function loadStatus(){ try { return JSON.parse(localStorage.getItem(lsKey())||'{}'); } catch(e){ return {}; } }
 function saveStatus(st){ try { localStorage.setItem(lsKey(), JSON.stringify(st)); } catch(e){} }
 let STATUS = loadStatus();
-function stagePassed(id, i) { return (STATUS[id+':'+i] || (STAGE_ROWS[id]||{})[i]) === 'PASS'; }
+function stagePassed(id, i) { const key = COURSE_ID[id] || id;
+  return (STATUS[key+':'+i] || (STAGE_ROWS[id]||{})[i]) === 'PASS'; }
 
 /* Pyodide boot + checker execution, mirroring learn/index.html */
 function stripAnsi(s){ return String(s).replace(/\x1b\[[0-9;]*m/g,''); }
