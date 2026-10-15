@@ -319,6 +319,7 @@ function buildFromState(s) {
         desc: it.why || '',
         cmd: it.command || null,
         stageMeta: stages,
+        files: it.files || [],
       };
       if (passed > 0 || (it.state === 'doing')) P[id].last = 'en curso';
       if (stagesN) NAMES[id] = stages.map(st => st.title);
