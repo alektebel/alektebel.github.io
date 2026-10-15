@@ -520,7 +520,11 @@ ${log.map(l=>l.text).join('\n')}`;
     const vState=s.stage<pdone?'done':s.stage===pdone?'current':'locked';
     const g=this.guide(s.pid,s.stage);
     // default view: real checker state per stage; after a run: the run's verdict
-    const realRes=g.checks.map(c=>c.pass===true?'pass':c.pass===false?'fail':'idle');
+    // visitor's own passes (localStorage) take priority over the baked status
+    const key0=COURSE_ID[s.pid]||s.pid, st0=P[s.pid].stageMeta||[];
+    const realRes=g.checks.map((c,i)=>{ const sid=st0[i]?st0[i].id:i+1;
+      return STATUS[key0+':'+sid]==='PASS' ? 'pass'
+        : c.pass===true?'pass':c.pass===false?'fail':'idle'; });
     const res=s.results.length?s.results:realRes;
     const runMeta={idle:vState==='done'?['Superado','var(--color-accent-800)','var(--color-accent-100)']:vState==='locked'?['Bloqueado','var(--color-neutral-900)','var(--color-neutral-400)']:['Sin ejecutar','var(--color-neutral-800)','var(--color-neutral-200)'],
       running:['Ejecutando…','var(--color-accent-900)','var(--color-accent-200)'],pass:['Pasa','var(--color-accent-800)','var(--color-accent-100)'],fail:['Falla','color-mix(in srgb, '+FAIL+' 22%, transparent)',FAIL]}[s.run];
