@@ -60,23 +60,42 @@
           <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-circle-half" style="color:var(--color-accent-300)"></i>En curso</span>
           <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-circle" style="color:var(--color-neutral-400)"></i>Disponible</span>
           <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-lock-simple" style="color:var(--color-neutral-600)"></i>Bloqueado</span>
+          <span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="ph ph-arrow-square-in" style="color:var(--color-neutral-400)"></i>Requiere otro track</span>
+          <button onClick="{{ toggleAll }}" style="margin-left:auto;display:flex;align-items:center;gap:6px;background:transparent;border:0;padding:0;font:inherit;font-size:12px;color:var(--color-accent-300);cursor:pointer;white-space:nowrap"><i class="{{ toggleAllIcon }}"></i>{{ toggleAllLabel }}</button>
         </div>
-        <div style="overflow:auto;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);background-color:color-mix(in srgb, var(--color-surface) 35%, var(--color-bg));background-image:radial-gradient(var(--color-neutral-900) 1px, transparent 1px);background-size:20px 20px">
-          <div style="position:relative;width:1040px;height:580px">
-            <div style="position:absolute;left:0;right:0;top:0;height:330px;background:linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 4%, transparent), transparent 40%)"></div><div style="position:absolute;left:0;right:0;top:332px;height:1px;background:linear-gradient(to right, transparent, var(--color-divider) 48px, var(--color-divider) calc(100% - 48px), transparent)"></div>{{ colLabels }}
-            {{ edges }}
-            <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="15">
-              <button onClick="{{ n.onClick }}" style="position:absolute;left:{{ n.x }}px;top:{{ n.y }}px;width:200px;height:68px;box-sizing:border-box;padding:10px 12px;text-align:left;font:inherit;color:var(--color-text);cursor:pointer;border-radius:var(--radius-md);border:{{ n.border }};background:{{ n.bg }};box-shadow:{{ n.shadow }};opacity:{{ n.op }};display:flex;flex-direction:column;justify-content:space-between;transition:box-shadow .15s, opacity .15s">
-                <span style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500"><i class="{{ n.icon }}" style="color:{{ n.ic }};font-size:16px"></i>{{ n.title }}<i class="{{ n.starIcon }}" style="margin-left:auto;color:var(--color-accent-400);font-size:13px"></i></span>
-                <span style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-neutral-400);font-family:'JetBrains Mono',ui-monospace,Menlo,monospace">
-                  <span>{{ n.sub }}</span>
-                  <sc-if value="{{ n.isProg }}" hint-placeholder-val="{{ false }}">
-                    <span style="flex:1;height:3px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden"><span style="display:block;height:100%;width:{{ n.pct }}%;background:var(--color-accent)"></span></span>
-                  </sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ tracks }}" as="t" hint-placeholder-count="6">
+            <div style="border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);background:color-mix(in srgb, var(--color-surface) 35%, var(--color-bg));overflow:hidden;opacity:{{ t.op }}">
+              <button onClick="{{ t.toggle }}" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;background:transparent;border:0;font:inherit;color:var(--color-text);cursor:pointer;text-align:left;box-shadow:{{ t.border }};border-radius:var(--radius-lg)" style-hover="background:color-mix(in srgb, var(--color-text) 3%, transparent)">
+                <i class="{{ t.chev }}" style="color:var(--color-neutral-400);font-size:14px;flex:none"></i>
+                <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;color:var(--color-neutral-500)">{{ t.idx }}</span>
+                <span style="font-size:15px;font-weight:500;white-space:nowrap">{{ t.name }}</span>
+                <span style="display:flex;gap:4px;flex-wrap:wrap;min-width:0">
+                  <sc-for list="{{ t.dots }}" as="d"><span title="{{ d.title }}" style="width:9px;height:9px;border-radius:2px;background:{{ d.bg }};box-shadow:{{ d.ring }}"></span></sc-for>
                 </span>
+                <sc-if value="{{ t.hasProg }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;padding:2px 8px;border-radius:6px;background:var(--color-accent-900);color:var(--color-accent-300);white-space:nowrap">{{ t.progLabel }}</span></sc-if>
+                <span style="margin-left:auto;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:12px;color:var(--color-neutral-400);white-space:nowrap">{{ t.done }}/{{ t.total }}</span>
               </button>
-            </sc-for>
-          </div>
+              <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                <div style="overflow-x:auto;background-image:radial-gradient(var(--color-neutral-900) 1px, transparent 1px);background-size:20px 20px">
+                  <div style="position:relative;width:{{ t.w }}px;height:{{ t.h }}px">
+                    {{ t.edges }}
+                    <sc-for list="{{ t.nodes }}" as="n">
+                      <button onClick="{{ n.onClick }}" style="position:absolute;left:{{ n.x }}px;top:{{ n.y }}px;width:200px;height:64px;box-sizing:border-box;padding:9px 12px;text-align:left;font:inherit;color:var(--color-text);cursor:pointer;border-radius:var(--radius-md);border:{{ n.border }};background:{{ n.bg }};box-shadow:{{ n.shadow }};opacity:{{ n.op }};display:flex;flex-direction:column;justify-content:space-between;transition:box-shadow .15s, opacity .15s">
+                        <span style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;min-width:0"><i class="{{ n.icon }}" style="color:{{ n.ic }};font-size:16px;flex:none"></i><span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.title }}</span><span style="margin-left:auto;display:flex;gap:5px;flex:none"><i class="{{ n.extIcon }}" title="{{ n.extTitle }}" style="color:var(--color-neutral-400);font-size:13px"></i><i class="{{ n.starIcon }}" style="color:var(--color-accent-400);font-size:13px"></i></span></span>
+                        <span style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-neutral-400);font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;min-width:0">
+                          <span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.sub }}</span>
+                          <sc-if value="{{ n.isProg }}" hint-placeholder-val="{{ false }}">
+                            <span style="flex:1;height:3px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden"><span style="display:block;height:100%;width:{{ n.pct }}%;background:var(--color-accent)"></span></span>
+                          </sc-if>
+                        </span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
         </div>
       </main>
       <aside style="flex:0 1 340px;min-width:280px;padding:28px;border-left:1px solid var(--color-divider);display:flex;flex-direction:column;gap:18px">
@@ -106,14 +125,14 @@
           <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Requiere</h6>
           <sc-if value="{{ sel.noReq }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--color-neutral-400)">Punto de entrada — sin requisitos.</span></sc-if>
           <sc-for list="{{ sel.req }}" as="r">
-            <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-text);cursor:pointer;text-align:left"><i class="{{ r.icon }}" style="color:{{ r.ic }}"></i>{{ r.title }}</button>
+            <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-text);cursor:pointer;text-align:left"><i class="{{ r.icon }}" style="color:{{ r.ic }}"></i>{{ r.title }}<span style="font-size:11px;color:var(--color-neutral-500)">{{ r.tnote }}</span></button>
           </sc-for>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <h6 style="margin:0;color:var(--color-neutral-500);font-size:11px;font-weight:500">Desbloquea</h6>
           <sc-if value="{{ sel.noUnl }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--color-neutral-400)">Final de la ruta.</span></sc-if>
           <sc-for list="{{ sel.unl }}" as="r">
-            <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-text);cursor:pointer;text-align:left"><i class="ph ph-arrow-right" style="color:var(--color-neutral-500)"></i>{{ r.title }}<sc-if value="{{ r.rec }}"><span style="font-size:10px;padding:1px 7px;border-radius:5px;border:1px solid var(--color-accent);color:var(--color-accent-300)">recomendado</span></sc-if></button>
+            <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font:inherit;font-size:13px;color:var(--color-text);cursor:pointer;text-align:left"><i class="ph ph-arrow-right" style="color:var(--color-neutral-500)"></i>{{ r.title }}<span style="font-size:11px;color:var(--color-neutral-500)">{{ r.tnote }}</span><sc-if value="{{ r.rec }}"><span style="font-size:10px;padding:1px 7px;border-radius:5px;border:1px solid var(--color-accent);color:var(--color-accent-300)">recomendado</span></sc-if></button>
           </sc-for>
         </div>
         <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
@@ -371,7 +390,7 @@ class Component extends DCLogic {
     if(p.light){ st.setProperty('--shadow-sm','0 0 0 1px oklch(0.88 0.01 70)'); st.setProperty('--shadow-md','0 0 0 1px oklch(0.85 0.01 70), 0 6px 18px rgba(60,40,20,0.10)'); st.setProperty('--shadow-lg','0 0 0 1px oklch(0.8 0.01 70), 0 16px 40px rgba(60,40,20,0.14)'); }
     else { st.setProperty('--shadow-sm',`0 0 0 1px oklch(0.38 ${p.nc} ${p.nh})`); st.setProperty('--shadow-md',`0 0 0 1px oklch(0.48 ${p.nc} ${p.nh}), 0 6px 18px rgba(0,0,0,0.55)`); st.setProperty('--shadow-lg',`0 0 0 1px oklch(0.68 ${p.nc} ${p.nh}), 0 16px 40px rgba(0,0,0,0.65)`); }
   }
-  state = { view:'map', sel:null, pid:null, stage:0, filter:'all', hint:false,
+  state = { view:'map', sel:null, pid:null, stage:0, filter:'all', hint:false, open:{},
     interest:{}, run:'idle', results:[], log:[], runs:{}, aiState:'idle', ai:null };
   componentDidMount(){ this.applyPal();
     // pick initial selection once live data is present; poll — the fetch may
@@ -471,7 +490,8 @@ ${log.map(l=>l.text).join('\n')}`;
     const s=this.state, ids=Object.keys(P);
     if (!ids.length || !s.sel || !P[s.sel]) {
       return { tabs:[], doneCount:0, progCount:0, isMap:true, isProgress:false, isProject:false,
-        nodes:[], edges:null, hasNextStep:false, inProgress:[], noProgress:true,
+        tracks:[], allOpen:false, toggleAll:()=>{}, toggleAllLabel:'…', toggleAllIcon:'ph ph-circle',
+        hasNextStep:false, inProgress:[], noProgress:true,
         available:[], completed:[], sel:{track:'',st:{label:'…',tagBg:'transparent',tagFg:'inherit'},title:'Cargando',desc:'Cargando el plan…',lang:'',stages:0,diff:'',hasProg:false,segs:[],noReq:true,req:[],noUnl:true,unl:[],locked:false,btnOp:0.5,btnLabel:'…',btnIcon:'ph ph-circle'},
         noLog:true, log:[], checks:[], passCount:0, checkCount:0 };
     }
@@ -483,27 +503,53 @@ ${log.map(l=>l.text).join('\n')}`;
     const pos=id=>{const d=P[id]; return {x:24+d.col*126, y:48+d.row*76};};
     const stOf={}; ids.forEach(id=>stOf[id]=this.status(id));
     const dim=id=>s.filter==='star' && !s.interest[id];
-    const selRel=new Set([s.sel,...P[s.sel].req,...this.unlocks(s.sel)]);
-    const nodes=ids.map(id=>{ const d=P[id], st=stOf[id], t=ST[st], p=pos(id), prog=this.progressOf(id);
-      const sub=st==='done'?`${d.stages}/${d.stages} · ${d.lang}`:st==='progress'?`${prog}/${d.stages}`:st==='available'?`${d.stages} stages · ${d.lang}`:'Requiere '+d.req.map(r=>(P[r]||{}).title||r).join(', ');
-      const ring=st==='progress'?'0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent), 0 0 32px -6px color-mix(in srgb, var(--color-accent) 70%, transparent)':'none';
-      return {x:p.x,y:p.y,title:d.title,sub,border:t.border,bg:t.bg,icon:t.icon,ic:t.ic,isProg:st==='progress',pct:Math.round(prog/d.stages*100),
-        starIcon:s.interest[id]?'ph-fill ph-star':'',op:dim(id)?0.28:st==='locked'?0.7:1,
-        shadow:id===s.sel?'0 0 0 2px var(--color-bg), 0 0 0 3px var(--color-accent), 0 10px 30px rgba(0,0,0,0.5)':ring,
-        onClick:()=>this.setState({sel:id})}; });
-    const paths=[];
-    ids.forEach(id=>P[id].req.forEach(r=>{ if(!P[r]) return; const a=pos(r), b=pos(id), x1=a.x+200, y1=a.y+34, x2=b.x, y2=b.y+34, mx=(x1+x2)/2;
-      const hi=(id===s.sel||r===s.sel), done=stOf[r]==='done', active=(stOf[r]==='progress'&&stOf[id]!=='done')||(done&&stOf[id]==='progress');
-      paths.push(React.createElement('path',{key:r+id,d:`M${x1} ${y1} C${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`,fill:'none',
-        stroke:hi||active?'var(--color-accent)':done?'var(--color-accent-700)':'var(--color-neutral-700)',strokeWidth:hi?1.6:1.2,
-        strokeDasharray:active?'5 3':done||hi?'none':'4 4',style:active?{animation:'flow 0.9s linear infinite',filter:'drop-shadow(0 0 4px var(--color-accent))'}:undefined,opacity:(dim(id)||dim(r))?0.25:1})); }));
-    const edges=React.createElement('svg',{width:1040,height:580,style:{position:'absolute',left:0,top:0,pointerEvents:'none'}},paths);
+    /* Per-phase sections (v3 map): courses laid out by dependency depth inside
+       their phase, cross-phase prereqs shown as an external-requirement icon. */
+    const NW=200, NH=64, CX=250, RY=84, PX=20, PY=16;
+    const tracks=Object.keys(TRACK).map((tk,ti)=>{
+      const tids=ids.filter(id=>P[id].track===tk), inT=r=>P[r]&&P[r].track===tk;
+      const depth={}; const dep=id=>depth[id]??(depth[id]=Math.max(-1,...P[id].req.filter(inT).map(dep))+1); tids.forEach(dep);
+      const cols=[], row={};
+      tids.forEach(id=>(cols[depth[id]]=cols[depth[id]]||[]).push(id));
+      cols.forEach(c=>{ const m=i=>{const p=P[i].req.filter(inT).map(r=>row[r]); return p.length?Math.min(...p):0;}; c.sort((x,y)=>m(x)-m(y)); c.forEach((id,i)=>row[id]=i); });
+      const pos=id=>({x:PX+depth[id]*CX,y:PY+row[id]*RY});
+      const maxRows=Math.max(1,...cols.map(c=>c.length));
+      const w=PX*2+(cols.length-1)*CX+NW, hgt=PY*2+(maxRows-1)*RY+NH;
+      const nodes=tids.map(id=>{ const d=P[id], st=stOf[id], t=ST[st], p=pos(id), prog=this.progressOf(id);
+        const ext=d.req.filter(r=>P[r]&&!inT(r));
+        const sub=st==='done'?`${d.stages}/${d.stages} · ${d.lang}`:st==='progress'?`${prog}/${d.stages}`:st==='available'?`${d.stages} stages · ${d.lang}`:'Requiere '+d.req.map(r=>(P[r]||{}).title||r).join(', ');
+        const ring=st==='progress'?'0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent), 0 0 32px -6px color-mix(in srgb, var(--color-accent) 70%, transparent)':'none';
+        return {x:p.x,y:p.y,title:d.title,sub,border:t.border,bg:t.bg,icon:t.icon,ic:t.ic,isProg:st==='progress',pct:Math.round(prog/d.stages*100),
+          extIcon:ext.length?'ph ph-arrow-square-in':'',extTitle:ext.length?'Requiere de otro track: '+ext.map(r=>P[r].title+' ('+TRACK[P[r].track]+')').join(', '):'',
+          starIcon:s.interest[id]?'ph-fill ph-star':'',op:dim(id)?0.28:st==='locked'?0.7:1,
+          shadow:id===s.sel?'0 0 0 2px var(--color-bg), 0 0 0 3px var(--color-accent), 0 10px 30px rgba(0,0,0,0.5)':ring,
+          onClick:()=>this.setState({sel:id})}; });
+      const paths=[];
+      tids.forEach(id=>P[id].req.filter(inT).forEach(r=>{ const A=pos(r), B=pos(id), x1=A.x+NW, y1=A.y+NH/2, x2=B.x, y2=B.y+NH/2, mx=(x1+x2)/2;
+        const hi=(id===s.sel||r===s.sel), done=stOf[r]==='done', active=(stOf[r]==='progress'&&stOf[id]!=='done')||(done&&stOf[id]==='progress');
+        paths.push(React.createElement('path',{key:r+id,d:`M${x1} ${y1} C${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`,fill:'none',
+          stroke:hi||active?'var(--color-accent)':done?'var(--color-accent-700)':'var(--color-neutral-700)',strokeWidth:hi?1.6:1.2,
+          strokeDasharray:active?'5 3':done||hi?'none':'4 4',style:active?{animation:'flow 0.9s linear infinite',filter:'drop-shadow(0 0 4px var(--color-accent))'}:undefined,opacity:(dim(id)||dim(r))?0.25:1})); }));
+      const edges=React.createElement('svg',{width:w,height:hgt,style:{position:'absolute',left:0,top:0,pointerEvents:'none'}},paths);
+      const open=!!s.open[tk], nDone=tids.filter(i=>stOf[i]==='done').length, nProg=tids.filter(i=>stOf[i]==='progress').length;
+      const dots=tids.map(i=>{const st=stOf[i]; return {title:P[i].title,bg:st==='done'?'var(--color-accent)':st==='progress'?'var(--color-accent-700)':st==='available'?'var(--color-neutral-600)':'transparent',
+        ring:st==='progress'?'inset 0 0 0 1px var(--color-accent)':st==='locked'?'inset 0 0 0 1px var(--color-neutral-700)':'none'};});
+      const hasSel=P[s.sel].track===tk;
+      return {idx:String(ti+1).padStart(2,'0'),name:TRACK[tk],open,chev:open?'ph ph-caret-down':'ph ph-caret-right',w,h:hgt,nodes,edges,dots,
+        done:nDone,total:tids.length,hasProg:nProg>0,progLabel:nProg+' en curso',
+        op:s.filter==='star'&&!tids.some(i=>s.interest[i])?0.45:1,
+        border:hasSel&&!open?'inset 0 0 0 1px var(--color-accent-700)':'none',
+        toggle:()=>this.setState(st=>({open:{...st.open,[tk]:st.open[tk]?0:1}}))};
+    });
+    const allOpen=tracks.every(t=>t.open);
+    const setSel=id=>this.setState(st=>({sel:id,open:{...st.open,[P[id].track]:1}}));
+
 
     const sd=P[s.sel], sst=stOf[s.sel], sp=this.progressOf(s.sel), rec=this.recNext(s.sel);
     const sel={title:sd.title,track:TRACK[sd.track],desc:sd.desc,lang:sd.lang,stages:sd.stages,diff:sd.diff,st:ST[sst],
       starBtn:s.interest[s.sel]?'ph-fill ph-star':'ph ph-star',hasProg:sst==='progress',cur:Math.min(sp+1,sd.stages),pct:Math.round(sp/sd.stages*100),segs:this.segs(s.sel),
-      noReq:!sd.req.length,req:sd.req.map(r=>({title:P[r].title,icon:ST[stOf[r]].icon,ic:ST[stOf[r]].ic,onClick:()=>this.setState({sel:r})})),
-      unl:this.unlocks(s.sel).map(u=>({title:P[u].title,rec:u===rec,onClick:()=>this.setState({sel:u})})),noUnl:!this.unlocks(s.sel).length,
+      noReq:!sd.req.length,req:sd.req.map(r=>({title:P[r].title,tnote:P[r].track!==sd.track?TRACK[P[r].track]:'',icon:ST[stOf[r]].icon,ic:ST[stOf[r]].ic,onClick:()=>setSel(r)})),
+      unl:this.unlocks(s.sel).map(u=>({title:P[u].title,tnote:P[u].track!==sd.track?TRACK[P[u].track]:'',rec:u===rec,onClick:()=>setSel(u)})),noUnl:!this.unlocks(s.sel).length,
       locked:sst==='locked',btnOp:sst==='locked'?0.45:1,
       btnLabel:{done:'Revisar proyecto',progress:`Continuar · stage ${sp+1}`,available:'Empezar proyecto',locked:'Bloqueado'}[sst],
       btnIcon:{done:'ph ph-eye',progress:'ph ph-play',available:'ph ph-play',locked:'ph ph-lock-simple'}[sst],
@@ -529,21 +575,19 @@ ${log.map(l=>l.text).join('\n')}`;
     const runMeta={idle:vState==='done'?['Superado','var(--color-accent-800)','var(--color-accent-100)']:vState==='locked'?['Bloqueado','var(--color-neutral-900)','var(--color-neutral-400)']:['Sin ejecutar','var(--color-neutral-800)','var(--color-neutral-200)'],
       running:['Ejecutando…','var(--color-accent-900)','var(--color-accent-200)'],pass:['Pasa','var(--color-accent-800)','var(--color-accent-100)'],fail:['Falla','color-mix(in srgb, '+FAIL+' 22%, transparent)',FAIL]}[s.run];
     const tab=(v,label,icon,onClick)=>({label,icon,onClick,bg:s.view===v?'color-mix(in srgb, var(--color-text) 7%, transparent)':'transparent',color:s.view===v?'var(--color-text)':'var(--color-neutral-400)'});
-    // column labels: one per phase, positioned above its column of nodes
-    const colIdxOf={}; Object.keys(TRACK).forEach((t,i)=>colIdxOf[t]=i);
-    const colLabels=Object.keys(TRACK).map((t,i)=>React.createElement('div',{key:t,style:{position:'absolute',left:24+i*126,top:16,fontFamily:"'JetBrains Mono',ui-monospace,Menlo,monospace",fontSize:11,letterSpacing:'0.08em',textTransform:'uppercase',color:'var(--color-neutral-500)'}},String(i+1).padStart(2,'0')+' · '+TRACK[t]));
+
     const sAll=s.filter==='all';
     const CI={idle:['ph ph-circle','var(--color-neutral-600)',0.75],pending:['ph ph-circle-dashed','var(--color-neutral-500)',0.75],running:['ph ph-dots-three-circle','var(--color-accent-300)',1],pass:['ph-fill ph-check-circle','var(--color-accent)',1],fail:['ph-fill ph-x-circle',FAIL,1]};
     const checks=g.checks.map((c,i)=>({name:c.name,icon:CI[res[i]][0],color:CI[res[i]][1],op:CI[res[i]][2]}));
     const passCount=res.filter(x=>x==='pass').length;
     return {
-      colLabels,
       doneCount:ids.filter(id=>stOf[id]==='done').length, progCount:inProgress.length,
       isMap:s.view==='map',isProgress:s.view==='progress',isProject:s.view==='project'&&!!s.pid&&!!P[s.pid],
       setFilterAll:()=>this.setState({filter:'all'}),setFilterStar:()=>this.setState({filter:'star'}),
       fAllColor:sAll?'var(--color-accent-300)':'var(--color-neutral-400)',fAllShadow:sAll?'inset 0 0 0 1px var(--color-accent)':'none',
       fStarColor:!sAll?'var(--color-accent-300)':'var(--color-neutral-400)',fStarShadow:!sAll?'inset 0 0 0 1px var(--color-accent)':'none',
-      nodes,edges,sel,toggleStar:()=>this.setState(st=>({interest:{...st.interest,[st.sel]:st.interest[st.sel]?0:1}})),
+      tracks,allOpen,toggleAll:()=>this.setState({open:allOpen?{}:Object.fromEntries(Object.keys(TRACK).map(k=>[k,1]))}),toggleAllLabel:allOpen?'Contraer todo':'Expandir todo',toggleAllIcon:allOpen?'ph ph-arrows-in-line-vertical':'ph ph-arrows-out-line-vertical',
+      sel,toggleStar:()=>this.setState(st=>({interest:{...st.interest,[st.sel]:st.interest[st.sel]?0:1}})),
       inProgress,noProgress:!inProgress.length,hasNextStep:!!inProgress.length,nextStep:inProgress[0]||{},
       available:ids.filter(id=>stOf[id]==='available').map(id=>({title:P[id].title,stages:P[id].stages,lang:P[id].lang,starIcon:s.interest[id]?'ph-fill ph-star':'',onClick:()=>this.setState({view:'map',sel:id})})),
       completed:ids.filter(id=>stOf[id]==='done').map(id=>({title:P[id].title,stages:P[id].stages,lang:P[id].lang})),
