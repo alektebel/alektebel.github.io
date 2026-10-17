@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-17T20:55:49",
+ "generated": "2026-10-17T21:12:45",
  "repo": "alektebel/learn-stuff-from-scratch",
  "ref": "main",
  "phases": [
@@ -67,7 +67,8 @@
     "G6",
     "G7",
     "G8",
-    "G9"
+    "G9",
+    "G10"
    ]
   },
   {
@@ -3251,6 +3252,25 @@
    "kind": "author",
    "why": "The tools the terminal is made of, each one a byte-oriented contract: grep is a matcher whose anchors, classes and -v inversion are decisions, not flags; tail is circulation over a fixed buffer for -n and a backward scan for -c, and its -f is a polling loop the harness drives tick by tick; sort's merge and key spec; wc's count that must be wrong the same way GNU is wrong when the last line lacks its newline; and an editor that is a gap buffer, a screen model of rows and columns over those bytes, and the redraw that shows exactly the cursor's truth. Each command is judged byte-for-byte against the real one on provided corpora, the editor against scripted keystrokes and the frame it must have drawn. Author coreutils-from-scratch; nothing must come first — bytes and integers the whole way.",
    "prereq": [],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
+  },
+  "G10": {
+   "id": "G10",
+   "title": "Custom OS in C, End to End",
+   "kind": "author",
+   "why": "The big one, and the only project in this repository where the acceptance is real hardware obeying you: a bootable x86-64 kernel in C and a userland on top, built end to end — GRUB or your own bootloader handing control at the magic number, the GDT and IDT you write by hand, the PIT and the APIC and the timer that makes time exist, physical and virtual memory with the page tables QEMU's `info page-tables` can show you, interrupts where a keypress becomes a scan code becomes a character on your own screen, the scheduler you proved as data in G4 now context-switching for real, the syscall entry with its privilege ring crossing and the user pointer you must validate twice, drivers written against the device rather than a model: the PS/2 controller's ports and its second-byte wait, the ATA identify and the read sector that polls its status register, PCI enumeration walking the config space bus by bus, and the e1000 or virtio NIC whose ring you fill and whose interrupt you share; a ramdisk and then a real filesystem on a disk image, an ELF loader so a program you compiled with G5 runs as a process with its own address space, fork and exec and wait as real code, and the shell from G7 speaking to your kernel instead of another's. QEMU is the judge where the checker can reach (`info registers`, the serial log, the framebuffer the test draws to); the real machine is the honest one. The graded path is the x86-64 stages; the arm64 port is the second half. Author custom-os-from-scratch in C; G4's simulator is the model, G5 the toolchain, linux-from-scratch/ the prose.",
+   "prereq": [
+    "G4",
+    "G5"
+   ],
    "course": null,
    "command": null,
    "state": "author",
