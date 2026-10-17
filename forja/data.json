@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-18T01:49:04",
+ "generated": "2026-10-18T01:50:20",
  "repo": "alektebel/learn-stuff-from-scratch",
  "ref": "main",
  "phases": [
@@ -136,6 +136,8 @@
     "L1",
     "L2",
     "L3",
+    "L5",
+    "L6",
     "L4"
    ]
   },
@@ -3213,20 +3215,163 @@
   "G7": {
    "id": "G7",
    "title": "Shell From Scratch",
-   "kind": "author",
+   "kind": "ready",
    "why": "A shell is what a kernel looks like from the outside: a line of text becomes a process tree, and every promise G4's kernel makes is on show — what a child inherits, what a pipe costs, who waits for whom, and what a signal does to a job. Parse a line into words and operators; expand variables, tilde, globs and here-documents in the order a shell must; fork, exec and wait for real exit codes; build pipes and redirections as a descriptor table before anything runs; keep a job table that knows a background job from a stopped one; send signals and reap a child without losing it; and end on a session the harness replays byte for byte, where `set -e`, `&&` and a pipeline's exit status are decided by the rules and not by luck. Author shell-from-scratch against the kernel of G4.",
    "prereq": [
     "G4"
    ],
-   "course": null,
-   "command": null,
-   "state": "author",
+   "course": "shell-from-scratch",
+   "command": "cz run shell-from-scratch",
+   "state": "ready",
    "checks": {
     "passed": 0,
     "total": 0
    },
-   "stages": [],
-   "files": []
+   "stages": [
+    {
+     "id": 1,
+     "file": "stage_01.py",
+     "title": "The line, the word and the operator",
+     "tags": [
+      "lexing",
+      "quoting",
+      "operators"
+     ],
+     "status": "TODO",
+     "action": "Write `TOKEN_KEYS`, `TOKEN_KINDS`, `QUOTE_KINDS`, `PARSE_KEYS`, `COMMAND_KEYS`, `PARSE_ERRORS`, `tokenize` and `parse` in stage_01.py.",
+     "predict": "What a word is once the quotes are part of its bytes rather than decorations around it, and why the longest operator has to be recognised before the shortest one can be."
+    },
+    {
+     "id": 2,
+     "file": "stage_02.py",
+     "title": "Expansion, in the order a shell must",
+     "tags": [
+      "expansion",
+      "globbing",
+      "here-documents"
+     ],
+     "status": "TODO",
+     "action": "Write `EXPAND_KEYS`, `EXPAND_ERRORS`, `expand`, `expand_word`, `substitute`, `glob` and `here_document` in stage_02.py.",
+     "predict": "How many words one word becomes, and why the answer depends on the order the five steps run in rather than on any one of them."
+    },
+    {
+     "id": 3,
+     "file": "stage_03.py",
+     "title": "The pipeline, the descriptor table and what a pipe costs",
+     "tags": [
+      "redirection",
+      "pipes",
+      "planning"
+     ],
+     "status": "TODO",
+     "action": "Write `PLAN_KEYS`, `PLAN_ERRORS`, `plan`, `redirects_of` and `cost_of` in stage_03.py.",
+     "predict": "Why `>f 2>&1` and `2>&1 >f` are two different tables, and how many machine steps a pipeline of three commands will cost before any of them has run."
+    },
+    {
+     "id": 4,
+     "file": "stage_04.py",
+     "title": "The process tree: fork, exec, wait and the status",
+     "tags": [
+      "processes",
+      "status",
+      "reaping"
+     ],
+     "status": "TODO",
+     "action": "Write `RUN_KEYS`, `run_pipeline`, `spawn_command`, `collect` and `pipeline_status` in stage_04.py.",
+     "predict": "Which command's status a pipeline answers with, and what a pipeline owes the machine when it is over."
+    },
+    {
+     "id": 5,
+     "file": "stage_05.py",
+     "title": "The job table: background, stopped, and who waits for whom",
+     "tags": [
+      "jobs",
+      "background",
+      "control"
+     ],
+     "status": "TODO",
+     "action": "Write `JOB_KEYS`, `JOB_STATES`, `background`, `stop`, `resume`, `jobs` and `resolve` in stage_05.py.",
+     "predict": "What a shell has to remember about a process it decided not to wait for, and which of those facts a `jobs` listing is allowed to lose."
+    },
+    {
+     "id": 6,
+     "file": "stage_06.py",
+     "title": "Signals, traps, and what a signal does to a job",
+     "tags": [
+      "signals",
+      "traps",
+      "status"
+     ],
+     "status": "TODO",
+     "action": "Write `TRAP_KEYS`, `STATUS_KEYS`, `deliver`, `trap`, `run_traps` and `status_of` in stage_06.py.",
+     "predict": "What the shell's status is after a trap has run, and why a trap may not fire in the middle of a pipeline."
+    },
+    {
+     "id": 7,
+     "file": "stage_07.py",
+     "title": "The builtins that must not fork",
+     "tags": [
+      "builtins",
+      "state",
+      "fork"
+     ],
+     "status": "TODO",
+     "action": "Write `BUILTIN_KEYS`, `BUILTIN_STATES`, `is_builtin` and `run_builtin` in stage_07.py.",
+     "predict": "Why `cd` in a child process changes nothing, and how a check can see the difference without reading the source."
+    },
+    {
+     "id": 8,
+     "file": "stage_08.py",
+     "title": "Lists, conditions and the rules of `set -e`",
+     "tags": [
+      "errexit",
+      "conditions",
+      "short-circuit"
+     ],
+     "status": "TODO",
+     "action": "Write `LISTS_KEYS`, `STATUS_KINDS`, `run_lists`, `exempt` and `condition_of` in stage_08.py.",
+     "predict": "Which non-zero statuses stop a shell under `set -e` and which ones it is required to ignore, and what a short-circuited list still owes the record."
+    },
+    {
+     "id": 9,
+     "file": "stage_09.py",
+     "title": "The session, replayed byte for byte",
+     "tags": [
+      "session",
+      "replay",
+      "transcript"
+     ],
+     "status": "TODO",
+     "action": "Write `SESSION_KEYS` and `run_session` in stage_09.py.",
+     "predict": "What a whole session owes the world when the world already holds the transcript it has to produce, and what leaks between two sessions if a stage is careless."
+    },
+    {
+     "id": 10,
+     "file": "stage_10.py",
+     "title": "Exit codes, and the audit of a session's statuses",
+     "tags": [
+      "exit-codes",
+      "audit",
+      "diagnosis"
+     ],
+     "status": "TODO",
+     "action": "Write `AUDIT_KEYS`, `AUDIT_REASONS`, `VERDICTS` and `audit` in stage_10.py.",
+     "predict": "Why 127 and 126 are two different kingdoms, what 128 plus a number is, and how a reason can be decided from the evidence without ever reading the expected answer."
+    }
+   ],
+   "files": [
+    "check.py",
+    "stage_01.py",
+    "stage_02.py",
+    "stage_03.py",
+    "stage_04.py",
+    "stage_05.py",
+    "stage_06.py",
+    "stage_07.py",
+    "stage_08.py",
+    "stage_09.py",
+    "stage_10.py"
+   ]
   },
   "G8": {
    "id": "G8",
@@ -5957,6 +6102,44 @@
     "stage_09.py",
     "stage_10.py"
    ]
+  },
+  "L5": {
+   "id": "L5",
+   "title": "Redis From Scratch",
+   "kind": "author",
+   "why": "The in-memory store whose protocol is the lesson: RESP byte by byte, the command table a dict of (arity, handler) that refuses an arity it does not name, the store as a dict with per-key expiry where a lazy pass on read and an active cycle on the clock both evict, and an RDB the course parses byte by byte before it writes one. Then the hard half: AOF as a journal whose every line is a prediction until fsync makes it a fact (J3's discipline, at the file's mercy), and leader-follower replication where the follower's acknowledgement is state the leader keeps and the offset is the number both sides agree on. Accepted on a session the harness replays byte for byte, with the world's own RESP reader as the referee. Source: the 124-stage CodeCrafters corpus in `codecrafters-reference/redis/`.",
+   "prereq": [
+    "L2",
+    "J3"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
+  },
+  "L6": {
+   "id": "L6",
+   "title": "Kafka From Scratch",
+   "kind": "author",
+   "why": "The log as the product: the fetch/produce request envelopes of the real protocol, a partition as an append-only log with an offset cursor per consumer group, and the delivery contract decided, not assumed — at-least-once through redelivery deadline and dedup by id, at-most-once by committing the cursor before the work, exactly-once by idempotent producer sequence numbers. L2 is the framing half of a wire and J1 is the queue whose delivery semantics this course makes the broker's own decision. Source: the 25-stage CodeCrafters corpus in `codecrafters-reference/kafka/`.",
+   "prereq": [
+    "L2",
+    "J1"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
   },
   "L4": {
    "id": "L4",
