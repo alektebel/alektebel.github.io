@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-18T02:23:03",
+ "generated": "2026-10-18T13:37:57",
  "repo": "alektebel/learn-stuff-from-scratch",
  "ref": "main",
  "phases": [
@@ -71,7 +71,8 @@
     "G10",
     "G11",
     "G12",
-    "G13"
+    "G13",
+    "G14"
    ]
   },
   {
@@ -3470,6 +3471,25 @@
    "kind": "author",
    "why": "The one language every tool in phase G already assumes, taught by building the engine twice: Thompson's construction first — parse with the shunting yard, compile to an NFA whose states are epsilon-closures, simulate in linear time — then the backtracking engine, whose catastrophic cases (`(a+)+$`) the work counter exposes by the seconds it burns where the NFA spent microseconds. Character classes, anchors, quantifiers greedy and lazy, groups and backreferences the NFA refuses (and why PCRE pays for them), then the integration that gives the course its teeth: grep (G9) re-derives its -E from this engine, tail -f's scrollback filter and G7's shell globs borrow the same compile step, and the judge is the match sets agreeing with Python's `re` on a corpus built to distinguish the two engines. Author regex-from-scratch; nothing must come first.",
    "prereq": [],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
+  },
+  "G14": {
+   "id": "G14",
+   "title": "Reverse Engineering",
+   "kind": "author",
+   "why": "The discipline of reading a program you do not have the source for, taught on binaries you can verify: the ELF and PE formats as data — headers, sections, symbols, relocations — parsed until `readelf` and yours agree; x86-64 disassembly with the length-decoding problem that makes it not just a table (prefixes, ModRM, the cases where data is code and back); the calling conventions and the stack frame reconstructed from prologues; control-flow recovery — the CFG from a linear sweep and the recursive descent and where they disagree; the decompilation lift to a C-like IR and what it always gets wrong; then the dynamic half: the ptrace attach, breakpoints, the memory dump, the syscall trace that tells you what the binary does when the static reading lies; strings, imports and the entropy profile that finds the packed sections; and the capstone, a crackme and a stripped binary from the provided estate, where the licence check must be found, understood and described — the judge being the write-up whose every claim (function boundaries, the key derivation, the anti-debug trick) is checked against ground truth the estate carries. Built with the tools, not around them: objdump, gdb, radare2 are the reference outputs your own parser and lifter are checked against. Author reverse-engineering-from-scratch; G3 built the CPU, G5 built the compiler — this reads what they emit, without the source.",
+   "prereq": [
+    "G3",
+    "G5"
+   ],
    "course": null,
    "command": null,
    "state": "author",
