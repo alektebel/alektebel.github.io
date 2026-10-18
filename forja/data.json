@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-18T01:50:20",
+ "generated": "2026-10-18T02:08:23",
  "repo": "alektebel/learn-stuff-from-scratch",
  "ref": "main",
  "phases": [
@@ -69,7 +69,9 @@
     "G8",
     "G9",
     "G10",
-    "G11"
+    "G11",
+    "G12",
+    "G13"
    ]
   },
   {
@@ -3432,6 +3434,40 @@
    "title": "Advanced Algorithms & Data Structures",
    "kind": "author",
    "why": "La Rocca's book mechanised, one stage per chapter, every structure judged against a work counter and a reference the way B2 judges HNSW against brute force: priority queues and d-way heaps measured on Dijkstra (ch. 2), treaps where the rotation is right because the expected height the profiler prints agrees with the theory (ch. 3), Bloom filters whose false-positive rate is measured, not assumed, against the exact set (ch. 4), disjoint sets by path compression and union by rank counted in finds (ch. 5), tries and T9 and autocomplete with the compressed variant (ch. 6), LRU and LFU caches with the hit rate the workload produces (ch. 7), k-d trees whose nearest neighbour is checked against the linear scan it must beat (ch. 8–9), SS-trees and approximate search with the recall the book's own image retrieval asks for (ch. 10–11), DBSCAN and OPTICS clustering on the points the reference clusters identically (ch. 12–13), graphs from BFS and connected components to Dijkstra and minimum spanning trees (ch. 14), graph embeddings, planarity and the force-directed drawing whose crossings the checker counts (ch. 15), then gradient descent (ch. 16) and simulated annealing (ch. 17) as optimisation on those graphs, and the genetic algorithm that closes the book on TSP, its tours compared against the branch-and-bound answer on the small instances (ch. 18). Author advanced-dsa-from-scratch in pure Python with no float where a counter suffices — nothing must come first; the book is the reading, the checker the grade.",
+   "prereq": [],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
+  },
+  "G12": {
+   "id": "G12",
+   "title": "SQLite From Scratch",
+   "kind": "author",
+   "why": "The database embebida, from the recovered codecrafters corpus (codecrafters-reference/sqlite/, nine stages with the tester's own commands): a real single-file database that `sqlite3` itself opens. Parse the database header and walk the schema table whose rows are the other tables; decode a table B-tree page by page — cell pointer array, varints, overflow pages — until `SELECT` over your file returns the rows sqlite3 returns; build the record format serial types and the freelist; then the write half: the WAL, the commit that is not acknowledged before the WAL says so, and the crash that loses nothing. The judge is sqlite3 itself reading what you wrote and the row counts matching on the files both wrote. H5 is the query engine; this is the storage layer it runs on, done for real. Author sqlite-from-scratch.",
+   "prereq": [
+    "G9"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
+  },
+  "G13": {
+   "id": "G13",
+   "title": "Regex From Scratch",
+   "kind": "author",
+   "why": "The one language every tool in phase G already assumes, taught by building the engine twice: Thompson's construction first — parse with the shunting yard, compile to an NFA whose states are epsilon-closures, simulate in linear time — then the backtracking engine, whose catastrophic cases (`(a+)+$`) the work counter exposes by the seconds it burns where the NFA spent microseconds. Character classes, anchors, quantifiers greedy and lazy, groups and backreferences the NFA refuses (and why PCRE pays for them), then the integration that gives the course its teeth: grep (G9) re-derives its -E from this engine, tail -f's scrollback filter and G7's shell globs borrow the same compile step, and the judge is the match sets agreeing with Python's `re` on a corpus built to distinguish the two engines. Author regex-from-scratch; nothing must come first.",
    "prereq": [],
    "course": null,
    "command": null,
