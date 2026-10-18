@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-18T02:08:43",
+ "generated": "2026-10-18T02:23:03",
  "repo": "alektebel/learn-stuff-from-scratch",
  "ref": "main",
  "phases": [
@@ -152,7 +152,8 @@
     "M3",
     "M4",
     "M2",
-    "M5"
+    "M5",
+    "M6"
    ]
   },
   {
@@ -6430,6 +6431,25 @@
    "title": "Distressed Debt Investing",
    "kind": "author",
    "why": "The same default seen from the buy side, where it is an opportunity with a price: the capital structure as a waterfall of claims over M1's borrower — who is owed what, secured ahead of whom — the distressed bond and loan bought below par, and the question every price asks: recovery, reorganisation, or the debtor's death; the distressed exchange and the maturity extension as the negotiated outcomes, the restructuring waterfall applied to the absolute-priority rule and the violations that settle it in practice, the claim the fund bought valued three ways — the expected recovery from M3's actual cash flows, the Merton distance-to-default on the borrower's own assets, and the comparables — and where the three disagree is the trade; the entry price implied return and the IRR in basis points that survives the timing of the recovery, the hold decision against the carry, and the report the fund writes: why this claim, at this price, with what recovery and by when — checked against what actually happened to the borrower. Author distressed-debt-from-scratch over M1's book and M3's collections log; the bank's provisioning and the fund's thesis are two readings of one default.",
+   "prereq": [
+    "M1",
+    "M3"
+   ],
+   "course": null,
+   "command": null,
+   "state": "author",
+   "checks": {
+    "passed": 0,
+    "total": 0
+   },
+   "stages": [],
+   "files": []
+  },
+  "M6": {
+   "id": "M6",
+   "title": "LBO Model From Scratch",
+   "kind": "author",
+   "why": "The leveraged buyout as arithmetic that either holds or does not, built over M1's amortisation machinery and M3's workout realism: the target as facts — EBITDA, capex, working capital, the cap table — on a provided estate whose five-year path is the ground truth; the sources and uses that balance to the cent, entry multiple and financing structure as the two decisions that set everything; the debt schedule as a waterfall of tranches with covenants the model cannot quietly violate — revolver drawn when cash falls short, mandatory prepayment from excess cash, the incurrence test checked every period; the operating build from revenue to EBITDA to free cash flow with integer arithmetic and the day-count from M1; exit on the multiple the estate actually realises, and the returns decomposition the sponsor's own memo contains: how much of the IRR is leverage, how much is EBITDA growth, how much is multiple expansion — each named, each checked against the estate. Sensitivity as the model's honesty: the grid over entry price, exit multiple and leverage where the downside case breaches the covenant and the checker demands the breach be visible, not amortised away. Author lbo-model-from-scratch; M5 values the claim on the way down, M6 buys the whole company on the way in — two prices, one discipline: the cash flows decide.",
    "prereq": [
     "M1",
     "M3"
