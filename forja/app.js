@@ -633,11 +633,13 @@ function renderMap() {
     const parentDone = itemState(node.parent.item) === "complete";
     const bothDone = parentDone && nodeDone;
     const touched = parentDone || nodeDone;
+    const startable = nodeStatus(node.item) === "ready";
     addEdge(edges, node.parent, node,
       touched ? (bothDone ? GROW : GROW_SOFT)
+        : startable ? BC[node.cat]
         : hot || parentHot ? "rgba(232,234,235,.5)" : "rgba(255,255,255,.13)",
-      touched ? (bothDone ? 3.4 : 2.6) : hot || parentHot ? 3 : 2,
-      "", false, touched);
+      touched ? (bothDone ? 3.4 : 2.6) : startable ? 3 : hot || parentHot ? 3 : 2,
+      "", false, touched || startable);
     for (const sec of node.extra) {
       const secDone = itemState(sec.item) === "complete";
       const secBoth = secDone && nodeDone;
