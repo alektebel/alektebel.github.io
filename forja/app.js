@@ -667,7 +667,7 @@ function renderMap() {
     const frac = checks.total ? (checks.passed / checks.total) : 0;
     const op = st === "blocked" ? .35 : 1;
     el.innerHTML = `
-      <span class="tn-ring ${st === "ready" ? "is-startable" : ""}" style="background:${st === "done" ? "#162027" : "#10161a"}">
+      <span class="tn-ring ${!node.parent && st === "ready" ? "is-startable" : ""}" style="background:${st === "done" ? "#162027" : "#10161a"}">
         <svg width="52" height="52" viewBox="0 0 60 60">
           <circle cx="30" cy="30" r="27" stroke="${st === "blocked" ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.12)"}" stroke-width="3" fill="none"></circle>
           <circle cx="30" cy="30" r="27" stroke="${frac ? BC[node.cat] : "transparent"}" stroke-width="3" fill="none"
