@@ -50,19 +50,19 @@
 </div>
 </section>
 <!-- LIVE -->
-<section aria-labelledby="live-h" style="background: #111110; color: #f4f2ed">
+<section aria-labelledby="live-h" style="background: #3a3732; color: #f4f2ed">
 <div style="max-width: 1240px; margin: 0 auto; padding: 64px clamp(16px, 4vw, 48px)">
 <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 32px">
 <h2 id="live-h" style="margin: 0; font-size: 28px; font-weight: 500">Running on this site right now</h2>
 <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #b3aea3">open one, it works</span>
 </div>
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1px; background: #2c2b28; border: 1px solid #2c2b28">
-<a href="/mus/" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; background: #111110; text-decoration: none; min-height: 180px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1px; background: #4a4640; border: 1px solid #4a4640">
+<a href="/mus/" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; background: #1c1b19; text-decoration: none; min-height: 180px">
 <span style="display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ff3b1f"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #ff3b1f"></span>live table</span>
 <span style="font-size: 21px; font-weight: 500">Mus against the LLMs</span>
-<span style="font-size: 15px; color: #b3aea3">Sit down against GLM-5.3, DeepSeek-V4 and Qwen3.8, with real señas and rivals intercepting gestures.</span>
+<span style="font-size: 15px; color: #b3aea3">Sit down with glm5.3-flash, qwen3.8-flash and deepseek-v4-flash, with real señas and rivals intercepting gestures.</span>
 </a>
-<a href="/working-on/" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; background: #111110; text-decoration: none; min-height: 180px">
+<a href="/working-on/" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; background: #1c1b19; text-decoration: none; min-height: 180px">
 <span style="display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ff3b1f"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #ff3b1f"></span>live from github</span>
 <span style="font-size: 21px; font-weight: 500">Working on</span>
 <span style="font-size: 15px; color: #b3aea3">What has my attention this week and how far I am through the exercises.</span>
@@ -75,7 +75,7 @@
 <h2 id="projects-heading" style="margin: 0 0 28px; font-size: 22px; font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #111110">Things I'm building</h2>
 <div aria-label="Projects" class="project-window" id="projects-window" role="region"><div class="project-track"><div class="project-group">
 <article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
-<a class="barrapp-visual" href="/barrapp/" style="display:flex;align-items:center;justify-content:center;gap:10px;aspect-ratio:4 / 3;background:#e9e5dc;padding:12px;box-sizing:border-box;overflow:hidden"><img alt="Barrapp tracker home screen" loading="lazy" src="/barrapp/img/tracker-home.png" style="display:block;width:auto;max-width:48%;height:100%;object-fit:contain;box-shadow:0 0 0 1px #d5d0c5"/><img alt="Barrapp updated rep results screen" loading="lazy" src="/barrapp/img/tracker-record-results.png" style="display:block;width:auto;max-width:48%;height:100%;object-fit:contain;box-shadow:0 0 0 1px #d5d0c5"/></a>
+<a class="barrapp-visual" href="/barrapp/" aria-label="Barrapp demo video"><video autoplay="" loop="" muted="" playsinline="" poster="/barrapp/img/demo-poster.jpg" preload="metadata"><source src="/barrapp/demo.mp4" type="video/mp4"/></video></a>
 <div>
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
 <h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/barrapp/" style="text-decoration: none">barrapp</a></h3>
@@ -83,7 +83,7 @@
 </div>
 <p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Counts and scores your calisthenics reps from a phone video, and says so when a rep can't be read.</p>
 </div>
-</article><article class="project-card" style="display:flex;flex-direction:column;gap:14px"><div class="unibox-visual"><img alt="Unibox morning brief interface rendered from the project with sample data" height="900" loading="lazy" src="/assets/personal/unibox-interface.png" width="1200"/></div><div><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px"><h3 style="margin:0;font-size:20px;font-weight:600">unibox</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b6862">private build</span></div><p style="margin:6px 0 0;font-size:15px;color:#3c3a35;text-wrap:pretty">One place for messages, saved links and loose thoughts, turned into a ranked digest and a list of things to do.</p></div></article>
+</article><article class="project-card" style="display:flex;flex-direction:column;gap:14px"><a class="unibox-visual" href="https://github.com/alektebel/unibox" rel="noopener noreferrer" target="_blank"><img alt="Unibox Android launcher and today screens" height="900" loading="lazy" src="/assets/personal/unibox-phones.png" width="1200"/></a><div><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px"><h3 style="margin:0;font-size:20px;font-weight:600"><a href="https://github.com/alektebel/unibox" rel="noopener noreferrer" target="_blank">unibox</a></h3><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b6862">repo ↗</span></div><p style="margin:6px 0 0;font-size:15px;color:#3c3a35;text-wrap:pretty">An Android launcher that puts the next useful thing on unlock, and keeps the rest of the phone out of reach.</p></div></article>
 <article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
 <a href="/forja" style="display: block; aspect-ratio: 4 / 3; background: #111110; overflow: hidden">
 <img alt="Updated Forja website with the AWS challenge and challenge catalogue" height="900" loading="lazy" src="/assets/personal/forja-current.png" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left" width="1200"/>
@@ -97,7 +97,7 @@
 </div>
 </article>
 <article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
-<a href="/mus/" style="display:block;aspect-ratio:4 / 3;background:#111110;overflow:hidden"><img alt="Mus against the LLMs live game table" loading="lazy" src="/assets/personal/mus.png" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top center"/></a>
+<a href="/mus/" style="display:block;aspect-ratio:4 / 3;background:#111110;overflow:hidden"><img alt="Mus live table with four seats and Spanish cards" loading="lazy" src="/assets/personal/mus-table.png" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center center"/></a>
 <div>
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
 <h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/mus/">mus against the LLMs</a></h3>
@@ -109,7 +109,7 @@
 </div></div></div>
 </div></div></section>
 <!-- WRITING -->
-<section style="max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 48px) 0">
+<section style="max-width: 1240px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 48px) 0">
 <div>
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; padding-bottom: 12px; border-bottom: 1px solid #111110">
 <h2 style="margin: 0; font-size: 22px; font-weight: 500">Writing</h2>
