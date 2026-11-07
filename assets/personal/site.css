@@ -20,3 +20,5 @@ button{cursor:pointer}
 @media(max-width:640px){body>div>header{padding-top:16px!important;padding-bottom:12px!important}body>div>main>section:first-child{padding-top:12px!important}h1{overflow-wrap:anywhere}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media(max-width:640px){.hero-gallery{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;flex-basis:100%!important}.hero-gallery img{width:100%!important;aspect-ratio:3 / 4!important;object-fit:cover!important}}
+.github-link{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.github-icon{display:block;width:14px;height:14px;flex:none}
