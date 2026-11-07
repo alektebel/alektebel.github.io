@@ -1,943 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diego Rodríguez Atencia — mathematician, data engineer, builder</title>
-<meta name="description" content="Diego Rodríguez Atencia — mathematician, data engineer, builder. ML systems, financial data pipelines, and open-source projects.">
-<meta property="og:title" content="Diego Rodríguez Atencia">
-<meta property="og:description" content="Mathematician, data engineer, builder. ML systems, financial data pipelines, and open-source projects.">
-<meta property="og:url" content="https://diegoatencia.dev/">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Ctext x='3' y='13' font-family='monospace' font-size='13' fill='%2300ff00'%3Ea%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f4f2ed;
-    --panel: #efece4;
-    --ink: #111110;
-    --body: #3c3a35;
-    --muted: #6b6862;
-    --faint: #9a958b;
-    --line: #111110;
-    --soft-line: #ddd8cb;
-    --accent: #ff3b1f;
-    --dark: #111110;
-    --dark-ink: #f4f2ed;
-    --dark-muted: #b3aea3;
-    --dark-faint: #8a857b;
-    --dark-line: #2c2b28;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); }
-  body {
-    color: var(--ink);
-    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-    font-size: 15px;
-    line-height: 1.55;
-  }
-  a { color: var(--ink); text-decoration: none; }
-  a:hover { color: var(--accent); }
-  a:focus-visible, button:focus-visible, input:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-  .mono {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  }
-  .label {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .skip {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    background: var(--ink);
-    color: var(--bg);
-    padding: 10px 16px;
-    z-index: 100;
-  }
-  .skip:focus { left: 0; }
-  .wrap {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    max-width: 1240px;
-    margin: 0 auto;
-  }
-  /* ── Sidebar ─────────────────────────────── */
-  .sidebar {
-    flex: 1 1 268px;
-    min-width: 0;
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    padding: 34px 26px 40px;
-    border-right: 1px solid var(--line);
-  }
-  .id-row { display: flex; align-items: center; gap: 13px; }
-  .avatar {
-    width: 52px; height: 52px;
-    object-fit: cover;
-    border-radius: 50%;
-    filter: grayscale(1) contrast(1.08);
-    flex: none;
-  }
-  .id-name { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
-  .id-tag {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 5px;
-  }
-  .id-bio { margin: 22px 0 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
-  .id-links {
-    display: flex; flex-wrap: wrap; gap: 8px 14px;
-    margin-top: 20px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-  }
-  .id-links a { border-bottom: 1px solid #c9c4b8; }
-  .now { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); }
-  .now-head {
-    display: flex; align-items: center; gap: 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--muted);
-  }
-  .pulse {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent); flex: none;
-    animation: livePulse 1.9s ease-in-out infinite;
-  }
-  @keyframes livePulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.35; transform: scale(0.82); }
-  }
-  .now dl { margin: 16px 0 0; display: grid; gap: 15px; }
-  .now dt {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--faint);
-  }
-  .now dd { margin: 4px 0 0; font-size: 13.5px; }
-  .now .gh-repo {
-    border-bottom: 1px solid #c9c4b8;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12.5px;
-  }
-  .now .gh-ago { color: var(--muted); }
-  .now .gh-msg { font-size: 13px; color: var(--body); margin-top: 2px; }
-  .now .gh-wait { font-size: 13px; color: var(--faint); font-family: 'IBM Plex Mono', monospace; }
-  /* ── Main ────────────────────────────────── */
-  main { flex: 1 1 560px; min-width: 0; border-right: 1px solid var(--line); }
-  section { padding: 38px 30px; border-bottom: 1px solid var(--line); }
-  section:last-child { border-bottom: none; }
-  /* Hero */
-  .hero { position: relative; overflow: hidden; background: var(--bg); padding: 0; }
-  .hero canvas { display: block; width: 100%; height: 390px; min-height: 390px; }
-  .hero-copy {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 34px 30px;
-    pointer-events: none;
-  }
-  .hero-kicker {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
-    color: #4a4842; margin-bottom: 12px;
-  }
-  .hero h1 {
-    margin: 0;
-    font-size: clamp(34px, 5.6vw, 60px);
-    font-weight: 700;
-    letter-spacing: -0.035em;
-    line-height: 0.98;
-    max-width: 16ch;
-  }
-  .hero p { margin: 16px 0 0; max-width: 46ch; font-size: 15.5px; color: var(--body); text-wrap: pretty; }
-  .hero-tools { position: absolute; top: 22px; right: 24px; display: flex; gap: 8px; }
-  .btn-ghost {
-    padding: 7px 12px;
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    cursor: pointer;
-  }
-  .btn-ghost:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-  /* Skills */
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-    gap: 26px;
-    margin-top: 22px;
-  }
-  .skills-grid h3 { margin: 0 0 7px; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
-  .skills-grid p { margin: 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
-  /* Ask */
-  .ask { background: var(--panel); }
-  .ask h2 { margin: 14px 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; max-width: 30ch; }
-  .ask .sub { margin: 0 0 18px; font-size: 14px; color: var(--body); max-width: 52ch; }
-  .ask .lang-hint { margin: 0 0 14px; font-size: 12.5px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
-  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .suggestions button {
-    padding: 7px 12px;
-    border: 1px solid #c9c4b8;
-    background: var(--bg);
-    color: var(--body);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11.5px;
-    cursor: pointer;
-    text-align: left;
-  }
-  .suggestions button:hover { border-color: var(--ink); color: var(--ink); }
-  .ask-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
-  .ask-row input {
-    flex: 1 1 260px; min-width: 0;
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-  }
-  .ask-row button {
-    padding: 12px 22px;
-    border: 1px solid var(--line);
-    background: var(--ink);
-    color: var(--bg);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase;
-    cursor: pointer;
-  }
-  .ask-row button:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
-  .ask-row button:disabled { opacity: 0.6; cursor: wait; }
-  .ask-status {
-    margin-top: 16px; padding: 16px 18px;
-    border-left: 2px solid var(--accent);
-    background: var(--bg);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12.5px; color: var(--muted);
-  }
-  .ask-answer {
-    margin-top: 16px; padding: 18px 20px;
-    border-left: 2px solid var(--accent);
-    background: var(--bg);
-  }
-  .ask-answer .re {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--faint); margin-bottom: 8px;
-  }
-  .ask-answer p { margin: 0; font-size: 14.5px; color: var(--ink); white-space: pre-wrap; text-wrap: pretty; }
-  /* Built */
-  .built-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
-  .built-head a { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; border-bottom: 1px solid #c9c4b8; }
-  .built-list { margin-top: 20px; border-top: 1px solid var(--soft-line); }
-  .built-list a {
-    display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline;
-    padding: 15px 4px;
-    border-bottom: 1px solid var(--soft-line);
-    transition: background 0.16s, padding-left 0.16s;
-  }
-  .built-list a:hover { background: var(--ink); color: var(--bg); padding-left: 12px; }
-  .built-list .b-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500; flex: none; }
-  .built-list .b-what { font-size: 14px; flex: 1 1 200px; min-width: 0; opacity: 0.78; }
-  .built-list .b-stack {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    opacity: 0.6; flex: none;
-  }
-  /* Written */
-  .posts { display: grid; gap: 2px; margin-top: 20px; }
-  .posts a {
-    display: block;
-    padding: 18px 20px;
-    background: var(--panel);
-    border: 1px solid var(--soft-line);
-    transition: border-color 0.16s, transform 0.16s;
-  }
-  .posts a:hover { border-color: var(--accent); transform: translateX(4px); color: var(--ink); }
-  .posts .p-meta {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--faint); margin-bottom: 7px;
-  }
-  .posts .p-title { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; }
-  .posts .p-blurb { margin: 7px 0 0; font-size: 14px; color: var(--body); text-wrap: pretty; }
-  /* Brain teasers */
-  .sec-lede { margin: 14px 0 0; font-size: 14px; color: var(--body); max-width: 56ch; text-wrap: pretty; }
-  .puzzles { display: grid; margin-top: 22px; border-top: 1px solid var(--soft-line); }
-  .puzzle { border-bottom: 1px solid var(--soft-line); }
-  .puzzle summary {
-    list-style: none;
-    cursor: pointer;
-    display: flex; gap: 12px; align-items: baseline;
-    padding: 15px 4px;
-    font-size: 15.5px; font-weight: 500; letter-spacing: -0.01em;
-    transition: color 0.16s, padding-left 0.16s;
-  }
-  .puzzle summary::-webkit-details-marker { display: none; }
-  .puzzle summary::before {
-    content: "?";
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px; color: var(--accent); flex: none;
-    transform: translateY(-1px);
-  }
-  .puzzle summary:hover { color: var(--accent); padding-left: 10px; }
-  .puzzle[open] summary::before { content: "\2192"; }
-  .puzzle .a {
-    margin: 0; padding: 0 4px 18px 28px;
-    font-size: 14px; color: var(--body); max-width: 64ch; text-wrap: pretty;
-  }
-  .puzzle .a b { color: var(--ink); font-weight: 600; }
-  /* Questions (dark) */
-  .dark-sec { background: var(--dark); color: var(--dark-ink); }
-  .dark-sec .label { color: var(--dark-faint); }
-  .dark-sec .lede { margin: 14px 0 22px; font-size: 14px; color: var(--dark-muted); max-width: 52ch; }
-  .q-list { display: grid; gap: 14px; }
-  .q-item { display: flex; gap: 14px; align-items: baseline; padding-bottom: 14px; border-bottom: 1px solid var(--dark-line); }
-  .q-item:last-child { border-bottom: none; padding-bottom: 0; }
-  .q-n { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); flex: none; }
-  .q-title { font-size: 19px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.25; }
-  .q-note { margin-top: 5px; font-size: 13.5px; color: var(--dark-muted); text-wrap: pretty; }
-  /* Track */
-  .track-list { display: grid; gap: 18px; margin-top: 20px; }
-  .track-row { display: flex; flex-wrap: wrap; gap: 4px 18px; }
-  .track-when { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--muted); flex: none; min-width: 9ch; }
-  .track-what { flex: 1 1 240px; min-width: 0; }
-  .track-what strong { font-weight: 600; }
-  .track-what div { font-size: 14px; color: var(--body); }
-  .cta {
-    margin-top: 34px; padding-top: 24px;
-    border-top: 1px solid var(--line);
-    display: flex; flex-wrap: wrap; gap: 16px;
-    align-items: center; justify-content: space-between;
-  }
-  .cta .big { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; max-width: 26ch; }
-  .cta a.mail {
-    padding: 12px 20px;
-    background: var(--accent);
-    color: var(--bg);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
-  }
-  .cta a.mail:hover { background: var(--ink); color: var(--bg); }
-  footer.colophon { margin-top: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); }
-  @media (max-width: 860px) {
-    .sidebar { position: static; border-right: none; border-bottom: 1px solid var(--line); }
-    main { border-right: none; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pulse { animation: none; }
-  }
-</style>
-</head>
-<body>
-<a class="skip" href="#main">Skip to content</a>
-
-<div class="wrap">
-  <!-- ══ Sidebar ══ -->
-  <aside class="sidebar" aria-label="About Diego">
-    <div class="id-row">
-      <img class="avatar" src="profile.jpeg" alt="Portrait of Diego Rodríguez Atencia">
-      <div>
-        <div class="id-name">Diego Rodríguez<br>Atencia</div>
-        <div class="id-tag">Madrid · data / ML</div>
-      </div>
-    </div>
-
-    <p class="id-bio">I own processing pipelines end to end, and I debug by taking things apart until the pieces are too small to hide anything.</p>
-
-    <nav class="id-links" aria-label="Profiles">
-      <a href="mailto:dratencia@gmail.com">email</a>
-      <a href="https://github.com/alektebel" target="_blank" rel="noopener">github</a>
-      <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" target="_blank" rel="noopener">linkedin</a>
-      <a href="https://twitter.com/didacum333" target="_blank" rel="noopener">x</a>
-      <a href="/blog/blog.html">blog</a>
-      <a href="/skill-tree.html">skill tree</a>
-      <a href="/forja">forja</a>
-      <a href="/learn/">learn from scratch</a>
-      <a href="/working-on/">working on</a>
-      <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
-    </nav>
-
-    <div class="now" aria-live="polite">
-      <div class="now-head"><span class="pulse" aria-hidden="true"></span><span>now — <span id="clock">--:--</span></span></div>
-      <dl>
-        <div>
-          <dt>last commit</dt>
-          <dd id="gh-box"><span class="gh-wait">reading github…</span></dd>
-        </div>
-        <div>
-          <dt>building</dt>
-          <dd>A Bayesian consensus algorithm for noisy data labeling.</dd>
-        </div>
-        <div>
-          <dt>at work</dt>
-          <dd>LGD migration, SAS → Oracle, top-5 Spanish bank.</dd>
-        </div>
-        <div>
-          <dt>turning over</dt>
-          <dd>Whether a decentralized civilization is actually feasible.</dd>
-        </div>
-        <div>
-          <dt>away from the desk</dt>
-          <dd>Rock climbing, chess, sci-fi novels.</dd>
-        </div>
-      </dl>
-    </div>
-  </aside>
-
-  <!-- ══ Main ══ -->
-  <main id="main">
-    <!-- Hero: live gradient descent -->
-    <section class="hero" aria-label="Introduction">
-      <canvas id="field" height="390" aria-hidden="true"></canvas>
-      <div class="hero-copy">
-        <div class="hero-kicker">gradient descent, live · <span id="descent-label">surface 01 · 26 walkers · move the cursor</span></div>
-        <h1>Take it to the limit, then delete the rest.</h1>
-        <p>Mathematician and data engineer. I run regulatory data at national-bank scale, and I write neural nets in C to make sure I still understand what&rsquo;s underneath.</p>
-      </div>
-      <div class="hero-tools">
-        <button class="btn-ghost" id="reseed" type="button">reseed</button>
-      </div>
-    </section>
-
-    <!-- 01 skills -->
-    <section aria-labelledby="h-skills">
-      <div class="label" id="h-skills">01 — what I&rsquo;m good at</div>
-      <div class="skills-grid">
-        <div>
-          <h3>Pipelines, end to end</h3>
-          <p>Ingestion to regulatory output, owned rather than handed off. FINREP, COREP, SIRBE, stress testing — filed, reconciled, defended.</p>
-        </div>
-        <div>
-          <h3>Debugging by disaggregation</h3>
-          <p>Split the thing until each part is small enough to be obviously right or obviously wrong. It has never failed to find the bug.</p>
-        </div>
-        <div>
-          <h3>Removing the non-essential</h3>
-          <p>I like systems pushed to their physical limits with the redundancy cut out — and AI used hard as part of how the work gets built.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 02 ask -->
-    <section class="ask" aria-labelledby="h-ask">
-      <div class="label" id="h-ask">02 — ask this site</div>
-      <h2>Interview the page instead of reading it.</h2>
-      <p class="sub">It answers from what I&rsquo;ve actually built and shipped. If it doesn&rsquo;t know, it&rsquo;ll say so.</p>
-      <p class="lang-hint">Pregunta en español o inglés — respondo en tu idioma · Ask in Spanish or English</p>
-      <div class="suggestions" role="group" aria-label="Suggested questions">
-        <button type="button" data-q="What have you built from scratch?">What have you built from scratch?</button>
-        <button type="button" data-q="Do you actually know regulatory reporting?">Do you actually know regulatory reporting?</button>
-        <button type="button" data-q="How do you debug something nobody understands?">How do you debug something nobody understands?</button>
-        <button type="button" data-q="What's the RL thesis about?">What&rsquo;s the RL thesis about?</button>
-        <button type="button" data-q="What's new with this chatbot?">What&rsquo;s new with this chatbot?</button>
-      </div>
-      <form id="ask-form" class="ask-row" autocomplete="off">
-        <input id="ask-input" type="text" maxlength="500" placeholder="Ask anything about my work…"
-               aria-label="Ask about Diego's work">
-        <button id="ask-btn" type="submit">ask</button>
-      </form>
-      <div id="ask-status" class="ask-status" hidden>consulting the archive…</div>
-      <div id="ask-answer" class="ask-answer" hidden>
-        <div class="re" id="ask-re">re: —</div>
-        <p id="ask-text"></p>
-      </div>
-    </section>
-
-    <!-- 03 built -->
-    <section aria-labelledby="h-built">
-      <div class="built-head">
-        <div class="label" id="h-built">03 — built</div>
-        <a href="https://github.com/alektebel" target="_blank" rel="noopener">all repos →</a>
-      </div>
-      <div class="built-list">
-        <a href="https://github.com/alektebel/deep_learning_in_c" target="_blank" rel="noopener">
-          <span class="b-name">deep_learning_in_c</span>
-          <span class="b-what">A neural network from scratch in C — backprop and gradient descent at the lowest level.</span>
-          <span class="b-stack">C</span>
-        </a>
-        <a href="https://github.com/alektebel/litetorch" target="_blank" rel="noopener">
-          <span class="b-name">litetorch</span>
-          <span class="b-what">PyTorch reimplemented small enough to read, with RL algorithms included.</span>
-          <span class="b-stack">Python</span>
-        </a>
-        <a href="https://github.com/alektebel/kan_implementation" target="_blank" rel="noopener">
-          <span class="b-name">kan_implementation</span>
-          <span class="b-what">Kolmogorov-Arnold Networks using Taylor expansion instead of B-splines.</span>
-          <span class="b-stack">PyTorch</span>
-        </a>
-        <a href="https://regllm.xyz" target="_blank" rel="noopener">
-          <span class="b-name">regllm.xyz</span>
-          <span class="b-what">Shipped and live on the open internet.</span>
-          <span class="b-stack">product</span>
-        </a>
-        <a href="/skill-tree.html">
-          <span class="b-name">skill tree</span>
-          <span class="b-what">Two browsable dependency graphs: the papers behind modern AI, and the maths curriculum underneath — read live from the repo.</span>
-          <span class="b-stack">interactive</span>
-        </a>
-        <a href="/learn/">
-          <span class="b-name">learn from scratch</span>
-          <span class="b-what">From-scratch AWS, compilers, LLMs and distributed systems with graded checks you can run in the browser.</span>
-          <span class="b-stack">interactive · python</span>
-        </a>
-        <a href="/forja">
-          <span class="b-name">forja</span>
-          <span class="b-what">The forge: a project map of everything worth building from scratch — unlock chains, stage guides, and graded checks that run in your browser.</span>
-          <span class="b-stack">interactive · python</span>
-        </a>
-        <a href="/working-on/">
-          <span class="b-name">working on</span>
-          <span class="b-what">The projects I&rsquo;m building from scratch right now — cpore, mus, the exercises — with the latest lines of work.</span>
-          <span class="b-stack">live · dashboard</span>
-        </a>
-        <a href="/mus/play/">
-          <span class="b-name">mus vs the LLMs — live table</span>
-          <span class="b-what">Sit down against GLM-5.3, DeepSeek-V4 and Qwen3.8: real models, real señas, rivals intercepting gestures.</span>
-          <span class="b-stack">interactive · live</span>
-        </a>
-        <a href="/mus/">
-          <span class="b-name">mus contra la máquina</span>
-          <span class="b-what">Practice table for the Spanish card game, same covert signalling channel, offline bots.</span>
-          <span class="b-stack">interactive</span>
-        </a>
-      </div>
-    </section>
-
-    <!-- 04 written -->
-    <section aria-labelledby="h-written">
-      <div class="label" id="h-written">04 — written</div>
-      <div class="posts">
-        <a href="/blog/mus-against-the-machine.html">
-          <div class="p-meta">Sep 2026 · Multi-agent · Game theory</div>
-          <div class="p-title">Teaching LLMs to wink</div>
-          <p class="p-blurb">Two AI teams cooperate through nothing but facial twitches — an órdago accepted on a tiebreak rule, a quarter of the channel lost to timing, and the harness catching an error I had already written into a draft.</p>
-        </a>
-        <a href="/blog/master-thesis-reinforcement-learning.html">
-          <div class="p-meta">Oct 2025 · RL</div>
-          <div class="p-title">Master thesis: reinforcement learning applications</div>
-          <p class="p-blurb">Soft Actor-Critic implemented and pushed, plus an analysis of modern RL on continuous control.</p>
-        </a>
-        <a href="/blog/kan-implementation-pytorch-taylor.html">
-          <div class="p-meta">Jan 2025 · PyTorch</div>
-          <div class="p-title">Kolmogorov-Arnold networks via Taylor expansion</div>
-          <p class="p-blurb">What happens to a KAN when you swap B-splines for Taylor polynomials.</p>
-        </a>
-        <a href="/blog/proposal-for-consensus-algorithm.html">
-          <div class="p-meta">Nov 2025 · Bayesian · in progress</div>
-          <div class="p-title">A consensus algorithm for data labeling</div>
-          <p class="p-blurb">Many noisy annotators, one true label. A Bayesian way to decide who to believe.</p>
-        </a>
-      </div>
-    </section>
-
-    <!-- 05 open questions -->
-    <section class="dark-sec" aria-labelledby="h-open">
-      <div class="label" id="h-open">05 — open questions</div>
-      <p class="lede">Unfinished on purpose. If you have an answer, or a better question, I want to hear it.</p>
-      <div class="q-list">
-        <div class="q-item">
-          <span class="q-n">Q1</span>
-          <div>
-            <div class="q-title">Is a decentralized civilization feasible?</div>
-            <div class="q-note">Not the token — the civilization. Governance, defence, and the logistics nobody writes whitepapers about.</div>
-          </div>
-        </div>
-        <div class="q-item">
-          <span class="q-n">Q2</span>
-          <div>
-            <div class="q-title">What is true, versus what you are told?</div>
-            <div class="q-note">The gap between the account and the event, and whether you can measure it.</div>
-          </div>
-        </div>
-        <div class="q-item">
-          <span class="q-n">Q3</span>
-          <div>
-            <div class="q-title">Can the Collatz conjecture be read as linear algebra?</div>
-            <div class="q-note">3n+1 and n/2 as matrices, hunting invariants. Unpublished — ask me.</div>
-          </div>
-        </div>
-        <div class="q-item">
-          <span class="q-n">Q4</span>
-          <div>
-            <div class="q-title">How big a sofa fits around the corner?</div>
-            <div class="q-note">A soft actor-critic agent versus an L-shaped corridor. Geometry by search.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 06 brain teasers -->
-    <section aria-labelledby="h-puzzles">
-      <div class="label" id="h-puzzles">06 — brain teasers</div>
-      <p class="sec-lede">Problems I keep circling back to, mostly ones my own work walked me into. Open one to see how I think about it.</p>
-      <div class="puzzles">
-        <details class="puzzle">
-          <summary>A KAN swears any continuous function is sums of one-variable pieces. So why keep the layers?</summary>
-          <p class="a">Kolmogorov&ndash;Arnold gets you a depth-2 representation, but the inner functions it promises can be pathological &mdash; non-smooth and not something you can fit. A KAN keeps the idea and parameterises the univariate pieces (splines, or Taylor terms in my version) then stacks them, trading the theorem&rsquo;s exactness for something trainable. <b>The theorem says it exists; it says nothing about it being learnable.</b></p>
-        </details>
-        <details class="puzzle">
-          <summary>Five annotators are each right 70% of the time. Does majority vote get you to the truth?</summary>
-          <p class="a">Only if their errors are independent. Annotators who share a bias &mdash; same training, same reading of the rubric &mdash; fail together, so the errors stop cancelling and the vote plateaus no matter how many you add. That independence assumption is exactly what Dawid&ndash;Skene bakes in. Break it and you have to model the correlation, which is the whole difficulty in the consensus algorithm I&rsquo;m working on. <b>Correlation, not count, sets the ceiling.</b></p>
-        </details>
-        <details class="puzzle">
-          <summary>Can the Collatz map be read as linear algebra?</summary>
-          <p class="a">Not over the reals &mdash; it is affine and its two branches depend on parity, so no single matrix carries it. Its natural home is the 2-adic integers, where &ldquo;if even, halve&rdquo; is a shift and the whole iteration becomes a dynamical system on a tree. Linearising there buys you real structure, but nobody has closed the conjecture with it yet. <b>Right home, still no proof.</b></p>
-        </details>
-        <details class="puzzle">
-          <summary>Biggest sofa that rounds an L-shaped corner?</summary>
-          <p class="a">Hammersley&rsquo;s semicircular-ended shape gives about 2.2074 square units; Gerver&rsquo;s more elaborate construction pushes the record to roughly 2.2195, and that value is provably optimal only in the limit of an infinitely long corridor. The finite-width optimum is still open. It is a clean RL playground: continuous action space, a corridor, and a reward that only cares whether the sofa made it through. <b>A geometry problem you can point an agent at.</b></p>
-        </details>
-        <details class="puzzle">
-          <summary>Why does noisy gradient descent escape saddle points instead of parking on them?</summary>
-          <p class="a">A strict saddle has at least one direction of negative curvature, so it is a maximum along that axis. Noise, momentum, or even floating-point jitter nudges the iterate into it, and the gradient then pushes outward rather than back. Plain descent can crawl near one for a while, but in high dimensions saddle points vastly outnumber minima and every strict one is unstable. <b>The danger is plateaus, not peaks.</b></p>
-        </details>
-        <details class="puzzle">
-          <summary>What is the last digit of 19<sup>100</sup>?</summary>
-          <p class="a">Don&rsquo;t expand it. Only the last digit matters, and powers of 9 alternate: 9, 81, 729, 6561&hellip; &mdash; odd exponents end in 9, even ones in 1. Since 100 is even, the last digit is <b>1</b>. Same answer mod 10: 19 &equiv; &minus;1, so 19<sup>100</sup> &equiv; (&minus;1)<sup>100</sup> = 1. <b>The cycle is length two; you only need the parity of the exponent.</b></p>
-        </details>
-      </div>
-    </section>
-
-    <!-- 07 learn from scratch -->
-    <section aria-labelledby="h-learn">
-      <div class="built-head">
-        <div class="label" id="h-learn">07 — learn from scratch</div>
-        <a href="/learn/">open the platform →</a>
-      </div>
-      <p class="sec-lede">A repo of from-scratch implementations with graded checks. Pick a track, write the code, and the checker runs in the browser and tells you what to build next — the failure it names, not just that it failed.</p>
-      <div class="built-list">
-        <a href="/learn/#aws">
-          <span class="b-name">aws from scratch</span>
-          <span class="b-what">IAM, S3, SQS, DynamoDB, Lambda, SNS, KMS and VPC as toy implementations — 18 graded checks.</span>
-          <span class="b-stack">python · interactive</span>
-        </a>
-        <a href="/learn/#compiler">
-          <span class="b-name">compiler + virtual gpu</span>
-          <span class="b-what">One 32-bit ISA, a CPU and a SIMT warp that punishes branching. 12 checks.</span>
-          <span class="b-stack">python · interactive</span>
-        </a>
-        <a href="/learn/#llm">
-          <span class="b-name">llm from scratch</span>
-          <span class="b-what">Byte-pair encoding, attention, sampling, an exact KV cache and RoPE. 13 checks.</span>
-          <span class="b-stack">python · interactive</span>
-        </a>
-        <a href="/learn/#dynamo">
-          <span class="b-name">dynamo paper</span>
-          <span class="b-what">Quorums, vector clocks, sloppy quorum, Merkle anti-entropy and gossip. 17 checks.</span>
-          <span class="b-stack">python · interactive</span>
-        </a>
-        <a href="/learn/#context-caching">
-          <span class="b-name">context caching</span>
-          <span class="b-what">KV cache, prefix and radix caching, PagedAttention and copy-on-write. 16 checks.</span>
-          <span class="b-stack">python · interactive</span>
-        </a>
-        <a href="/learn/#deploy-and-debug">
-          <span class="b-name">deploy &amp; debug</span>
-          <span class="b-what">Capacity, percentile latency, SLO error budgets and root-cause diagnosis. 12 checks.</span>
-          <span class="b-stack">python · interactive</span>
-        </a>
-      </div>
-    </section>
-
-    <!-- 08 track -->
-    <section aria-labelledby="h-track">
-      <div class="label" id="h-track">08 — track</div>
-      <div class="track-list">
-        <div class="track-row">
-          <span class="track-when">2023 → now</span>
-          <div class="track-what"><strong>Senior Data Analyst, PwC</strong><div>LGD database migration (SAS → Oracle) for a top-5 Spanish bank; FINREP/COREP automation; stress testing.</div></div>
-        </div>
-        <div class="track-row">
-          <span class="track-when">2022 → 23</span>
-          <div class="track-what"><strong>Data Engineer, Álamo Consulting</strong><div>Regulatory reporting (FINREP / COREP / SIRBE) for the Bank of Spain.</div></div>
-        </div>
-      </div>
-      <div class="cta">
-        <div class="big">Got a pipeline nobody can debug?</div>
-        <a class="mail" href="mailto:dratencia@gmail.com">dratencia@gmail.com</a>
-      </div>
-      <footer class="colophon">© 2026 Diego Rodríguez Atencia</footer>
-    </section>
-  </main>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Diego Rodríguez Atencia — Me</title><meta content="Mathematician in Madrid. I build useful things from scratch, write about them, and climb." name="description"/><meta content="Diego Rodríguez Atencia — Me" property="og:title"/><meta content="Mathematician in Madrid. I build useful things from scratch, write about them, and climb." property="og:description"/><meta content="website" property="og:type"/><meta content="https://diegoatencia.dev/assets/personal/climbing.jpg" property="og:image"/><link href="https://diegoatencia.dev/" rel="canonical"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="/assets/personal/site.css" rel="stylesheet"/></head><body><a class="skip" href="#top">Skip to content</a><div style="background: #f4f2ed; color: #111110; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 17px; line-height: 1.55">
+<!-- NAV -->
+<header style="max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 48px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; font-family: 'IBM Plex Mono', monospace; font-size: 14px">
+<a href="#top" style="font-weight: 500; text-decoration: none">diego rodríguez atencia</a>
+<nav aria-label="Site" style="display: flex; flex-wrap: wrap; gap: 4px 28px">
+<a aria-current="page" href="/index.html" style="padding: 10px 0; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px">me</a>
+<a href="/cv.html" style="padding: 10px 0; text-decoration: none">cv</a>
+<a href="/blog/blog.html" style="padding: 10px 0; text-decoration: none">blog</a>
+<a href="https://github.com/alektebel" rel="noopener noreferrer" style="padding: 10px 0; text-decoration: none" target="_blank">github ↗</a>
+</nav>
+</header>
+<main id="top">
+<!-- HERO: photos + id + now -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 48px) 72px; display: flex; flex-wrap: wrap; gap: 40px 48px; align-items: flex-end">
+<div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+<div>
+<h1 style="margin: 0; font-size: 32px; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em">Diego Rodríguez Atencia</h1>
+<p style="margin: 8px 0 0; font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #6b6862">mathematician · madrid · builds things from scratch</p>
+<p style="margin: 20px 0 0; max-width: 460px; font-size: 17px; color: #3c3a35; text-wrap: pretty">Hi! I'm Diego, a mathematician from UAM, data science @ PwC. I build things that solve problems I actually have, I read a lot of science fiction, and I climb. If you like mus, try playing against open-weight LLMs at <a href="/mus/play/" style="color: #111110; text-underline-offset: 3px">the live table below</a>!</p>
 </div>
-
-<script>
-"use strict";
-/* ── Backend endpoint: paste the Lambda Function URL after `sam deploy`.
-   Leave empty and the ask box degrades gracefully to an email fallback. */
-const ASK_ENDPOINT = "https://20rv2a9if4.execute-api.eu-west-1.amazonaws.com/ask";
-const FALLBACK = "That didn't go through. Ask me directly instead: dratencia@gmail.com";
-
-/* ── Clock ── */
-(function clock() {
-  const el = document.getElementById("clock");
-  const pad = (n) => String(n).padStart(2, "0");
-  const tick = () => {
-    const d = new Date();
-    el.textContent = pad(d.getHours()) + ":" + pad(d.getMinutes());
-  };
-  tick();
-  setInterval(tick, 20000);
-})();
-
-/* ── GitHub: latest public push ── */
-(async function github() {
-  const box = document.getElementById("gh-box");
-  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const ago = (iso) => {
-    const s = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (s < 3600) return Math.max(1, Math.round(s / 60)) + "m ago";
-    if (s < 86400) return Math.round(s / 3600) + "h ago";
-    return Math.round(s / 86400) + "d ago";
-  };
-  try {
-    const r = await fetch("https://api.github.com/users/alektebel/events/public?per_page=30");
-    if (!r.ok) throw new Error("gh " + r.status);
-    const events = await r.json();
-    const mine = events.filter((e) => e.repo && e.repo.name.split("/")[0].toLowerCase() === "alektebel");
-    const ev = mine.find((e) => e.type === "PushEvent") || mine[0];
-    if (!ev) throw new Error("no events");
-    const full = ev.repo.name, repo = full.split("/").pop();
-    const inline = ev.payload && ev.payload.commits && ev.payload.commits.length
-      ? ev.payload.commits[ev.payload.commits.length - 1] : null;
-    const verbs = { PushEvent: "pushed to", PullRequestEvent: "opened a PR in", CreateEvent: "created", IssuesEvent: "filed an issue in", WatchEvent: "starred", ForkEvent: "forked", ReleaseEvent: "released", DeleteEvent: "pruned a branch in" };
-    let msg = inline ? inline.message.split("\n")[0] : (verbs[ev.type] || "worked on") + " " + repo;
-    let url = "https://github.com/" + full;
-    if (!inline && ev.type === "PushEvent") {
-      try {
-        const cr = await fetch("https://api.github.com/repos/" + full + "/commits?per_page=1");
-        if (cr.ok) {
-          const cs = await cr.json();
-          if (cs.length) { msg = cs[0].commit.message.split("\n")[0]; url = cs[0].html_url; }
-        }
-      } catch (e) { /* keep generic line */ }
-    } else if (inline) {
-      url = "https://github.com/" + full + "/commit/" + inline.sha;
-    }
-    box.innerHTML =
-      '<a class="gh-repo" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(repo) + "</a> " +
-      '<span class="gh-ago">· ' + esc(ago(ev.created_at)) + "</span>" +
-      '<div class="gh-msg">' + esc(msg.slice(0, 84)) + "</div>";
-  } catch (e) {
-    box.innerHTML = '<span class="gh-wait">github is being shy — see the repos</span>';
-  }
-})();
-
-/* ── Ask this site → AWS Lambda backend ── */
-(function ask() {
-  const form = document.getElementById("ask-form");
-  const input = document.getElementById("ask-input");
-  const btn = document.getElementById("ask-btn");
-  const status = document.getElementById("ask-status");
-  const box = document.getElementById("ask-answer");
-  const re = document.getElementById("ask-re");
-  const text = document.getElementById("ask-text");
-  let busy = false;
-
-  async function run(question) {
-    const q = (question || "").trim();
-    if (!q || busy) return;
-    busy = true;
-    btn.disabled = true;
-    btn.textContent = "thinking";
-    status.hidden = false;
-    box.hidden = true;
-    try {
-      if (!ASK_ENDPOINT) throw new Error("no backend configured");
-      const r = await fetch(ASK_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q })
-      });
-      if (!r.ok) throw new Error("backend " + r.status);
-      const data = await r.json();
-      const answer = (data && data.answer || "").trim();
-      if (!answer) throw new Error("empty answer");
-      re.textContent = "re: " + q.slice(0, 120);
-      text.textContent = answer;
-      box.hidden = false;
-    } catch (e) {
-      re.textContent = "re: " + q.slice(0, 120);
-      text.textContent = ASK_ENDPOINT ? FALLBACK
-        : "The ask backend isn't deployed yet — email me directly: dratencia@gmail.com";
-      box.hidden = false;
-    } finally {
-      busy = false;
-      btn.disabled = false;
-      btn.textContent = "ask";
-      status.hidden = true;
-    }
-  }
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    run(input.value);
-  });
-  document.querySelectorAll(".suggestions button").forEach((b) =>
-    b.addEventListener("click", () => {
-      input.value = b.getAttribute("data-q");
-      run(input.value);
-    })
-  );
-})();
-
-/* ── Gradient-descent field (canvas) ── */
-(function field() {
-  const cv = document.getElementById("field");
-  const label = document.getElementById("descent-label");
-  const ACCENT = "#ff3b1f";
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const rnd = (a, b) => a + Math.random() * (b - a);
-
-  const S = {
-    basins: [], walkers: [], mouse: null, surface: 0,
-    seed() {
-      this.basins = [];
-      for (let i = 0; i < 3; i++) {
-        this.basins.push({
-          x: rnd(0.15, 0.85), y: rnd(0.15, 0.85),
-          s: rnd(0.10, 0.26), w: rnd(0.6, 1.5),
-          vx: rnd(-0.5, 0.5) * 0.00012, vy: rnd(-0.5, 0.5) * 0.00012
-        });
-      }
-      this.walkers = [];
-      for (let i = 0; i < 26; i++) this.walkers.push(newWalker());
-      this.surface++;
-      label.textContent = "surface " + String(this.surface).padStart(2, "0") + " · 26 walkers · move the cursor";
-    }
-  };
-  function newWalker() {
-    return { x: Math.random(), y: Math.random(), trail: [], life: 0, max: rnd(180, 440) };
-  }
-  function grad(x, y) {
-    let gx = 0, gy = 0;
-    for (const b of S.basins) {
-      const dx = x - b.x, dy = y - b.y, r2 = dx * dx + dy * dy;
-      const e = b.w * Math.exp(-r2 / (2 * b.s * b.s)) / (b.s * b.s);
-      gx += dx * e; gy += dy * e;
-    }
-    if (S.mouse) {
-      const dx = x - S.mouse.x, dy = y - S.mouse.y, r2 = dx * dx + dy * dy;
-      const e = 1.6 * Math.exp(-r2 / 0.024) / 0.012;
-      gx -= dx * e; gy -= dy * e;
-    }
-    return [gx, gy];
-  }
-  function val(x, y) {
-    let v = 0;
-    for (const b of S.basins) {
-      const dx = x - b.x, dy = y - b.y;
-      v -= b.w * Math.exp(-(dx * dx + dy * dy) / (2 * b.s * b.s));
-    }
-    return v;
-  }
-
-  const ctx = cv.getContext("2d");
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  let w = 0, h = 0;
-  function measure() {
-    const cw = cv.clientWidth, ch = cv.clientHeight;
-    if (!cw || !ch) return false;
-    if (cw !== w || ch !== h) {
-      w = cw; h = ch;
-      cv.width = Math.round(w * dpr);
-      cv.height = Math.round(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    return true;
-  }
-  function contours() {
-    const cols = 52, rows = 30, g = [];
-    for (let j = 0; j <= rows; j++) {
-      g[j] = [];
-      for (let i = 0; i <= cols; i++) g[j][i] = val(i / cols, j / rows);
-    }
-    ctx.lineWidth = 1;
-    for (let li = 0; li < 9; li++) {
-      const lv = -0.06 - li * 0.13;
-      ctx.strokeStyle = "rgba(17,17,16," + (0.05 + li * 0.028) + ")";
-      ctx.beginPath();
-      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
-        const a = g[j][i], b = g[j][i + 1], c = g[j + 1][i + 1], d = g[j + 1][i];
-        const px = (i / cols) * w, py = (j / rows) * h, cw = w / cols, ch = h / rows;
-        const pts = [];
-        if ((a < lv) !== (b < lv)) pts.push([px + cw * (lv - a) / (b - a), py]);
-        if ((b < lv) !== (c < lv)) pts.push([px + cw, py + ch * (lv - b) / (c - b)]);
-        if ((c < lv) !== (d < lv)) pts.push([px + cw * (1 - (lv - c) / (d - c)), py + ch]);
-        if ((d < lv) !== (a < lv)) pts.push([px, py + ch * (1 - (lv - d) / (a - d))]);
-        if (pts.length >= 2) { ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); }
-      }
-      ctx.stroke();
-    }
-  }
-  function frame() {
-    if (!measure()) return;
-    ctx.clearRect(0, 0, w, h);
-    for (const b of S.basins) {
-      b.x += b.vx * 16; b.y += b.vy * 16;
-      if (b.x < 0.08 || b.x > 0.92) b.vx *= -1;
-      if (b.y < 0.08 || b.y > 0.92) b.vy *= -1;
-    }
-    contours();
-    for (const b of S.basins) {
-      ctx.strokeStyle = "rgba(17,17,16,0.5)";
-      ctx.beginPath(); ctx.arc(b.x * w, b.y * h, 3, 0, 6.284); ctx.stroke();
-    }
-    for (let k = 0; k < S.walkers.length; k++) {
-      const p = S.walkers[k];
-      const [gx, gy] = grad(p.x, p.y);
-      const step = 0.0016;
-      p.x -= gx * step; p.y -= gy * step;
-      p.x += (Math.random() - 0.5) * 0.0012;
-      p.y += (Math.random() - 0.5) * 0.0012;
-      p.life++;
-      p.trail.push([p.x, p.y]);
-      if (p.trail.length > 46) p.trail.shift();
-      if (p.life > p.max || p.x < -0.05 || p.x > 1.05 || p.y < -0.05 || p.y > 1.05) {
-        S.walkers[k] = newWalker();
-        continue;
-      }
-      ctx.strokeStyle = ACCENT;
-      ctx.lineWidth = 1.1;
-      ctx.globalAlpha = 0.5;
-      ctx.beginPath();
-      p.trail.forEach((t, i) => {
-        const X = t[0] * w, Y = t[1] * h;
-        if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y);
-      });
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = ACCENT;
-      ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 1.9, 0, 6.284); ctx.fill();
-    }
-  }
-
-  S.seed();
-  cv.addEventListener("pointermove", (e) => {
-    const r = cv.getBoundingClientRect();
-    S.mouse = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
-  });
-  cv.addEventListener("pointerleave", () => { S.mouse = null; });
-  document.getElementById("reseed").addEventListener("click", () => { S.seed(); frame(); });
-
-  frame();
-  if (!reduce) setInterval(frame, 33);
-})();
-</script>
-</body>
-</html>
+<dl style="margin: 0; display: flex; flex-direction: column; border-top: 1px solid #111110; font-size: 15px">
+<div style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid #ddd8cb">
+<dt style="flex: 0 0 132px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">now</dt>
+<dd style="margin: 0; flex: 1 1 160px; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: #ff3b1f"></span><span id="madrid-time">--:--</span> in Madrid</dd>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid #ddd8cb">
+<dt style="flex: 0 0 132px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">last commit</dt>
+<dd style="margin: 0; flex: 1 1 160px"><span id="latest-commit">loading latest commit…</span></dd>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid #ddd8cb">
+<dt style="flex: 0 0 132px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">building</dt>
+<dd style="margin: 0; flex: 1 1 160px">barrapp, and an agent harness with its own memory</dd>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid #ddd8cb">
+<dt style="flex: 0 0 132px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">away from desk</dt>
+<dd style="margin: 0; flex: 1 1 160px">climbing, the sierra, chess, mus</dd>
+</div>
+</dl>
+<div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 14px">
+<a href="/cv.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; background: #111110; color: #f4f2ed; text-decoration: none">read the cv →</a>
+<a href="mailto:dratencia@gmail.com" style="display: inline-flex; align-items: center; min-height: 48px">dratencia@gmail.com</a>
+</div>
+</div>
+<div class="hero-gallery" style="flex: 2.2 1 560px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 12px">
+<img alt="Diego by the Arno in Florence, Ponte Vecchio behind him" loading="lazy" src="/assets/personal/florence.jpg" style="display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: 30% 30%"/>
+<img alt="Diego crouching next to a dog on a rocky mountain meadow" loading="lazy" src="/assets/personal/mountains.jpg" style="display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: 50% 60%"/>
+<img alt="Diego climbing a rock route outdoors" fetchpriority="high" src="/assets/personal/climbing.jpg" style="display:block;width:100%;aspect-ratio:3 / 4;object-fit:cover;object-position:center 28%"/>
+</div>
+</section>
+<!-- LIVE -->
+<section aria-labelledby="live-h" style="background: #111110; color: #f4f2ed">
+<div style="max-width: 1240px; margin: 0 auto; padding: 64px clamp(16px, 4vw, 48px)">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 32px">
+<h2 id="live-h" style="margin: 0; font-size: 28px; font-weight: 500">Running on this site right now</h2>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #b3aea3">open one, it works</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1px; background: #2c2b28; border: 1px solid #2c2b28">
+<a href="/mus/play/" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; background: #111110; text-decoration: none; min-height: 180px">
+<span style="display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ff3b1f"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #ff3b1f"></span>live table</span>
+<span style="font-size: 21px; font-weight: 500">Mus against the LLMs</span>
+<span style="font-size: 15px; color: #b3aea3">Sit down against GLM-5.3, DeepSeek-V4 and Qwen3.8, with real señas and rivals intercepting gestures.</span>
+</a>
+<a href="/working-on/" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; background: #111110; text-decoration: none; min-height: 180px">
+<span style="display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ff3b1f"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #ff3b1f"></span>live from github</span>
+<span style="font-size: 21px; font-weight: 500">Working on</span>
+<span style="font-size: 15px; color: #b3aea3">What has my attention this week and how far I am through the exercises.</span>
+</a>
+</div>
+</div>
+</section>
+<!-- BUILDING -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 80px clamp(16px, 4vw, 48px) 0">
+<h2 style="margin: 0 0 28px; font-size: 22px; font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #111110">Things I'm building</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 40px 32px">
+<article style="display: flex; flex-direction: column; gap: 14px">
+<a href="/barrapp/" style="display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; background: #111110; padding: 20px 0; box-sizing: border-box">
+<img alt="barrapp analysis screen scoring each pull-up repetition" loading="lazy" src="/assets/personal/barrapp.png" style="display: block; height: 100%; width: auto; max-width: 100%; object-fit: contain; border-radius: 10px"/>
+</a>
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/barrapp/" style="text-decoration: none">barrapp</a></h3>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">closed testing</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Counts and scores your calisthenics reps from a phone video, and says so when a rep can't be read.</p>
+</div>
+</article>
+<article style="display: flex; flex-direction: column; gap: 14px">
+<a href="/forja" style="display: block; aspect-ratio: 4 / 3; background: #111110; overflow: hidden">
+<img alt="forja challenges page with a build-your-own-AWS stage in progress" loading="lazy" src="/assets/personal/forja.png" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left"/>
+</a>
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/forja" style="text-decoration: none">forja</a></h3>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">73 challenges · 130 checks</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Rebuild the systems you use every day from scratch, in your editor, graded locally.</p>
+</div>
+</article>
+<article style="display: flex; flex-direction: column; gap: 14px">
+<a href="/mus/play/" style="display:block;aspect-ratio:4 / 3;background:#111110;overflow:hidden"><img alt="Mus against the LLMs live game table" loading="lazy" src="/assets/personal/mus.png" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top center"/></a>
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/mus/play/">mus against the LLMs</a></h3>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">live</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35">Play the Spanish card game against live language models, with covert señas and rivals that can read them.</p>
+</div>
+</article>
+</div>
+</section>
+<!-- WRITING -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 48px) 0">
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; padding-bottom: 12px; border-bottom: 1px solid #111110">
+<h2 style="margin: 0; font-size: 22px; font-weight: 500">Writing</h2>
+<a href="/blog/blog.html" style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">all posts →</a>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0">
+<li style="padding: 14px 0; border-bottom: 1px solid #ddd8cb"><a href="/blog/mus-against-the-machine.html" style="text-decoration: none; display: flex; flex-wrap: wrap; gap: 2px 16px"><span style="flex: 0 0 72px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862; padding-top: 3px">sep 2026</span><span style="flex: 1 1 240px; min-width: 0; font-weight: 500">Teaching LLMs to wink</span></a></li>
+<li style="padding: 14px 0; border-bottom: 1px solid #ddd8cb"><a href="/blog/proposal-for-consensus-algorithm.html" style="text-decoration: none; display: flex; flex-wrap: wrap; gap: 2px 16px"><span style="flex: 0 0 72px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862; padding-top: 3px">nov 2025</span><span style="flex: 1 1 240px; min-width: 0; font-weight: 500">A Bayesian consensus algorithm for noisy labels</span></a></li>
+<li style="padding: 14px 0; border-bottom: 1px solid #ddd8cb"><a href="/blog/master-thesis-reinforcement-learning.html" style="text-decoration: none; display: flex; flex-wrap: wrap; gap: 2px 16px"><span style="flex: 0 0 72px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862; padding-top: 3px">oct 2025</span><span style="flex: 1 1 240px; min-width: 0; font-weight: 500">Master thesis: reinforcement learning with SAC</span></a></li>
+<li style="padding: 14px 0; border-bottom: 1px solid #ddd8cb"><a href="/blog/kan-implementation-pytorch-taylor.html" style="text-decoration: none; display: flex; flex-wrap: wrap; gap: 2px 16px"><span style="flex: 0 0 72px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862; padding-top: 3px">jan 2025</span><span style="flex: 1 1 240px; min-width: 0; font-weight: 500">Kolmogorov-Arnold networks via Taylor expansion</span></a></li>
+</ul>
+</div>
+</section><section id="ask-this-site" style="max-width:1240px;margin:0 auto;padding:88px clamp(16px,4vw,48px) 0"><h2 style="margin:0 0 12px;font-size:22px;font-weight:500;padding-bottom:12px;border-bottom:1px solid #111110">Ask this site</h2><p style="margin:0 0 16px;color:#3c3a35">Questions about my work, answered from what I’ve built. English or Spanish.</p><form class="ask-form"><label class="sr-only" for="home-ask">Ask about Diego's work</label><div class="ask-row"><input id="home-ask" maxlength="500" name="question" placeholder="What have you built from scratch?" required="" type="text"/><button type="submit">ask</button></div><p class="ask-status" hidden="" role="status"></p><div class="ask-answer" hidden=""></div></form></section>
+<!-- SHELF -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 48px) 0">
+<h2 style="margin: 0 0 28px; font-size: 22px; font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #111110">On the shelf</h2>
+<ul style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 240px)); gap: 32px 40px">
+<li style="display: flex; flex-direction: column; gap: 12px">
+<img alt="Cover of Children of Time" loading="lazy" src="/assets/personal/children-of-time.jpg" style="display:block;width:100%;aspect-ratio:2 / 3;object-fit:cover;border:1px solid #ddd8cb"/>
+<div>
+<span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">read</span>
+<span style="display: block; margin-top: 2px; font-weight: 500">Children of Time</span>
+<span style="display: block; font-size: 15px; color: #3c3a35">Adrian Tchaikovsky</span>
+</div>
+</li>
+<li style="display: flex; flex-direction: column; gap: 12px">
+<img alt="Cover of Children of Ruin" loading="lazy" src="/assets/personal/children-of-ruin.jpg" style="display:block;width:100%;aspect-ratio:2 / 3;object-fit:cover;border:1px solid #ddd8cb"/>
+<div>
+<span style="display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #111110"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #ff3b1f"></span>reading now</span>
+<span style="display: block; margin-top: 2px; font-weight: 500">Children of Ruin</span>
+<span style="display: block; font-size: 15px; color: #3c3a35">Adrian Tchaikovsky</span>
+</div>
+</li>
+</ul>
+</section>
+<!-- AWAY FROM THE DESK -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 48px) 0">
+<h2 style="margin: 0 0 24px; font-size: 22px; font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #111110">Away from the desk</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 32px 48px">
+<ul style="flex: 2 1 420px; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 24px 40px; align-content: start">
+<li><span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">climbing</span><span style="display: block; margin-top: 4px">On rock and at the gym</span></li>
+<li><span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">hiking</span><span style="display: block; margin-top: 4px">Sierra de Guadarrama, Picos de Europa</span></li>
+<li><span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">tables</span><span style="display: block; margin-top: 4px">Chess and mus, which is how mus_bench started</span></li></ul>
+</div>
+</section>
+<!-- OPEN QUESTIONS -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 48px) 96px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; padding-bottom: 12px; border-bottom: 1px solid #111110; margin-bottom: 8px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 500">Open questions</h2>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">unfinished on purpose · answers welcome</span>
+</div>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 0 40px">
+<li style="padding: 20px 0; border-bottom: 1px solid #ddd8cb"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">q1</span><p style="margin: 6px 0 0; font-weight: 500">Is a decentralized civilization feasible?</p></li>
+<li style="padding: 20px 0; border-bottom: 1px solid #ddd8cb"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">q2</span><p style="margin: 6px 0 0; font-weight: 500">What is true, versus what you are told?</p></li>
+<li style="padding: 20px 0; border-bottom: 1px solid #ddd8cb"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">q3</span><p style="margin: 6px 0 0; font-weight: 500">Can the Collatz map be read as linear algebra?</p></li>
+<li style="padding: 20px 0; border-bottom: 1px solid #ddd8cb"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6b6862">q4</span><p style="margin: 6px 0 0; font-weight: 500">How big a sofa fits around the corner?</p></li>
+</ol>
+</section>
+</main>
+<footer style="border-top: 1px solid #111110">
+<div style="max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 48px) 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; font-family: 'IBM Plex Mono', monospace; font-size: 13px">
+<nav aria-label="Elsewhere" style="display: flex; flex-wrap: wrap; gap: 4px 24px">
+<a href="mailto:dratencia@gmail.com" style="padding: 8px 0">email</a>
+<a href="https://github.com/alektebel" rel="noopener noreferrer" style="padding: 8px 0" target="_blank">github</a>
+<a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" rel="noopener noreferrer" style="padding: 8px 0" target="_blank">linkedin</a>
+<a href="https://twitter.com/didacum333" rel="noopener noreferrer" style="padding: 8px 0" target="_blank">x</a>
+<a href="/skill-tree.html" style="padding: 8px 0">skill tree</a>
+</nav>
+<span style="padding: 8px 0; color: #6b6862">© 2026 Diego Rodríguez Atencia</span>
+</div>
+</footer>
+</div><script defer="" src="/assets/personal/site.js"></script></body></html>
