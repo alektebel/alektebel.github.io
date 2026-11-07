@@ -33,6 +33,5 @@ button{cursor:pointer}
 .projects-section.has-scroll .projects-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center}
 .projects-section.has-scroll .project-window{overflow:hidden}
 .projects-section.has-scroll .project-track{will-change:transform}
-.unibox-visual{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:linear-gradient(145deg,#e5e0f2,#cbc3e7);overflow:hidden}
-.unibox-visual img{display:block;width:88px;height:88px;border-radius:22px;box-shadow:0 12px 26px #3525682b}
-.unibox-visual span{font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:-.05em;color:#312758}
+.unibox-visual{aspect-ratio:4 / 3;overflow:hidden;background:#161826}
+.unibox-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
