@@ -893,6 +893,11 @@ async function ghFindFork(login) {
   const upstream = `${GH_UPSTREAM.owner}/${GH_UPSTREAM.repo}`;
   try {
     const repo = await ghApi(`/repos/${encodeURIComponent(login)}/${GH_UPSTREAM.repo}`);
+    if (repo.full_name === upstream) {
+      const err = new Error("upstream");
+      err.code = "upstream";
+      throw err;
+    }
     if (repo.fork && repo.parent && repo.parent.full_name === upstream) return repo;
   } catch (err) {
     if (err.code !== "not_found") throw err;
@@ -939,6 +944,8 @@ async function ghConnect() {
     if (err.code === "no_fork") {
       ghStatus(`@${login} has no fork of ${GH_UPSTREAM.owner}/${GH_UPSTREAM.repo}. Fork it below, then connect.`, "error");
       $("#gh-fork").focus();
+    } else if (err.code === "upstream") {
+      ghStatus("This is the source repo; the catalog already tracks its progress. Fork it to track your own commits.", "error");
     } else if (err.code === "not_found") {
       ghStatus(`GitHub user @${login} was not found.`, "error");
     } else {
