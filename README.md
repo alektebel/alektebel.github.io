@@ -30,10 +30,10 @@ Both backends allow-list the site origin, so each needs the new domain:
 
 - `backend/` (ask-this-site Lambda) — `ALLOWED_ORIGIN` now takes a
   comma-separated list; redeploy the stack to pick up the new default.
-- The live mus table (`52.31.169.175.sslip.io`, Caddy on AWS, not in this repo)
-  currently returns `Access-Control-Allow-Origin: https://alektebel.github.io`
-  only. Add `https://diegoatencia.dev` there or `/mus/play/` breaks on the new
-  domain.
+- The live mus table (`34.253.36.5.sslip.io`, Caddy on AWS, not in this repo)
+  allow-lists both `https://diegoatencia.dev` and `https://alektebel.github.io`.
+  The table page is `/mus/` (built by `publish/build_static_play.sh` in
+  mus-benchmark); `/mus/play/` and the old benchmark pages redirect to it.
 
 ### learn progress backend (Google sign-in, per-user progress)
 
