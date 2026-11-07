@@ -27,8 +27,16 @@ const BC = {
   AI: "#a58cf0", Distributed: "#54d1a4", Networking: "#f0995a",
   Systems: "#6aa5f0", Finance: "#e0b44e",
 };
-const CIRC = 169.6;
-const WEDGE = 72;                 // degrees of longitude owned by one branch
+const DISK = 1500, CX = 750, CIRC = 169.6;
+const RING_R = [0, 140, 265, 390, 505, 615];
+const WEDGE = 72;                 // degrees of arc owned by one branch
+const LABEL_R = 706;              // branch labels sit beyond the outermost ring
+const NODE_W = 104, NODE_HALF_GAP = 60;
+/* Completion paints lines in its own growth colour, deliberately distinct from
+   the five branch hues: bright when both ends are complete, soft when only one
+   is, so the tree fills in as courses land. */
+const GROW = "#6ee7a8";
+const GROW_SOFT = "rgba(110,231,168,.7)";
 
 /* which branch a project belongs to */
 const CATEGORY = {
@@ -196,11 +204,8 @@ function render() {
   if (VIEW === "home") renderHome();
   if (VIEW === "work") renderWork();
   if (VIEW === "map") {
-    /* every visit starts from the same centred camera */
-    if (VIEW !== LAST_VIEW) {
-      GLOBE.yaw = 0; GLOBE.pitch = -0.10; GLOBE.dist = GLOBE_DIST0;
-      GLOBE.panX = 0; GLOBE.panY = 0;
-    }
+    /* every visit starts centered on the core */
+    if (VIEW !== LAST_VIEW) fitTree(true);
     renderMap();
   }
   LAST_VIEW = VIEW;
@@ -502,70 +507,13 @@ function courseIndex() {
   return { byId, courses };
 }
 
-/* A branch owns a lune. Nodes are laid out on latitude rows (south = shallow
-   prerequisites, north = deep ones) with as many rows as it takes to keep the
-   neighbours apart; the arc a row offers shrinks with cos(latitude). */
-const LUNE_LON = (WEDGE - 6) * Math.PI / 180;    // usable longitude inside a lune
-const LUNE_SIN = 0.93;                           // latitude range, as sin(lat)
-const NODE_ARC = 0.50;                           // model-space arc one node needs
-
-function luneRows(n) {
-  let rows = 1;
-  for (; rows <= 12; rows++) {
-    let capacity = 0;
-    for (let r = 0; r < rows; r++) {
-      const sinLat = LUNE_SIN * (-1 + (2 * (r + 0.5)) / rows);
-      const lat = Math.asin(sinLat);
-      capacity += Math.max(1, Math.floor((LUNE_LON * Math.cos(lat)) / NODE_ARC));
-    }
-    if (capacity >= n) break;
-  }
-  return rows;
+/* how many nodes of this width fit across one branch's arc at radius r */
+function ringCap(r) {
+  const half = Math.asin(Math.min(1, NODE_HALF_GAP / r)) * 180 / Math.PI;
+  return Math.max(1, Math.floor((WEDGE - 2 * half) / (2 * half)) + 1);
 }
 
-function layoutLune(list, cat) {
-  const n = list.length;
-  const rows = luneRows(n);
-  const bands = [];
-  for (let r = 0; r < rows; r++) {
-    const sinLat = rows === 1 ? 0 : LUNE_SIN * (-1 + (2 * (r + 0.5)) / rows);
-    const lat = Math.asin(Math.max(-0.985, Math.min(0.985, sinLat)));
-    const cols = Math.max(1, Math.floor((LUNE_LON * Math.cos(lat)) / NODE_ARC));
-    bands.push({ lat, cols, members: [] });
-  }
-  /* fill rows in depth order; a branch too big for one band spills outward */
-  let band = 0;
-  for (const entry of list) {
-    while (band < bands.length - 1 && bands[band].members.length >= bands[band].cols) band++;
-    bands[band].members.push(entry);
-  }
-
-  const base = (BR[cat] * Math.PI) / 180;
-  const out = [];
-  bands.forEach((b, row) => {
-    const k = b.members.length;
-    /* alternate rows sideways: two single-node rows would otherwise sit in a
-       straight line and their rings would touch */
-    const shift = (row % 2 ? 1 : -1) * 0.08;
-    b.members.forEach((entry, i) => {
-      const lonPos = k === 1 ? 0.5 : (i + 0.5) / k;
-      const lon = base + shift + (lonPos - 0.5) * LUNE_LON;
-      const r = Math.cos(b.lat);
-      out.push({
-        item: entry.item, course: entry.course, cat,
-        p: { x: r * Math.cos(lon), y: Math.sin(b.lat), z: r * Math.sin(lon) },
-      });
-    });
-  });
-  return out;
-}
-
-/* Every project sits on the surface of a unit sphere: one 72° lune per branch,
-   latitude ordered by prerequisite depth (roots toward the south, leaves toward
-   the north), longitude scattered with the golden angle so no two nodes of a
-   lune stack. Only the front hemisphere is drawn, so the far half waits for a
-   rotation. */
-function globeNodes() {
+function treeNodes() {
   const { byId, courses } = courseIndex();
   const prereq = new Map();
   for (const course of courses.keys()) {
@@ -600,7 +548,33 @@ function globeNodes() {
   const out = [];
   for (const [cat, list] of branches) {
     list.sort((a, b) => depthOf(a.course) - depthOf(b.course) || a.item.title.localeCompare(b.item.title));
-    for (const node of layoutLune(list, cat)) out.push(node);
+
+    /* fill the inner rings first; a branch too large for one ring spills out */
+    const rings = RING_R.map(() => []);
+    let ring = 1;
+    for (const entry of list) {
+      while (ring < RING_R.length && rings[ring].length >= ringCap(RING_R[ring])) ring++;
+      entry.ring = Math.min(ring, RING_R.length - 1);
+      rings[entry.ring].push(entry);
+    }
+
+    for (let i = 1; i < RING_R.length; i++) {
+      const group = rings[i];
+      if (!group.length) continue;
+      const r = RING_R[i];
+      const half = Math.asin(Math.min(1, NODE_HALF_GAP / r)) * 180 / Math.PI;
+      const window = Math.min(WEDGE / 2 - half, 26);
+      const step = group.length > 1 ? (2 * window) / (group.length - 1) : 0;
+      group.forEach((entry, k) => {
+        const off = group.length > 1 ? -window + step * k : 0;
+        const deg = (BR[cat] + off) * Math.PI / 180;
+        out.push({
+          item: entry.item, course: entry.course, cat, ring: i,
+          x: CX + r * Math.cos(deg),
+          y: CX + r * Math.sin(deg),
+        });
+      });
+    }
   }
 
   const byCourse = new Map(out.map((n) => [n.course, n]));
@@ -612,249 +586,12 @@ function globeNodes() {
   return out;
 }
 
-/* ------------------------------------------------------------ globe camera */
-const GLOBE = {
-  yaw: 0, pitch: -0.10, dist: 2.9,
-  panX: 0, panY: 0,
-  w: 0, h: 0, dpr: 1, fit: 0.40,
-  focal: 0, nodes: [], els: new Map(),
-  canvas: null, ctx: null,
-  drag: null, moved: false, raf: 0,
-};
-const GLOBE_MIN_DIST = 1.55, GLOBE_MAX_DIST = 6.5, GLOBE_DIST0 = 2.9;
-const NODE_BASE = 0.70, GLOBE_REF_RADIUS = 303;         /* node box scale at the reference distance */
-
-/* model → screen. The camera sits on +z at `dist`, looking at the origin. */
-function projectPoint(px, py, pz) {
-  const cy = Math.cos(GLOBE.yaw), sy = Math.sin(GLOBE.yaw);
-  const cp = Math.cos(GLOBE.pitch), sp = Math.sin(GLOBE.pitch);
-  const x1 = px * cy + pz * sy;
-  const z1 = -px * sy + pz * cy;
-  const y2 = py * cp - z1 * sp;
-  const z2 = py * sp + z1 * cp;
-  const d = GLOBE.dist - z2;
-  return {
-    x: GLOBE.w / 2 + GLOBE.panX + (GLOBE.focal * x1) / d,
-    y: GLOBE.h / 2 + GLOBE.panY - (GLOBE.focal * y2) / d,
-    z: z2, d,
-    /* node size follows the globe: on a small screen the sphere shrinks and the
-       rings have to shrink with it, or they collide */
-    scale: Math.max(0.12, Math.min(2.3,
-      NODE_BASE * (globeRadiusPx() / GLOBE_REF_RADIUS) * (GLOBE.dist / d))),
-  };
-}
-
-/* screen → point on the unit sphere (null when the cursor misses the globe) */
-function unproject(mx, my) {
-  const ox = mx - GLOBE.w / 2 - GLOBE.panX;
-  const oy = -(my - GLOBE.h / 2 - GLOBE.panY);
-  const dirX = ox / GLOBE.focal, dirY = oy / GLOBE.focal;
-  /* point(λ) = (dirX·λ, dirY·λ, dist − λ) */
-  const a = dirX * dirX + dirY * dirY + 1;
-  const b = -2 * GLOBE.dist;
-  const c = GLOBE.dist * GLOBE.dist - 1;
-  const disc = b * b - 4 * a * c;
-  if (disc < 0) return null;
-  const lam = (-b - Math.sqrt(disc)) / (2 * a);
-  /* invert the model rotation to get the surface point in model space */
-  const cx = dirX * lam, cy = dirY * lam, cz = GLOBE.dist - lam;
-  const cp = Math.cos(GLOBE.pitch), sp = Math.sin(-GLOBE.pitch);
-  const y1 = cy * cp - cz * sp;
-  const z1 = cy * sp + cz * cp;
-  const cyw = Math.cos(GLOBE.yaw), syw = Math.sin(-GLOBE.yaw);
-  return {
-    x: cx * cyw + z1 * syw,
-    y: y1,
-    z: -cx * syw + z1 * cyw,
-    camZ: cz,
-  };
-}
-
-function updateGlobeSize() {
-  const vp = treeViewport();
-  const canvas = GLOBE.canvas;
-  if (!vp || !canvas) return;
-  const w = vp.clientWidth, h = vp.clientHeight;
-  if (!w || !h) return;
-  GLOBE.w = w; GLOBE.h = h;
-  GLOBE.dpr = Math.min(2, window.devicePixelRatio || 1);
-  canvas.width = Math.round(w * GLOBE.dpr);
-  canvas.height = Math.round(h * GLOBE.dpr);
-  GLOBE.focal = Math.min(w, h) * GLOBE.fit * GLOBE_DIST0;
-  clampPan();
-}
-
-function clampPan() {
-  const lim = Math.min(GLOBE.w, GLOBE.h) * 0.9;
-  GLOBE.panX = Math.max(-lim, Math.min(lim, GLOBE.panX));
-  GLOBE.panY = Math.max(-lim, Math.min(lim, GLOBE.panY));
-}
-
-function frameGlobe() {
-  if (GLOBE.raf) return;
-  GLOBE.raf = requestAnimationFrame(() => {
-    GLOBE.raf = 0;
-    drawGlobe();
-    placeNodes();
-  });
-}
-
-/* ---- canvas: sphere body, graticule and the prerequisite arcs ---- */
-function globeRadiusPx() {
-  return GLOBE.focal / Math.sqrt(Math.max(1.0001, GLOBE.dist * GLOBE.dist - 1));
-}
-
-function drawGlobe() {
-  const ctx = GLOBE.ctx;
-  if (!ctx || !GLOBE.w) return;
-  const { w, h } = GLOBE;
-  ctx.setTransform(GLOBE.dpr, 0, 0, GLOBE.dpr, 0, 0);
-  ctx.clearRect(0, 0, w, h);
-
-  const cx = w / 2 + GLOBE.panX;
-  const cy = h / 2 + GLOBE.panY;
-  const R = globeRadiusPx();
-  if (R < 2) return;
-
-  /* body */
-  const grad = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.05, cx, cy, R);
-  grad.addColorStop(0, "#18212a");
-  grad.addColorStop(0.62, "#0f151a");
-  grad.addColorStop(1, "#0a0e11");
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.clip();
-
-  /* graticule */
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(255,255,255,.05)";
-  for (let lat = -60; lat <= 60; lat += 30) strokeParallel(lat * Math.PI / 180, 0.35);
-  for (let lon = -180; lon < 180; lon += 30) strokeMeridian(lon * Math.PI / 180, 0.30);
-
-  /* branch seams, tinted with the branch colour */
-  for (const cat of Object.keys(BR)) {
-    const seam = ((BR[cat] + WEDGE / 2) * Math.PI) / 180;
-    strokeMeridian(seam, 0.55, hexAlpha(BC[cat], 0.34));
-  }
-
-  /* prerequisite arcs, lifted just above the surface */
-  for (const node of GLOBE.nodes) {
-    const hot = SELECTED?.kind === "node" && SELECTED.id === node.item.id;
-    if (node.parent) {
-      const parentHot = SELECTED?.kind === "node" && SELECTED.id === node.parent.item.id;
-      const done = itemState(node.parent.item) === "complete";
-      strokeArc(node.parent.p, node.p, hot || parentHot ? 2.4 : 1.4,
-        hot || parentHot ? "rgba(232,234,235,.6)" : done ? hexAlpha(BC[node.cat], .55) : "rgba(255,255,255,.18)", null);
-    }
-    for (const sec of node.extra) {
-      strokeArc(sec.p, node.p, 1.1,
-        hot ? "rgba(232,234,235,.45)" : "rgba(255,255,255,.12)", [3, 5]);
-    }
-  }
-  ctx.restore();
-
-  /* rim */
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(232,234,235,.16)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-}
-
-const GRID_SAMPLES = 72;
-function strokeMeridian(lon, alphaScale, color) {
-  const ctx = GLOBE.ctx;
-  const step = (Math.PI * 2) / GRID_SAMPLES;
-  ctx.beginPath();
-  let pen = false;
-  for (let lat = -Math.PI / 2; lat <= Math.PI / 2 + 1e-6; lat += step) {
-    const p = projectPoint(Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon));
-    if (p.z <= 0.02) { pen = false; continue; }
-    if (pen) ctx.lineTo(p.x, p.y); else { ctx.moveTo(p.x, p.y); pen = true; }
-  }
-  ctx.strokeStyle = color || `rgba(255,255,255,${0.05 * (alphaScale / 0.3)})`;
-  ctx.stroke();
-}
-
-function strokeParallel(lat, _alpha) {
-  const ctx = GLOBE.ctx;
-  const step = (Math.PI * 2) / GRID_SAMPLES;
-  ctx.beginPath();
-  let pen = false;
-  for (let lon = 0; lon <= Math.PI * 2 + 1e-6; lon += step) {
-    const p = projectPoint(Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon));
-    if (p.z <= 0.02) { pen = false; continue; }
-    if (pen) ctx.lineTo(p.x, p.y); else { ctx.moveTo(p.x, p.y); pen = true; }
-  }
-  ctx.strokeStyle = "rgba(255,255,255,.05)";
-  ctx.stroke();
-}
-
-function strokeArc(a, b, width, color, dash) {
-  const ctx = GLOBE.ctx;
-  const dot = Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y + a.z * b.z));
-  const omega = Math.acos(dot);
-  const segs = Math.max(6, Math.min(28, Math.round(omega * 24)));
-  const grow = omega > 0.001 ? 1.012 : 1.012;
-  ctx.beginPath();
-  let pen = false;
-  for (let i = 0; i <= segs; i++) {
-    const t = i / segs;
-    let px, py, pz;
-    if (omega < 1e-4) { px = a.x; py = a.y; pz = a.z; }
-    else {
-      const s1 = Math.sin((1 - t) * omega) / Math.sin(omega);
-      const s2 = Math.sin(t * omega) / Math.sin(omega);
-      px = a.x * s1 + b.x * s2;
-      py = a.y * s1 + b.y * s2;
-      pz = a.z * s1 + b.z * s2;
-    }
-    const p = projectPoint(px * grow, py * grow, pz * grow);
-    if (p.z <= 0.02) { pen = false; continue; }
-    if (pen) ctx.lineTo(p.x, p.y); else { ctx.moveTo(p.x, p.y); pen = true; }
-  }
-  ctx.setLineDash(dash || []);
-  ctx.lineWidth = width;
-  ctx.strokeStyle = color;
-  ctx.stroke();
-  ctx.setLineDash([]);
-}
-
-function hexAlpha(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
-}
-
-/* ---- nodes: DOM, positioned by the same projection ---- */
-function placeNodes() {
-  for (const node of GLOBE.nodes) {
-    const el = GLOBE.els.get(node.item.id);
-    if (!el) continue;
-    const p = projectPoint(node.p.x, node.p.y, node.p.z);
-    /* near the limb the sphere foreshortens and nodes would pile up, so the
-       horizon fades out instead of turning into a fringe of overlapping logos */
-    const fade = Math.min(1, Math.max(0, (p.z - 0.26) / 0.2));
-    el.style.transform =
-      `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) scale(${p.scale.toFixed(3)}) translate(-52px, -26px)`;
-    el.style.opacity = fade.toFixed(3);
-    el.style.zIndex = String(1000 - Math.round(p.d * 100));
-    /* names appear once you are close enough to read them, or on hover */
-    el.classList.toggle("is-near", p.scale >= 1.2);
-    el.style.pointerEvents = fade > 0.6 ? "auto" : "none";
-  }
-}
-
 function renderMap() {
-  const nodes = globeNodes();
-  GLOBE.nodes = nodes;
+  const nodes = treeNodes();
   const byId = new Map(nodes.map((n) => [n.item.id, n]));
 
+  /* branch key: the rim labels are only reachable by panning, so the legend
+     carries the same names */
   const legend = $("#map-branches");
   if (legend) {
     legend.setAttribute("aria-label", `Branches: ${Object.keys(BR).join(", ")}`);
@@ -862,9 +599,59 @@ function renderMap() {
       `<span class="lg-branch"><i style="background:${BC[cat]}"></i>${cat}</span>`).join("");
   }
 
+  /* branch labels, on the branch axis outside the outermost ring so no node
+     title can reach them */
+  const branches = $("#tree-branches");
+  branches.innerHTML = "";
+  for (const cat of Object.keys(BR)) {
+    const deg = BR[cat] * Math.PI / 180;
+    const span = document.createElement("span");
+    span.className = "branch-label";
+    span.style.left = `${CX + LABEL_R * Math.cos(deg)}px`;
+    span.style.top = `${CX + LABEL_R * Math.sin(deg)}px`;
+    span.style.color = BC[cat];
+    span.textContent = cat;
+    branches.appendChild(span);
+  }
+
+  /* edges: core spoke for roots, line for the primary parent, dashed arc for
+     the secondary ones. A finished project paints its lines in the growth
+     colour, so the tree visibly fills in as courses get completed. */
+  const edges = $("#tree-edges");
+  edges.innerHTML = "";
+  for (const node of nodes) {
+    const hot = SELECTED?.kind === "node" && SELECTED.id === node.item.id;
+    const nodeDone = itemState(node.item) === "complete";
+    if (!node.parent) {
+      const deg = (BR[node.cat]) * Math.PI / 180;
+      addEdge(edges, { x: CX + 38 * Math.cos(deg), y: CX + 38 * Math.sin(deg) },
+        node, nodeDone ? GROW : BC[node.cat], nodeDone ? 3.4 : hot ? 3 : 2, "",
+        false, nodeDone);
+      continue;
+    }
+    const parentHot = SELECTED?.kind === "node" && SELECTED.id === node.parent.item.id;
+    const parentDone = itemState(node.parent.item) === "complete";
+    const bothDone = parentDone && nodeDone;
+    const touched = parentDone || nodeDone;
+    addEdge(edges, node.parent, node,
+      touched ? (bothDone ? GROW : GROW_SOFT)
+        : hot || parentHot ? "rgba(232,234,235,.5)" : "rgba(255,255,255,.13)",
+      touched ? (bothDone ? 3.4 : 2.6) : hot || parentHot ? 3 : 2,
+      "", false, touched);
+    for (const sec of node.extra) {
+      const secDone = itemState(sec.item) === "complete";
+      const secBoth = secDone && nodeDone;
+      const secTouched = secDone || nodeDone;
+      addEdge(edges, sec, node,
+        secTouched ? (secBoth ? GROW : GROW_SOFT) : "rgba(255,255,255,.13)",
+        secTouched ? (secBoth ? 1.8 : 1.5) : hot ? 3 : 1.25,
+        "3 5", true, secTouched);
+    }
+  }
+
+  /* nodes */
   const nodesRoot = $("#tree-nodes");
   nodesRoot.innerHTML = "";
-  GLOBE.els.clear();
   for (const node of nodes) {
     const item = node.item;
     const st = nodeStatus(item);
@@ -873,6 +660,8 @@ function renderMap() {
     el.type = "button";
     el.className = "tree-node";
     if (SELECTED?.kind === "node" && SELECTED.id === item.id) el.classList.add("is-selected");
+    el.style.left = `${node.x - NODE_W / 2}px`;
+    el.style.top = `${node.y - 26}px`;
     const frac = checks.total ? (checks.passed / checks.total) : 0;
     const op = st === "blocked" ? .35 : 1;
     el.innerHTML = `
@@ -888,13 +677,24 @@ function renderMap() {
       <span class="tn-label" style="color:${stateColor(itemState(item))}">${nodeLabel(item)}</span>`;
     el.onclick = () => selectNode(item.id, "map");
     nodesRoot.appendChild(el);
-    GLOBE.els.set(item.id, el);
   }
 
-  updateGlobeSize();
-  placeNodes();
-  drawGlobe();
   renderMapSide(nodes, byId);
+}
+
+function addEdge(root, a, b, color, w, dash = "", curved = false, glow = false) {
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const d = curved
+    ? `M${a.x} ${a.y} Q${CX + (a.x + b.x - 2 * CX) * .35} ${CX + (a.y + b.y - 2 * CX) * .35} ${b.x} ${b.y}`
+    : `M${a.x} ${a.y} L${b.x} ${b.y}`;
+  path.setAttribute("d", d);
+  path.setAttribute("stroke", color);
+  path.setAttribute("stroke-width", w);
+  if (dash) path.setAttribute("stroke-dasharray", dash);
+  if (glow) path.classList.add("edge-grow");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("fill", "none");
+  root.appendChild(path);
 }
 
 function renderMapSide(nodes, byId) {
@@ -997,117 +797,119 @@ $("#go-home").addEventListener("click", () => go("home"));
 $$(".topnav button").forEach((b) => b.addEventListener("click", () => go(b.dataset.view)));
 addEventListener("popstate", () => applyRoute(false));
 
-/* ------------------------------------------------------- globe controls */
-/* Drag rotates the sphere (the surface point under the cursor follows it);
-   the wheel dollies toward the cursor so the point under the mouse stays put
-   while everything around it grows — the Planetary Annihilation zoom. */
+/* ------------------------------------------------------- tree panning */
+/* The disk is 1500px wide — wider than the column — so the tree is navigated
+   by dragging. Pan is stored in screen pixels, scale keeps the disk readable
+   on narrow screens, and the view starts centered. */
+const PAN = { x: 0, y: 0, scale: 1 };
+let PAN_DRAG = null;
+let PAN_MOVED = false;
+
 function treeViewport() { return $("#tree-viewport"); }
 
-function rotateBy(dxPx, dyPx, camZ) {
-  /* radians per pixel at the depth of the grabbed surface point */
-  const k = (GLOBE.dist - camZ) / GLOBE.focal;
-  GLOBE.yaw += dxPx * k;
-  GLOBE.pitch += dyPx * k;
-  const lim = 1.45;
-  GLOBE.pitch = Math.max(-lim, Math.min(lim, GLOBE.pitch));
-  frameGlobe();
-}
-
-function zoomAt(mx, my, factor) {
-  const spot = unproject(mx, my);
-  const z = spot ? spot.camZ : 0;
-  const dist = GLOBE.dist;
-  const next = Math.max(GLOBE_MIN_DIST, Math.min(GLOBE_MAX_DIST, dist * factor));
-  if (Math.abs(next - dist) < 1e-5) return;
-  const qx = mx - GLOBE.w / 2 - GLOBE.panX;
-  const qy = my - GLOBE.h / 2 - GLOBE.panY;
-  const ratio = (dist - z) / (next - z) - 1;
-  GLOBE.dist = next;
-  GLOBE.panX += qx * ratio;
-  GLOBE.panY += qy * ratio;
-  clampPan();
-  frameGlobe();
-}
-
-function bindGlobe() {
+function panLimits() {
   const vp = treeViewport();
-  const canvas = $("#globe-canvas");
-  if (!vp || !canvas) return;
-  GLOBE.canvas = canvas;
-  GLOBE.ctx = canvas.getContext("2d");
-
-  const local = (e) => {
-    const r = vp.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  if (!vp) return { x: 0, y: 0 };
+  const half = (DISK * PAN.scale) / 2;
+  return {
+    x: Math.max(0, vp.clientWidth / 2 + half - 140),
+    y: Math.max(0, vp.clientHeight / 2 + half - 140),
   };
+}
+
+function clampPan() {
+  const lim = panLimits();
+  PAN.x = Math.max(-lim.x, Math.min(lim.x, PAN.x));
+  PAN.y = Math.max(-lim.y, Math.min(lim.y, PAN.y));
+}
+
+function applyPan() {
+  const sized = $("#tree-sized");
+  if (!sized) return;
+  sized.style.setProperty("--pan-x", `${PAN.x.toFixed(1)}px`);
+  sized.style.setProperty("--pan-y", `${PAN.y.toFixed(1)}px`);
+  sized.style.setProperty("--tree-scale", PAN.scale.toFixed(4));
+}
+
+function fitTree(center = false) {
+  const vp = treeViewport();
+  if (!vp || !vp.clientWidth) return;
+  /* keep nodes at their designed size — the disk is meant to be explored by
+     dragging, not shrunk to fit */
+  PAN.scale = vp.clientWidth >= 560 ? 1 : 0.8;
+  if (center) { PAN.x = 0; PAN.y = 0; }
+  clampPan();
+  applyPan();
+}
+
+function bindTreePan() {
+  const vp = treeViewport();
+  if (!vp) return;
 
   vp.addEventListener("pointerdown", (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
-    const p = local(e);
-    const spot = unproject(p.x, p.y);
-    GLOBE.drag = { x: e.clientX, y: e.clientY, id: e.pointerId, camZ: spot ? spot.camZ : 0 };
-    GLOBE.moved = false;
+    PAN_DRAG = { x: e.clientX, y: e.clientY, panX: PAN.x, panY: PAN.y, id: e.pointerId };
+    PAN_MOVED = false;
   });
 
   vp.addEventListener("pointermove", (e) => {
-    if (!GLOBE.drag || e.pointerId !== GLOBE.drag.id) return;
-    const dx = e.clientX - GLOBE.drag.x;
-    const dy = e.clientY - GLOBE.drag.y;
-    if (!GLOBE.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
-    if (!GLOBE.moved) {
-      /* capture only once it is a drag, otherwise the click is retargeted to
-         the viewport and node selection never fires */
-      GLOBE.moved = true;
+    if (!PAN_DRAG || e.pointerId !== PAN_DRAG.id) return;
+    const dx = e.clientX - PAN_DRAG.x;
+    const dy = e.clientY - PAN_DRAG.y;
+    if (!PAN_MOVED && Math.abs(dx) + Math.abs(dy) < 5) return;
+    if (!PAN_MOVED) {
+      /* capture only once this is a drag: capturing on pointerdown would
+         retarget the click to the viewport and swallow node selection */
+      PAN_MOVED = true;
       vp.setPointerCapture(e.pointerId);
       vp.classList.add("is-dragging");
     }
-    rotateBy(dx, dy, GLOBE.drag.camZ);
-    GLOBE.drag.x = e.clientX;
-    GLOBE.drag.y = e.clientY;
+    PAN.x = PAN_DRAG.panX + dx;
+    PAN.y = PAN_DRAG.panY + dy;
+    clampPan();
+    applyPan();
   });
 
   const end = (e) => {
-    if (!GLOBE.drag || (e && e.pointerId !== GLOBE.drag.id)) return;
+    if (!PAN_DRAG || (e && e.pointerId !== PAN_DRAG.id)) return;
     vp.classList.remove("is-dragging");
     if (e && vp.hasPointerCapture(e.pointerId)) vp.releasePointerCapture(e.pointerId);
-    GLOBE.drag = null;
+    PAN_DRAG = null;
   };
   vp.addEventListener("pointerup", end);
   vp.addEventListener("pointercancel", end);
 
+  /* a drag must not select whatever node happened to be under the cursor */
   vp.addEventListener("click", (e) => {
-    if (!GLOBE.moved) return;
-    GLOBE.moved = false;
+    if (!PAN_MOVED) return;
+    PAN_MOVED = false;
     e.stopPropagation();
     e.preventDefault();
   }, true);
 
-  vp.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    const p = local(e);
-    const factor = Math.exp(Math.max(-120, Math.min(120, e.deltaY)) * 0.0016);
-    zoomAt(p.x, p.y, factor);
-  }, { passive: false });
-
   vp.addEventListener("keydown", (e) => {
-    const step = 0.12;
-    const moves = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    const step = 70;
+    const moves = {
+      ArrowLeft: [step, 0], ArrowRight: [-step, 0],
+      ArrowUp: [0, step], ArrowDown: [0, -step],
+    };
     const d = moves[e.key];
     if (!d) return;
     e.preventDefault();
-    const k = GLOBE.dist / GLOBE.focal;
-    GLOBE.yaw += d[0] * GLOBE.focal * k;
-    GLOBE.pitch = Math.max(-1.45, Math.min(1.45, GLOBE.pitch + d[1] * GLOBE.focal * k));
-    frameGlobe();
+    PAN.x += d[0];
+    PAN.y += d[1];
+    clampPan();
+    applyPan();
   });
 
+  /* focusing a node would otherwise scroll the clip container and knock the
+     transform-based centering off */
   vp.addEventListener("scroll", () => { vp.scrollLeft = 0; vp.scrollTop = 0; });
 
-  new ResizeObserver(() => { updateGlobeSize(); frameGlobe(); }).observe(vp);
-  updateGlobeSize();
-  frameGlobe();
+  new ResizeObserver(() => fitTree()).observe(vp);
+  fitTree(true);
 }
-bindGlobe();
+bindTreePan();
 
 /* ------------------------------------------------------------- live runs */
 function liveBadge(event) {

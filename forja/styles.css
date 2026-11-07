@@ -13,6 +13,7 @@
   --faint: #6B747C;
   --text-dim: #C9CED2;
   --green: #54d1a4;
+  --growth: #6ee7a8;
   --green-ink: #08140f;
   --amber: #e0b44e;
   --red: #d05a5a;
@@ -376,31 +377,64 @@ code, .mono {
 .legend-branches { display: flex; gap: 12px; flex-wrap: wrap; }
 .lg-branch { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); }
 .lg-branch i { width: 7px; height: 7px; border-radius: 50%; display: block; }
+.lg-grow { display: inline-flex; align-items: center; gap: 7px; color: var(--text-dim); }
+.lg-grow i {
+  width: 16px; height: 3px; border-radius: 2px; display: block;
+  background: var(--growth);
+  box-shadow: 0 0 6px rgba(110, 231, 168, .7);
+}
 .tree-box { width: 100%; flex: 1; min-height: 0; display: flex; }
 .tree-viewport {
   position: relative;
   width: 100%;
   height: clamp(440px, calc(100vh - 190px), 920px);
   overflow: hidden;
-  overflow: clip;                 /* camera is a transform, never a scroll */
+  overflow: clip;                 /* no programmatic scroll: panning is a transform */
   border-radius: 14px;
   cursor: grab;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  background: radial-gradient(closest-side, #131a20 0%, #0b0f12 70%, #090A0C 100%);
+  background: radial-gradient(closest-side, #10161a 0%, #0c1013 70%, #090A0C 100%);
 }
 .tree-viewport.is-dragging { cursor: grabbing; }
 .tree-viewport:focus-visible { outline: 2px solid var(--bright); outline-offset: -2px; }
-.globe-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.globe-nodes { position: absolute; inset: 0; pointer-events: none; }
+.tree-sized {
+  position: absolute; left: 50%; top: 50%;
+  width: 1500px; height: 1500px; margin: -750px 0 0 -750px;
+  transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(var(--tree-scale, 1));
+  transform-origin: center center;
+  will-change: transform;
+}
+.tree-disk {
+  position: relative;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #10161a 0%, #0c1013 70%, #090A0C 100%);
+}
+.tree-svg { position: absolute; inset: 0; display: block; }
+/* a completed path glows: the tree reads as growth, not just status dots */
+.tree-svg .edge-grow { filter: drop-shadow(0 0 3px rgba(110, 231, 168, .55)); }
+.orbit { stroke: rgba(255, 255, 255, .05); fill: none; }
+.branch-label {
+  position: absolute; transform: translate(-50%, -50%);
+  font-size: 13px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 6px #090A0C, 0 0 14px #090A0C;
+}
+.tree-core {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 72px; height: 72px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--sunk); border: 2px solid rgba(232, 234, 235, .25);
+  box-shadow: 0 0 0 6px rgba(232, 234, 235, .04);
+}
+.tree-core img { display: block; }
 .tree-node {
-  position: absolute; left: 0; top: 0; width: 104px;
-  transform-origin: 0 0;
-  will-change: transform, opacity;
+  position: absolute; width: 104px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   background: none; border: 0; padding: 0; cursor: pointer;
-  pointer-events: auto;
   font: inherit; color: var(--ink);
 }
 .tree-node .tn-ring {
@@ -415,17 +449,7 @@ code, .mono {
   font-size: 13px; font-weight: 600; line-height: 1.3; text-align: center;
   max-width: 104px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* the ring fill already encodes status, and the globe is dense */
-.tree-node .tn-label { display: none; }
-/* names stay hidden until the node is near, hovered, focused or selected */
-.tree-node .tn-title {
-  opacity: 0; transition: opacity .12s ease;
-  background: rgba(9, 10, 12, .82); border-radius: 6px; padding: 1px 6px;
-}
-.tree-node.is-near .tn-title,
-.tree-node:hover .tn-title,
-.tree-node:focus-visible .tn-title,
-.tree-node.is-selected .tn-title { opacity: 1; }
+.tree-node .tn-label { font-family: var(--mono); font-size: 12px; }
 .tree-node.is-selected .tn-ring {
   box-shadow: 0 0 0 3px var(--ground), 0 0 0 5px var(--bright);
 }
