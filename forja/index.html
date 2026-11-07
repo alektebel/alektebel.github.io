@@ -1,128 +1,171 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#090A0C">
   <title>forja · Challenges</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,600&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip" href="#challenges">Skip to challenges</a>
+  <a class="skip" href="#main">Skip to content</a>
 
   <header class="topbar">
-    <a class="brand" href="./" aria-label="forja home">
-      <img src="logos/forja.svg" width="28" height="20" alt="">
-      <span>forja</span>
-    </a>
-    <nav class="topnav" aria-label="Primary">
-      <a href="#challenges" class="is-active">Challenges</a>
-      <a href="#path">Full path</a>
-      <a href="#how">How it works</a>
-    </nav>
-    <div class="top-actions">
-      <button type="button" id="theme" class="ghost-btn" aria-label="Switch colour theme" title="Switch colour theme">
-        <span aria-hidden="true" id="theme-glyph">☾</span>
+    <div class="topbar-in">
+      <button type="button" class="brand" id="go-home" aria-label="forja home">
+        <img src="logos/forja.svg" width="30" height="30" alt="">
+        <span>forja</span>
       </button>
+      <nav class="topnav" aria-label="Primary">
+        <button type="button" data-view="home">Home</button>
+        <button type="button" data-view="work">Workspace</button>
+        <button type="button" data-view="map">Dependencies</button>
+      </nav>
+      <code class="pip">pip install forja</code>
     </div>
   </header>
 
-  <main>
-    <section class="hero" aria-labelledby="hero-h">
-      <h1 id="hero-h">Challenges</h1>
-      <p class="hero-lede" id="lede">
-        Rebuild the systems you use every day — from scratch, in your editor, graded locally.
-        <a href="#how" class="inline-link">New here? Start here to learn how challenges work.</a>
-      </p>
-      <dl class="totals" id="totals" aria-label="Overall progress"></dl>
-    </section>
-
-    <section class="continue" id="next" hidden aria-labelledby="next-h">
-      <div class="continue-copy">
-        <p class="continue-k">Continue where you left off</p>
-        <h2 id="next-h"></h2>
-        <p class="continue-meta"><span class="mono" id="next-stage"></span> <span id="next-file" class="mono dim"></span></p>
-        <p class="continue-what" id="next-what"></p>
-      </div>
-      <div class="continue-action">
-        <div class="cmd">
-          <code id="next-cmd">forja test</code>
-          <button type="button" class="copy primary-btn" data-copy="#next-cmd">Copy</button>
-          <span class="copied" role="status" aria-live="polite"></span>
-        </div>
-      </div>
-    </section>
-
-    <section class="catalog" id="challenges" aria-labelledby="catalog-h">
-      <div class="section-head">
-        <h2 id="catalog-h">Pick a challenge</h2>
-        <p>Five interview-shaped builds. Logo on top — select one to open stages and the exact command.</p>
-      </div>
-      <div class="challenge-grid" id="catalog" role="list"></div>
-    </section>
-
-    <section class="how" id="how" aria-labelledby="how-h">
-      <h2 id="how-h">Simple by design</h2>
-      <p class="how-lede">Pick a challenge, open your editor, <code>forja test</code>. That’s it.</p>
-      <ol class="steps">
-        <li>
-          <span class="step-n">1</span>
-          <div>
-            <h3>Choose your challenge</h3>
-            <p>AWS, Infrastructure, LLM, Evals, Agents — real systems, not toy drills.</p>
+  <!-- ================================================== home -->
+  <main id="main">
+    <div class="view" id="view-home">
+      <div class="home-main">
+        <section class="hero-card" id="next-card" hidden aria-labelledby="next-h">
+          <img class="hero-logo" id="next-logo" src="logos/forge.svg" width="88" height="88" alt="">
+          <div class="hero-copy">
+            <div class="hero-titlerow">
+              <h1 id="next-h">Build your own AWS</h1>
+              <span class="hero-count mono" id="next-count"></span>
+            </div>
+            <div class="bar bar-lg" aria-hidden="true"><div class="bar-fill" id="next-bar"></div></div>
+            <p class="hero-meta"><span id="next-what"></span><span class="mono dim" id="next-cmd"></span></p>
           </div>
-        </li>
-        <li>
-          <span class="step-n">2</span>
-          <div>
-            <h3>Code in your own setup</h3>
-            <p>Your IDE, your extensions, your terminal. No toy editors.</p>
-          </div>
-        </li>
-        <li>
-          <span class="step-n">3</span>
-          <div>
-            <h3>Test and get feedback</h3>
-            <p><code>forja test</code> runs the grader. Causes and hints in seconds.</p>
-          </div>
-        </li>
-      </ol>
-    </section>
+          <button type="button" class="cta cta-green" id="next-go">Continue</button>
+        </section>
 
-    <div class="split" id="workspace">
-      <aside class="detail" id="detail" aria-label="Challenge detail" aria-live="polite">
-        <div class="detail-empty" id="detail-empty">
-          <h2 id="detail-h">Select a challenge</h2>
-          <p class="dim">Click any card above — or a node in the full path — to see stages, progress, and the run command.</p>
-        </div>
-        <div class="detail-body" id="detail-body" hidden></div>
-      </aside>
+        <section class="also" id="also" hidden aria-labelledby="also-h">
+          <h2 class="kicker">Also in progress</h2>
+          <div class="also-grid" id="also-grid"></div>
+        </section>
 
-      <section class="tree" id="path" aria-labelledby="tree-h">
-        <div class="section-head">
-          <h2 id="tree-h">Full path</h2>
-          <p>Everything else in the repo, ordered. Same engine as the catalog.</p>
-        </div>
-        <div id="phases" class="phases"></div>
-      </section>
+        <section class="catalog">
+          <div class="catalog-head">
+            <h2 class="kicker">All challenges</h2>
+            <div class="filters" id="filters" role="group" aria-label="Filter challenges"></div>
+          </div>
+          <div class="catalog-grid" id="catalog"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ================================================== workspace -->
+    <div class="view" id="view-work" hidden>
+      <div class="work-grid">
+        <aside class="stagebar" id="stagebar" aria-label="Stages"></aside>
+
+        <main class="work-main" id="work-main">
+          <div class="work-empty" id="work-empty">
+            <h1>Pick a challenge</h1>
+            <p class="dim">Select a challenge on the Home tab or from the Dependencies tree to open its stages.</p>
+          </div>
+          <div id="work-detail" hidden>
+            <div class="work-head">
+              <span class="mono stage-crumb" id="w-crumb"></span>
+              <h1 id="w-title"></h1>
+              <p class="work-why" id="w-why"></p>
+              <div class="uses" id="w-uses"></div>
+            </div>
+
+            <section class="w-section" id="w-interface-sec">
+              <h2 class="kicker">Interface</h2>
+              <pre class="code" id="w-interface"></pre>
+            </section>
+
+            <section class="w-section">
+              <h2 class="kicker">Requirements</h2>
+              <ol class="reqs" id="w-reqs"></ol>
+            </section>
+
+            <section class="w-section" id="w-hints-sec">
+              <h2 class="kicker">Hints</h2>
+              <div class="hints" id="w-hints"></div>
+            </section>
+
+            <section class="w-run">
+              <div>
+                <span class="w-run-t">Run the grader</span>
+                <span class="mono dim w-run-s" id="w-cmd-hint"></span>
+              </div>
+              <div class="cmd">
+                <code id="w-cmd">forja test</code>
+                <button type="button" class="copy primary-btn" data-copy="#w-cmd">Copy</button>
+                <span class="copied" role="status" aria-live="polite"></span>
+              </div>
+            </section>
+          </div>
+        </main>
+
+        <aside class="testbar" aria-label="Progress">
+          <div class="testbar-cmd">
+            <div class="cmd">
+              <code id="w-side-cmd">forja test</code>
+              <button type="button" class="copy primary-btn" data-copy="#w-side-cmd">Copy</button>
+              <span class="copied" role="status" aria-live="polite"></span>
+            </div>
+            <span class="dim side-note" id="w-side-note">The engine is the CLI — this page only reads it.</span>
+          </div>
+
+          <section class="testbar-sec">
+            <div class="sec-row"><h2 class="kicker">Stages</h2><span class="mono" id="w-checks"></span></div>
+            <ul class="testlist" id="w-stages"></ul>
+          </section>
+
+          <section class="testbar-sec" id="w-review-sec" hidden>
+            <div class="sec-row"><h2 class="kicker">Repo markers</h2><span class="dim" id="w-repo-note">vs. baseline</span></div>
+            <p class="dim" id="w-repo"></p>
+            <div class="bar"><div class="bar-fill" id="w-repo-bar"></div></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ================================================== map -->
+    <div class="view" id="view-map" hidden>
+      <div class="map-wrap">
+        <main class="map-main">
+          <div class="map-head">
+            <h1>Tech tree</h1>
+            <div class="map-legend">
+              <span>Ring fills as checks pass</span>
+              <span class="dim">Grey = missing from this repo</span>
+            </div>
+          </div>
+          <div id="tree-ref" class="tree-box">
+            <div id="tree-sized" style="width:1000px;height:1000px">
+              <div class="tree-disk" style="width:1000px;height:1000px">
+                <svg width="1000" height="1000" class="tree-svg" id="tree-svg" aria-hidden="true">
+                  <circle cx="500" cy="500" r="140" class="orbit"></circle>
+                  <circle cx="500" cy="500" r="265" class="orbit"></circle>
+                  <circle cx="500" cy="500" r="390" class="orbit"></circle>
+                  <g id="tree-edges"></g>
+                </svg>
+                <div id="tree-branches"></div>
+                <div class="tree-core" id="tree-core">
+                  <img src="logos/forja.svg" width="44" height="44" alt="forja">
+                </div>
+                <div id="tree-nodes"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside class="map-side" id="map-side" aria-live="polite"></aside>
+      </div>
     </div>
   </main>
-
-  <footer class="foot">
-    <p>The engine is the CLI — this page only reads it.</p>
-    <ul>
-      <li><code>./forja track</code><span>the five-course prep track</span></li>
-      <li><code>./forja smoke &lt;course&gt;</code><span>stage 0 green</span></li>
-      <li><code>./forja guide &lt;course&gt; 1</code><span>one stage’s page</span></li>
-      <li><code>./forja test &lt;course&gt;</code><span>run the grader</span></li>
-      <li><code>cz path</code><span>the ordered plan</span></li>
-      <li><code>cz next</code><span>the next action</span></li>
-    </ul>
-  </footer>
 
   <script src="app.js"></script>
 </body>

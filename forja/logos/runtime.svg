@@ -1,19 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" aria-hidden="true">
   <defs>
     <linearGradient id="g" x1="10" y1="6" x2="86" y2="90" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FCA5A5"/><stop offset="1" stop-color="#B91C1C"/>
+      <stop stop-color="#FCA5A5"></stop><stop offset="1" stop-color="#B91C1C"></stop>
     </linearGradient>
     <linearGradient id="g2" x1="20" y1="80" x2="76" y2="16" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#B91C1C"/><stop offset="1" stop-color="#FCA5A5"/>
+      <stop stop-color="#B91C1C"></stop><stop offset="1" stop-color="#FCA5A5"></stop>
     </linearGradient>
     <filter id="s" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#000" flood-opacity=".4"/>
+      <feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#000" flood-opacity=".4"></feDropShadow>
     </filter>
   </defs>
   <g filter="url(#s)">
 
-    <circle cx="48" cy="48" r="30" fill="url(#g)"/>
-    <path d="M40 32l24 16-24 16V32z" fill="#FEF2F2"/>
+    <circle cx="48" cy="48" r="30" fill="url(#g)"></circle>
+    <path d="M40 32l24 16-24 16V32z" fill="#FEF2F2"></path>
 
   </g>
 </svg>

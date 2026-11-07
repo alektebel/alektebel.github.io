@@ -1,20 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" aria-hidden="true">
   <defs>
     <linearGradient id="g" x1="10" y1="6" x2="86" y2="90" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#86EFAC"/><stop offset="1" stop-color="#15803D"/>
+      <stop stop-color="#86EFAC"></stop><stop offset="1" stop-color="#15803D"></stop>
     </linearGradient>
     <linearGradient id="g2" x1="20" y1="80" x2="76" y2="16" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#15803D"/><stop offset="1" stop-color="#86EFAC"/>
+      <stop stop-color="#15803D"></stop><stop offset="1" stop-color="#86EFAC"></stop>
     </linearGradient>
     <filter id="s" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#000" flood-opacity=".4"/>
+      <feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#000" flood-opacity=".4"></feDropShadow>
     </filter>
   </defs>
   <g filter="url(#s)">
 
-    <rect x="26" y="26" width="44" height="44" rx="6" fill="url(#g)"/>
-    <rect x="34" y="34" width="28" height="28" rx="3" fill="#14532D"/>
-    <path d="M40 26V18M48 26V16M56 26V18M40 70v8M48 70v10M56 70v8M26 40H18M26 48H16M26 56H18M70 40h8M70 48h10M70 56h8" stroke="url(#g2)" stroke-width="3" stroke-linecap="round"/>
+    <rect x="26" y="26" width="44" height="44" rx="6" fill="url(#g)"></rect>
+    <rect x="34" y="34" width="28" height="28" rx="3" fill="#14532D"></rect>
+    <path d="M40 26V18M48 26V16M56 26V18M40 70v8M48 70v10M56 70v8M26 40H18M26 48H16M26 56H18M70 40h8M70 48h10M70 56h8" stroke="url(#g2)" stroke-width="3" stroke-linecap="round"></path>
 
   </g>
 </svg>

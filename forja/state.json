@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-01T01:02:42",
+ "generated_at": "2026-11-07T14:05:42",
  "order": "Anyformat prep track: AWS → infra → LLM → evals → agents; then RAG, MCP, harness, the machine stack",
  "brand": {
   "name": "forja",
@@ -1053,7 +1053,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -1283,7 +1283,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -1460,7 +1460,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -1670,7 +1670,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -2114,7 +2114,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -2333,7 +2333,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -3875,7 +3875,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -5658,7 +5658,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -5999,7 +5999,7 @@
       "written": 0,
       "fraction": 0.0
      },
-     "next_step": null,
+     "next_step": 1,
      "stages": [
       {
        "id": 1,
@@ -14240,13 +14240,80 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 13,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 13,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "tokenizer.py",
+      "title": "pair counts and non-overlapping merges"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "tokenizer.py",
+      "title": "deterministic training and compression"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "tokenizer.py",
+      "title": "rank-ordered encode and round-trip"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "attention.py",
+      "title": "stable softmax"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "attention.py",
+      "title": "attention weights and the causal mask"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "sampling.py",
+      "title": "temperature and hard greedy"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "sampling.py",
+      "title": "top-k"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "sampling.py",
+      "title": "top-p keeps the crossing token"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "sampling.py",
+      "title": "seeded sampling is reproducible"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "cache append and shape"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "cached output is bit-exact"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "the cost model: linear vs quadratic"
+     },
+     "13": {
+      "status": "TODO",
+      "file": "rope.py",
+      "title": "norm and relative-position invariants"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "context-caching",
@@ -14261,13 +14328,95 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 16,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 16,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "linear algebra helpers"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "KVCache append/truncate/clone"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "cached == uncached attention"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "kv_cache.py",
+      "title": "prefill and the cost model"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "tiny_transformer.py",
+      "title": "layer_norm and gelu"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "tiny_transformer.py",
+      "title": "generation matches exactly"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "tiny_transformer.py",
+      "title": "truncate, clone, prefix reuse"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "prefix_cache.py",
+      "title": "block hashing and chaining"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "prefix_cache.py",
+      "title": "matching, eviction, isolation"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "radix_cache.py",
+      "title": "matching and node splitting"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "radix_cache.py",
+      "title": "eviction and pinning"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "paged_kv_cache.py",
+      "title": "block allocation and growth"
+     },
+     "13": {
+      "status": "TODO",
+      "file": "paged_kv_cache.py",
+      "title": "forking and copy-on-write"
+     },
+     "14": {
+      "status": "TODO",
+      "file": "semantic_cache.py",
+      "title": "exact and semantic caching"
+     },
+     "15": {
+      "status": "TODO",
+      "file": "cache_router.py",
+      "title": "cache-aware routing"
+     },
+     "16": {
+      "status": "TODO",
+      "file": "serving_demo.py",
+      "title": "capstone: identical output"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "contextcite",
@@ -14282,13 +14431,85 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 14,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 14,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "partition.py",
+      "title": "splitting text into sources"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "partition.py",
+      "title": "rebuilding ablated contexts"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "logit_probs.py",
+      "title": "logit-prob math and stability"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "logit_probs.py",
+      "title": "aggregation and response score"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "ablation.py",
+      "title": "sampling the design matrix"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "lasso.py",
+      "title": "soft threshold and standardising"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "lasso.py",
+      "title": "recovering a known sparse signal"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "contextcite.py",
+      "title": "end-to-end attribution"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "contextcite.py",
+      "title": "span attribution, zero extra calls"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "evaluate.py",
+      "title": "spearman rank correlation"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "evaluate.py",
+      "title": "held-out LDS and top-k drop"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "applications.py",
+      "title": "verification and pruning"
+     },
+     "13": {
+      "status": "TODO",
+      "file": "applications.py",
+      "title": "detecting a poisoned source"
+     },
+     "14": {
+      "status": "TODO",
+      "file": "applications.py",
+      "title": "leave-one-out fails on redundancy"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "dynamo-paper",
@@ -14303,13 +14524,100 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 17,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 17,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "partitioning.py",
+      "title": "ring: add/remove/coordinator"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "partitioning.py",
+      "title": "preference lists (N distinct nodes)"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "partitioning.py",
+      "title": "load balance and key migration"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "partitioning.py",
+      "title": "strategy 3: fixed partitions"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "vector_clock.py",
+      "title": "clock ordering and merge"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "vector_clock.py",
+      "title": "reconciliation (paper Figure 3)"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "vector_clock.py",
+      "title": "clock truncation"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "quorum.py",
+      "title": "storage node keeps siblings"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "quorum.py",
+      "title": "N/R/W put and get"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "quorum.py",
+      "title": "siblings and read repair"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "hinted_handoff.py",
+      "title": "sloppy quorum writes a hint"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "hinted_handoff.py",
+      "title": "hinted handoff delivery"
+     },
+     "13": {
+      "status": "TODO",
+      "file": "merkle_sync.py",
+      "title": "merkle tree build and diff"
+     },
+     "14": {
+      "status": "TODO",
+      "file": "merkle_sync.py",
+      "title": "anti-entropy is a union"
+     },
+     "15": {
+      "status": "TODO",
+      "file": "gossip.py",
+      "title": "gossip convergence O(log S)"
+     },
+     "16": {
+      "status": "TODO",
+      "file": "gossip.py",
+      "title": "local failure detection, seeds"
+     },
+     "17": {
+      "status": "TODO",
+      "file": "dynamo_cluster.py",
+      "title": "capstone: cart + availability"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "aws-from-scratch",
@@ -14324,13 +14632,105 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 18,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 18,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "iam.py",
+      "title": "explicit deny > allow > implicit deny"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "iam.py",
+      "title": "conditions and permissions boundaries"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "iam.py",
+      "title": "STS assume-role: both directions"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "s3.py",
+      "title": "objects, ETags and multipart"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "s3.py",
+      "title": "prefix listing and delete markers"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "sqs.py",
+      "title": "visibility timeout and redelivery"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "sqs.py",
+      "title": "dead letters, FIFO and dedup"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "dynamodb.py",
+      "title": "composite keys, query, conditions"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "dynamodb.py",
+      "title": "capacity, hot partitions, scan cost"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "cold starts and warm state"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "concurrency, reservations, async retry"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "fanout and filter policies"
+     },
+     "13": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "EventBridge pattern matching"
+     },
+     "14": {
+      "status": "TODO",
+      "file": "kms.py",
+      "title": "envelope encryption"
+     },
+     "15": {
+      "status": "TODO",
+      "file": "kms.py",
+      "title": "encryption context and rotation"
+     },
+     "16": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "CIDR, subnets and longest-prefix routing"
+     },
+     "17": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "stateful SG vs stateless NACL"
+     },
+     "18": {
+      "status": "TODO",
+      "file": "capstone.py",
+      "title": "the pipeline, and its failures"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "deploy-and-debug",
@@ -14345,13 +14745,75 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 12,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 12,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "capacity.py",
+      "title": "KV cache and batch-size math"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "capacity.py",
+      "title": "fleet sizing and quorum tolerance"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "metrics.py",
+      "title": "percentiles and summaries"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "metrics.py",
+      "title": "queueing and fan-out tails"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "metrics.py",
+      "title": "SLOs, budgets and burn rate"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "diagnose.py",
+      "title": "diagnose 6 serving faults"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "diagnose.py",
+      "title": "undersized KV vs overload"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "diagnose.py",
+      "title": "diagnose 5 store faults"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "diagnose.py",
+      "title": "node down vs strict quorum"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "rollout.py",
+      "title": "liveness vs readiness probes"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "rollout.py",
+      "title": "canary analysis and staging"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "rollout.py",
+      "title": "budget-based auto-rollback"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "compiler-and-vgpu",
@@ -14366,13 +14828,75 @@
     "fraction": 0.0
    },
    "checks": {
-    "error": "TypeError: run_checker() got an unexpected keyword argument 'timeout'",
-    "total": 0,
+    "total": 12,
     "passed": 0,
-    "next_step": null,
-    "stages": {}
+    "failed": 0,
+    "todo": 12,
+    "next_step": 1,
+    "stages": {
+     "1": {
+      "status": "TODO",
+      "file": "isa.py",
+      "title": "instruction encoding round-trip"
+     },
+     "2": {
+      "status": "TODO",
+      "file": "assembler.py",
+      "title": "two-pass assembly with labels"
+     },
+     "3": {
+      "status": "TODO",
+      "file": "cpu.py",
+      "title": "arithmetic, comparison, memory"
+     },
+     "4": {
+      "status": "TODO",
+      "file": "cpu.py",
+      "title": "control flow and error reporting"
+     },
+     "5": {
+      "status": "TODO",
+      "file": "frontend.py",
+      "title": "lexer and keywords"
+     },
+     "6": {
+      "status": "TODO",
+      "file": "frontend.py",
+      "title": "parser: precedence and blocks"
+     },
+     "7": {
+      "status": "TODO",
+      "file": "codegen.py",
+      "title": "v1-v2: expressions and control flow"
+     },
+     "8": {
+      "status": "TODO",
+      "file": "codegen.py",
+      "title": "v3: allocation and spilling"
+     },
+     "9": {
+      "status": "TODO",
+      "file": "vgpu.py",
+      "title": "uniform SIMT execution"
+     },
+     "10": {
+      "status": "TODO",
+      "file": "vgpu.py",
+      "title": "v4: divergence, nesting, ragged loops"
+     },
+     "11": {
+      "status": "TODO",
+      "file": "vgpu.py",
+      "title": "barrier deadlock and disagreeing branches"
+     },
+     "12": {
+      "status": "TODO",
+      "file": "capstone.py",
+      "title": "one program, two machines"
+     }
+    }
    },
-   "next_step": null
+   "next_step": 1
   },
   {
    "name": "rag-from-scratch",
@@ -15007,5 +15531,5 @@
  ],
  "repo": "alektebel/forja",
  "ref": "main",
- "generated": "2026-11-01T01:02:42"
+ "generated": "2026-11-07T14:05:42"
 }
