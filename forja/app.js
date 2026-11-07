@@ -343,13 +343,14 @@ function renderWork() {
     uses.appendChild(chip);
   }
 
-  /* interface block: the stage action + prediction read like a spec */
+  /* interface block: the stage action + why + prediction read like a spec */
   const iface = $("#w-interface-sec");
   if (stage?.action) {
     iface.hidden = false;
     $("#w-interface").textContent =
       `${stage.file} · stage ${stage.id}\n\n` +
       `action:  ${stage.action}\n` +
+      (stage.why ? `why:     ${stage.why}\n` : "") +
       (stage.predict ? `predict: ${stage.predict}\n` : "") +
       (stage.tags?.length ? `tags:    ${stage.tags.join(", ")}\n` : "");
   } else {
