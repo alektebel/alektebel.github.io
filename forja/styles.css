@@ -106,6 +106,99 @@ code, .mono {
   padding: 6px 10px; white-space: nowrap;
 }
 
+/* GitHub sign-in — the design's white button, then the account pill. */
+.auth { display: flex; align-items: center; flex: none; }
+.gh-signin {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--bright); color: #191B24; border: 0; border-radius: 8px;
+  padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  transition: opacity var(--speed) ease;
+}
+.gh-signin:hover { opacity: .92; }
+.gh-signin svg { display: block; flex: none; }
+.gh-account { position: relative; }
+.gh-user {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 10px 3px 3px; cursor: pointer; font: inherit; font-size: 13px;
+  color: var(--ink); transition: background var(--speed) ease;
+}
+.gh-user:hover { background: var(--surface); }
+.gh-avatar {
+  width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: #122A32; color: var(--green); font-size: 12px; font-weight: 700;
+  flex: none; letter-spacing: .02em;
+}
+.gh-login {
+  font-weight: 500; max-width: 130px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.gh-caret { color: var(--faint); font-size: 10px; line-height: 1; }
+.gh-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); width: 240px;
+  background: var(--surface); border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 10px; box-shadow: var(--shadow); padding: 6px;
+  display: flex; flex-direction: column; z-index: 50;
+}
+.gh-menu-head {
+  padding: 10px; display: flex; flex-direction: column; gap: 2px;
+  border-bottom: 1px solid var(--line-soft); margin-bottom: 4px;
+}
+.gh-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+.gh-handle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+}
+.gh-handle svg { display: block; flex: none; }
+.gh-item {
+  text-align: left; background: none; border: 0; border-radius: 6px;
+  padding: 8px 10px; font: inherit; font-size: 13px; color: var(--ink);
+  cursor: pointer;
+}
+.gh-item:hover { background: var(--sunk); }
+.gh-signout { color: var(--red); }
+.gh-signout:hover { background: rgba(208, 90, 90, .1); }
+
+/* device-flow dialog */
+.auth-modal {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+  padding: 20px; background: rgba(0, 0, 0, .62);
+  backdrop-filter: blur(4px);
+}
+.auth-dialog {
+  width: 100%; max-width: 390px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.auth-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.auth-head h2 { font-size: 20px; line-height: 1.2; }
+.auth-x {
+  background: none; border: 0; color: var(--muted); font: inherit;
+  font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 4px;
+}
+.auth-x:hover { color: var(--ink); }
+.auth-lead { font-size: 13px; color: var(--muted); }
+.auth-lead a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.auth-lead a:hover { color: var(--bright); }
+.auth-code-row { display: flex; align-items: center; gap: 8px; }
+.auth-code {
+  flex: 1; text-align: center; font-size: 22px; letter-spacing: .14em;
+  padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--ground); color: var(--ink);
+}
+.auth-copy, .auth-cancel {
+  background: transparent; color: var(--ink); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; font: inherit; font-size: 13px;
+  cursor: pointer; white-space: nowrap;
+}
+.auth-copy:hover, .auth-cancel:hover { background: var(--sunk); }
+.auth-status { font-size: 11px; color: var(--faint); min-height: 1.5em; }
+.auth-status[data-kind="error"] { color: var(--red-soft); }
+.auth-status[data-kind="busy"], .auth-status[data-kind="waiting"] { color: var(--amber); }
+.auth-foot { display: flex; justify-content: flex-end; }
+
 /* ---------------------------------------------------------------- shared */
 .cta {
   border: 0; border-radius: 10px; padding: 12px 20px;
@@ -520,11 +613,24 @@ code, .mono {
   .pip { display: none; }
 }
 @media (max-width: 640px) {
+  .topbar-in { gap: 12px; padding: 0 16px; }
   .topnav { gap: 14px; }
+  /* keep the account control visible without the long labels */
+  .gh-signin span { display: none; }
+  .gh-signin { padding: 8px 10px; }
+  .gh-login, .gh-caret { display: none; }
+  .gh-user { padding: 3px; }
   .home-main { padding-inline: 16px; }
   .map-main { padding-inline: 16px; }
   /* keep the page scrollable around a drag surface that eats touch moves */
   .tree-viewport { height: clamp(340px, 54vh, 520px); }
+}
+
+@media (max-width: 380px) {
+  .topbar-in { gap: 8px; padding: 0 12px; }
+  .brand span { display: none; }
+  .topnav { gap: 10px; }
+  .topnav button { font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

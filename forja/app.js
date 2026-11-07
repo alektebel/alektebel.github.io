@@ -792,10 +792,245 @@ document.addEventListener("click", async (event) => {
   }
 });
 
-/* ---------------------------------------------------------------- init */
+/* ---------------------------------------------------------------- github */
+/* Device flow keeps the static page static: the proxy asks GitHub for a short
+   code, the visitor approves it on github.com, and the page polls the proxy
+   for a token. GitHub's device endpoints answer without CORS, so the browser
+   cannot call them directly; the proxy (codecraft/github_proxy/) is the only
+   server-side piece and holds the OAuth App client ID. No client secret. */
+const GH_PROXY = (($('meta[name="forja-github-proxy"]')?.content || "").trim()).replace(/\/+$/, "");
+const GH_KEY = "forja.github";
+let GH = null;
+let GH_DEVICE = null;      // in-flight device authorization
+let GH_POLL_TIMER = null;
+
+function ghLoad() {
+  try { GH = JSON.parse(localStorage.getItem(GH_KEY) || "null"); } catch { GH = null; }
+  if (!GH || !GH.token || !GH.login) GH = null;
+}
+function ghSave(user) {
+  GH = user;
+  try { localStorage.setItem(GH_KEY, JSON.stringify(user)); } catch { /* private mode */ }
+  renderGh();
+}
+function ghClear() {
+  GH = null;
+  try { localStorage.removeItem(GH_KEY); } catch { /* private mode */ }
+  renderGh();
+}
+function ghInitials(user) {
+  const name = (user.name || user.login || "").trim();
+  const parts = name.split(/\s+/).filter(Boolean);
+  const two = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : name.slice(0, 2);
+  return two.toUpperCase();
+}
+function renderGh() {
+  const signed = !!GH;
+  $("#gh-signin").hidden = signed;
+  $("#gh-account").hidden = !signed;
+  if (!signed) { closeGhMenu(); return; }
+  $("#gh-avatar").textContent = ghInitials(GH);
+  $("#gh-login").textContent = GH.login;
+  $("#gh-name").textContent = GH.name || GH.login;
+  $("#gh-handle").textContent = GH.login;
+  $("#gh-user").setAttribute("aria-label", `GitHub account: ${GH.login}`);
+}
+function closeGhMenu() {
+  const menu = $("#gh-menu");
+  if (!menu.hidden) {
+    menu.hidden = true;
+    $("#gh-user").setAttribute("aria-expanded", "false");
+  }
+}
+function openGhMenu() {
+  $("#gh-menu").hidden = false;
+  $("#gh-user").setAttribute("aria-expanded", "true");
+}
+function ghStatus(msg, kind = "") {
+  const el = $("#gh-status");
+  el.textContent = msg;
+  if (kind) el.dataset.kind = kind; else delete el.dataset.kind;
+}
+function ghStopPolling() {
+  if (GH_POLL_TIMER) { clearTimeout(GH_POLL_TIMER); GH_POLL_TIMER = null; }
+  GH_DEVICE = null;
+}
+function ghClose() {
+  ghStopPolling();
+  $("#gh-modal").hidden = true;
+  ghStatus("");
+}
+function ghShowPending() {
+  $("#gh-pending").hidden = false;
+  $("#gh-setup").hidden = true;
+  $("#gh-title").textContent = "Sign in with GitHub";
+  $("#gh-code").textContent = "····-····";
+  $("#gh-copy").textContent = "Copy";
+  $("#gh-modal").hidden = false;
+  $("#gh-x").focus();
+}
+function ghShowSetup() {
+  $("#gh-pending").hidden = true;
+  $("#gh-setup").hidden = false;
+  $("#gh-title").textContent = "GitHub sign-in";
+  $("#gh-modal").hidden = false;
+  $("#gh-cancel").focus();
+}
+function ghSchedule(seconds) {
+  GH_POLL_TIMER = setTimeout(() => { GH_POLL_TIMER = null; ghPoll(); }, seconds * 1000);
+}
+async function ghSignIn() {
+  closeGhMenu();
+  if (!GH_PROXY) { ghShowSetup(); return; }
+  ghShowPending();
+  ghStatus("Requesting a device code…", "busy");
+  try {
+    const res = await fetch(`${GH_PROXY}/device`, {
+      method: "POST",
+      headers: { "Accept": "application/json", "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.device_code) {
+      if (data.error === "github_proxy_not_configured") {
+        throw new Error("The sign-in proxy has no GitHub client ID. Check its GITHUB_CLIENT_ID setting.");
+      }
+      if (res.status === 404) throw new Error("GitHub rejected the OAuth App. Check the client ID and that device flow is enabled.");
+      throw new Error(data.error_description || data.error || `GitHub returned ${res.status}.`);
+    }
+    GH_DEVICE = {
+      device_code: data.device_code,
+      interval: Math.max(5, Number(data.interval) || 5),
+      expires_at: Date.now() + (Number(data.expires_in) || 900) * 1000,
+    };
+    $("#gh-code").textContent = data.user_code;
+    $("#gh-open").href = data.verification_uri || "https://github.com/login/device";
+    ghStatus("Waiting for you to authorize this browser…", "waiting");
+    ghPoll();
+  } catch (err) {
+    ghStatus(err.message || "Could not start GitHub sign-in.", "error");
+  }
+}
+async function ghPoll() {
+  const device = GH_DEVICE;
+  if (!device) return;
+  if (Date.now() > device.expires_at) {
+    ghStatus("The code expired. Close this and start again.", "error");
+    ghStopPolling();
+    return;
+  }
+  try {
+    const res = await fetch(`${GH_PROXY}/token`, {
+      method: "POST",
+      headers: { "Accept": "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ device_code: device.device_code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (GH_DEVICE !== device) return; // cancelled while the request was in flight
+    if (data.access_token) { await ghFinish(data.access_token); return; }
+    const err = data.error || "";
+    if (err === "authorization_pending") { ghSchedule(device.interval); return; }
+    if (err === "slow_down") { device.interval += 5; ghSchedule(device.interval); return; }
+    if (err === "expired_token") {
+      ghStatus("The code expired. Close this and start again.", "error");
+      ghStopPolling();
+      return;
+    }
+    if (err === "access_denied") {
+      ghStatus("Authorization was cancelled on GitHub.", "error");
+      ghStopPolling();
+      return;
+    }
+    throw new Error(data.error_description || err || `GitHub returned ${res.status}.`);
+  } catch (err) {
+    ghStatus(err.message || "GitHub did not answer. Try again.", "error");
+  }
+}
+async function ghFinish(token) {
+  ghStatus("Signed in. Reading your profile…", "busy");
+  const res = await fetch("https://api.github.com/user", {
+    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" },
+  });
+  if (!res.ok) throw new Error(`Could not read your GitHub profile (${res.status}).`);
+  const user = await res.json();
+  ghStopPolling();
+  ghSave({
+    token,
+    login: user.login,
+    name: user.name || "",
+    id: user.id,
+    avatar_url: user.avatar_url || "",
+  });
+  $("#gh-modal").hidden = true;
+  ghStatus("");
+}
+async function ghValidate() {
+  ghLoad();
+  renderGh();
+  if (!GH) return;
+  const token = GH.token;
+  try {
+    const res = await fetch("https://api.github.com/user", {
+      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" },
+    });
+    if (res.status === 401) { if (GH && GH.token === token) ghClear(); return; }
+    if (!res.ok) return;
+    const user = await res.json();
+    if (!GH || GH.token !== token) return;
+    ghSave({
+      token,
+      login: user.login,
+      name: user.name || "",
+      id: user.id,
+      avatar_url: user.avatar_url || "",
+    });
+  } catch { /* offline: keep the cached identity */ }
+}
+
+
 $("#go-home").addEventListener("click", () => go("home"));
 $$(".topnav button").forEach((b) => b.addEventListener("click", () => go(b.dataset.view)));
 addEventListener("popstate", () => applyRoute(false));
+
+/* GitHub account, device-flow dialog, and menu. */
+$("#gh-signin").addEventListener("click", ghSignIn);
+$("#gh-user").addEventListener("click", (event) => {
+  event.stopPropagation();
+  if ($("#gh-menu").hidden) openGhMenu(); else closeGhMenu();
+});
+$("#gh-progress").addEventListener("click", () => { closeGhMenu(); go("map"); });
+$("#gh-repos").addEventListener("click", () => {
+  if (GH) window.open(`https://github.com/${encodeURIComponent(GH.login)}?tab=repositories`, "_blank", "noopener");
+  closeGhMenu();
+});
+$("#gh-signout").addEventListener("click", () => { closeGhMenu(); ghClear(); });
+$("#gh-x").addEventListener("click", ghClose);
+$("#gh-cancel").addEventListener("click", ghClose);
+$("#gh-modal").addEventListener("click", (event) => {
+  if (event.target === $("#gh-modal")) ghClose();
+});
+$("#gh-copy").addEventListener("click", async () => {
+  const code = $("#gh-code").textContent.trim();
+  if (!code || code === "····-····") return;
+  try {
+    await navigator.clipboard.writeText(code);
+    $("#gh-copy").textContent = "Copied";
+    setTimeout(() => { $("#gh-copy").textContent = "Copy"; }, 1500);
+  } catch {
+    $("#gh-copy").textContent = "⌘/Ctrl-C";
+  }
+});
+document.addEventListener("click", (event) => {
+  if (!$("#gh-account").contains(event.target)) closeGhMenu();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (!$("#gh-modal").hidden) ghClose();
+  else closeGhMenu();
+});
+addEventListener("storage", (event) => {
+  if (event.key === GH_KEY) { ghLoad(); renderGh(); }
+});
 
 /* ------------------------------------------------------- tree panning */
 /* The disk is 1500px wide — wider than the column — so the tree is navigated
@@ -953,6 +1188,7 @@ function pollEvents() {
 }
 
 async function init() {
+  ghValidate();               // loads the cached identity, then re-checks it
   STATE = await loadState();
   applyRoute(false);
   render();

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#090A0C">
+  <!-- GitHub device-flow proxy base URL (see codecraft/github_proxy/).
+       GitHub blocks the device endpoints from browsers (no CORS), so the page
+       talks to this proxy instead; the proxy holds the OAuth App client ID.
+       Empty keeps the sign-in button as a setup prompt. -->
+  <meta name="forja-github-proxy" content="">
   <title>forja · Challenges</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +31,34 @@
         <button type="button" data-view="map">Dependencies</button>
       </nav>
       <code class="pip">pip install forja</code>
+
+      <!-- GitHub sign-in: device flow through the CORS proxy, no client secret. -->
+      <div class="auth" id="auth">
+        <button type="button" class="gh-signin" id="gh-signin" aria-label="Sign in with GitHub">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+          <span>Sign in with GitHub</span>
+        </button>
+
+        <div class="gh-account" id="gh-account" hidden>
+          <button type="button" class="gh-user" id="gh-user" aria-haspopup="menu" aria-expanded="false" aria-controls="gh-menu">
+            <span class="gh-avatar" id="gh-avatar" aria-hidden="true"></span>
+            <span class="gh-login" id="gh-login"></span>
+            <span class="gh-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="gh-menu" id="gh-menu" role="menu" aria-label="GitHub account" hidden>
+            <div class="gh-menu-head">
+              <span class="gh-name" id="gh-name"></span>
+              <span class="gh-handle">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                <span id="gh-handle"></span>
+              </span>
+            </div>
+            <button type="button" class="gh-item" role="menuitem" id="gh-progress">Progress &amp; stats</button>
+            <button type="button" class="gh-item" role="menuitem" id="gh-repos">Linked repos</button>
+            <button type="button" class="gh-item gh-signout" role="menuitem" id="gh-signout">Sign out</button>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -174,6 +207,36 @@
       </div>
     </div>
   </main>
+
+  <!-- GitHub device flow: the browser shows a code, the user approves it on
+       github.com, and this page polls until GitHub issues the access token. -->
+  <div class="auth-modal" id="gh-modal" hidden>
+    <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="gh-title">
+      <div class="auth-head">
+        <h2 id="gh-title">Sign in with GitHub</h2>
+        <button type="button" class="auth-x" id="gh-x" aria-label="Close">×</button>
+      </div>
+
+      <div id="gh-pending">
+        <p class="auth-lead">Enter this code on GitHub to authorize this browser.</p>
+        <div class="auth-code-row">
+          <code class="auth-code" id="gh-code">····-····</code>
+          <button type="button" class="auth-copy" id="gh-copy">Copy</button>
+        </div>
+        <p class="auth-lead"><a id="gh-open" href="https://github.com/login/device" target="_blank" rel="noopener">Open github.com/login/device</a></p>
+        <p class="auth-status mono" id="gh-status" role="status"></p>
+      </div>
+
+      <div id="gh-setup" hidden>
+        <p class="auth-lead">GitHub sign-in is not configured yet.</p>
+        <p class="auth-lead dim">Deploy the device-flow proxy in <code>codecraft/github_proxy/</code> and paste its endpoint into the <code>forja-github-proxy</code> meta tag in <code>codecraft/web/index.html</code>. The proxy holds the OAuth App client ID; visitors never see a secret.</p>
+      </div>
+
+      <div class="auth-foot">
+        <button type="button" class="auth-cancel" id="gh-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
