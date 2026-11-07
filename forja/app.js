@@ -19,14 +19,54 @@ const STATE_LABEL = {
 /* status → colour, mirroring the v2 palette */
 const C = { complete: "#54d1a4", doing: "#e0b44e", ready: "#9AA3AB", blocked: "#6B747C" };
 
-/* Branch layout for the tech tree, straight from the design comp:
-   category → angle (deg) and colour. */
+/* Branch layout for the tech tree: category → angle (deg) and colour. Every
+   project in the repo gets a node; the disk is bigger than the viewport so the
+   tree is explored by dragging. */
 const BR = { AI: -90, Distributed: -18, Networking: 54, Systems: 126, Finance: 198 };
 const BC = {
   AI: "#a58cf0", Distributed: "#54d1a4", Networking: "#f0995a",
   Systems: "#6aa5f0", Finance: "#e0b44e",
 };
-const RR = [0, 140, 265, 390], CX = 500, CIRC = 169.6;
+const DISK = 1500, CX = 750, CIRC = 169.6;
+const RING_R = [0, 140, 265, 390, 505, 615];
+const WEDGE = 72;                 // degrees of arc owned by one branch
+const LABEL_R = 706;              // branch labels sit beyond the outermost ring
+const NODE_W = 104, NODE_HALF_GAP = 60;
+
+/* which branch a project belongs to */
+const CATEGORY = {
+  "llm-from-scratch": "AI", "autograd-from-scratch": "AI",
+  "context-caching": "AI", "contextcite": "AI",
+  "rag-from-scratch": "AI", "vector-index-from-scratch": "AI",
+  "evals-from-scratch": "AI", "agents-from-scratch": "AI",
+  "mcp-from-scratch": "AI", "agent-harness-from-scratch": "AI",
+  "benchmark-from-scratch": "AI", "eval-framework-from-scratch": "AI",
+  "agentic-retrieval-from-scratch": "AI", "transformer-inference-physics": "AI",
+  "llm-security-from-scratch": "AI",
+
+  "infrastructure-from-scratch": "Distributed", "aws-from-scratch": "Distributed",
+  "queue-and-workers-from-scratch": "Distributed", "dynamo-paper": "Distributed",
+  "deploy-and-debug": "Distributed", "durable-execution-from-scratch": "Distributed",
+  "consensus-from-scratch": "Distributed", "orchestration-from-scratch": "Distributed",
+  "failover-from-scratch": "Distributed", "distributed-training-from-scratch": "Distributed",
+  "sandbox-capabilities-from-scratch": "Distributed", "agent-metrics-from-scratch": "Distributed",
+  "fde-from-scratch": "Distributed",
+
+  "tcp-ip-from-scratch": "Networking", "concurrent-servers-from-scratch": "Networking",
+  "websocket-from-scratch": "Networking", "mqtt-broker-from-scratch": "Networking",
+  "blockchain-from-scratch": "Networking",
+
+  "cpu-from-scratch": "Systems", "cuda-from-scratch": "Systems", "c-compiler": "Systems",
+  "os-from-scratch": "Systems", "shell-from-scratch": "Systems",
+  "runtime-from-scratch": "Systems", "compiler-and-vgpu": "Systems",
+  "git-from-scratch": "Systems", "query-engine-from-scratch": "Systems",
+  "linux-device-driver-from-scratch": "Systems", "compression-from-scratch": "Systems",
+  "interconnects-from-scratch": "Systems",
+
+  "credit-origination-from-scratch": "Finance", "credit-lifecycle-from-scratch": "Finance",
+  "collections-workout-from-scratch": "Finance", "irb-capital-from-scratch": "Finance",
+  "distressed-debt-from-scratch": "Finance", "lbo-model-from-scratch": "Finance",
+};
 
 let STATE = null;
 let VIEW = "home";          // home | work | map
@@ -147,6 +187,7 @@ function selectNode(id, view = "map") {
 }
 
 /* ---------------------------------------------------------------- render */
+let LAST_VIEW = null;
 function render() {
   if (!STATE) return; // init loads state before first paint
   $$(".topnav button").forEach((b) => {
@@ -157,7 +198,12 @@ function render() {
   $("#view-map").hidden = VIEW !== "map";
   if (VIEW === "home") renderHome();
   if (VIEW === "work") renderWork();
-  if (VIEW === "map") renderMap();
+  if (VIEW === "map") {
+    /* every visit starts centered on the core */
+    if (VIEW !== LAST_VIEW) fitTree(true);
+    renderMap();
+  }
+  LAST_VIEW = VIEW;
 }
 
 /* home -------------------------------------------------------------- */
@@ -435,69 +481,101 @@ function nodeLabel(item) {
   const checks = item.checks || {};
   if (st === "done") return "complete";
   if (st === "doing") return `${fmt.format(checks.passed || 0)}/${fmt.format(checks.total || 0)}`;
-  return st;
+  return stateLabel(itemState(item));
 }
 
-/* The tech tree is curated exactly like the design comp: five branches,
-   30 flagship nodes, fixed angles and rings. [slug, branch, parent, angle, ring,
-   secondaryParents]. Courses absent from this repo are skipped. */
-const TREE = [
-  ["autograd-from-scratch", "AI", null, 0, 1],
-  ["llm-from-scratch", "AI", "autograd-from-scratch", -13, 2],
-  ["vector-index-from-scratch", "AI", "autograd-from-scratch", 13, 2],
-  ["context-caching", "AI", "llm-from-scratch", -27, 3],
-  ["evals-from-scratch", "AI", "llm-from-scratch", -9, 3],
-  ["rag-from-scratch", "AI", "vector-index-from-scratch", 9, 3, ["llm-from-scratch"]],
-  ["agent-harness-from-scratch", "AI", "vector-index-from-scratch", 27, 3, ["evals-from-scratch"]],
-
-  ["infrastructure-from-scratch", "Distributed", null, 0, 1],
-  ["aws-from-scratch", "Distributed", "infrastructure-from-scratch", -13, 2],
-  ["queue-and-workers-from-scratch", "Distributed", "infrastructure-from-scratch", 13, 2],
-  ["agents-from-scratch", "Distributed", "aws-from-scratch", -27, 3, ["evals-from-scratch"]],
-  ["dynamo-paper", "Distributed", "aws-from-scratch", -9, 3],
-  ["durable-execution-from-scratch", "Distributed", "queue-and-workers-from-scratch", 9, 3],
-  ["consensus-from-scratch", "Distributed", "queue-and-workers-from-scratch", 27, 3],
-
-  ["tcp-ip-from-scratch", "Networking", null, 0, 1],
-  ["concurrent-servers-from-scratch", "Networking", "tcp-ip-from-scratch", -13, 2],
-  ["websocket-from-scratch", "Networking", "tcp-ip-from-scratch", 13, 2],
-  ["blockchain-from-scratch", "Networking", "concurrent-servers-from-scratch", -18, 3],
-  ["mqtt-broker-from-scratch", "Networking", "websocket-from-scratch", 14, 3],
-
-  ["cpu-from-scratch", "Systems", null, 0, 1],
-  ["os-from-scratch", "Systems", "cpu-from-scratch", -13, 2],
-  ["c-compiler", "Systems", "cpu-from-scratch", 13, 2],
-  ["shell-from-scratch", "Systems", "os-from-scratch", -27, 3],
-  ["cuda-from-scratch", "Systems", "os-from-scratch", -9, 3],
-  ["git-from-scratch", "Systems", "c-compiler", 9, 3],
-  ["query-engine-from-scratch", "Systems", "c-compiler", 27, 3],
-
-  ["credit-origination-from-scratch", "Finance", null, 0, 1],
-  ["irb-capital-from-scratch", "Finance", "credit-origination-from-scratch", -13, 2],
-  ["lbo-model-from-scratch", "Finance", "credit-origination-from-scratch", 13, 2],
-  ["distressed-debt-from-scratch", "Finance", "lbo-model-from-scratch", 13, 3],
-];
-
-/** Resolve the tree against live state: one entry per node present here. */
-function treeNodes() {
-  const out = [];
-  for (const [slug, cat, parent, angle, ring, extra] of TREE) {
-    const item = findNodeByCourse(slug);
-    if (!item) continue;
-    const deg = (BR[cat] + angle) * Math.PI / 180;
-    const r = RR[ring];
-    out.push({
-      item, slug, cat, ring,
-      parentSlug: parent,
-      extraSlugs: extra || [],
-      x: CX + r * Math.cos(deg),
-      y: CX + r * Math.sin(deg),
-    });
+/* One node per project in the repo (a course can appear in several challenge
+   rows — 73 rows collapse to 51 projects here). Position comes from the
+   prerequisite graph: shallower projects sit on the inner rings, and nodes are
+   packed per branch so 104px-wide nodes never collide. */
+function courseIndex() {
+  const rows = allItems();
+  const byId = new Map();
+  for (const r of rows) if (r.id && !byId.has(r.id)) byId.set(r.id, r);
+  const courses = new Map();
+  for (const r of rows) {
+    if (!r.course) continue;
+    const prev = courses.get(r.course);
+    if (!prev || (prev.kind !== "ready" && r.kind === "ready")) courses.set(r.course, r);
   }
-  const bySlug = new Map(out.map((n) => [n.slug, n]));
+  return { byId, courses };
+}
+
+/* how many nodes of this width fit across one branch's arc at radius r */
+function ringCap(r) {
+  const half = Math.asin(Math.min(1, NODE_HALF_GAP / r)) * 180 / Math.PI;
+  return Math.max(1, Math.floor((WEDGE - 2 * half) / (2 * half)) + 1);
+}
+
+function treeNodes() {
+  const { byId, courses } = courseIndex();
+  const prereq = new Map();
+  for (const course of courses.keys()) {
+    const ids = courses.get(course).prereq || [];
+    const deps = [];
+    for (const id of ids) {
+      const c = byId.get(id)?.course;
+      if (c && c !== course && courses.has(c) && !deps.includes(c)) deps.push(c);
+    }
+    prereq.set(course, deps);
+  }
+
+  const depth = new Map();
+  const depthOf = (c, seen = new Set()) => {
+    if (depth.has(c)) return depth.get(c);
+    if (seen.has(c)) return 0;
+    seen.add(c);
+    const deps = prereq.get(c) || [];
+    const d = deps.length ? 1 + Math.max(...deps.map((p) => depthOf(p, seen))) : 0;
+    seen.delete(c);
+    depth.set(c, d);
+    return d;
+  };
+
+  const branches = new Map();
+  for (const [course, item] of courses) {
+    const cat = CATEGORY[course] || "Systems";
+    if (!branches.has(cat)) branches.set(cat, []);
+    branches.get(cat).push({ course, item });
+  }
+
+  const out = [];
+  for (const [cat, list] of branches) {
+    list.sort((a, b) => depthOf(a.course) - depthOf(b.course) || a.item.title.localeCompare(b.item.title));
+
+    /* fill the inner rings first; a branch too large for one ring spills out */
+    const rings = RING_R.map(() => []);
+    let ring = 1;
+    for (const entry of list) {
+      while (ring < RING_R.length && rings[ring].length >= ringCap(RING_R[ring])) ring++;
+      entry.ring = Math.min(ring, RING_R.length - 1);
+      rings[entry.ring].push(entry);
+    }
+
+    for (let i = 1; i < RING_R.length; i++) {
+      const group = rings[i];
+      if (!group.length) continue;
+      const r = RING_R[i];
+      const half = Math.asin(Math.min(1, NODE_HALF_GAP / r)) * 180 / Math.PI;
+      const window = Math.min(WEDGE / 2 - half, 26);
+      const step = group.length > 1 ? (2 * window) / (group.length - 1) : 0;
+      group.forEach((entry, k) => {
+        const off = group.length > 1 ? -window + step * k : 0;
+        const deg = (BR[cat] + off) * Math.PI / 180;
+        out.push({
+          item: entry.item, course: entry.course, cat, ring: i,
+          x: CX + r * Math.cos(deg),
+          y: CX + r * Math.sin(deg),
+        });
+      });
+    }
+  }
+
+  const byCourse = new Map(out.map((n) => [n.course, n]));
   for (const n of out) {
-    n.parent = n.parentSlug ? bySlug.get(n.parentSlug) : null;
-    n.extra = n.extraSlugs.map((s) => bySlug.get(s)).filter(Boolean);
+    const deps = (prereq.get(n.course) || []).map((c) => byCourse.get(c)).filter(Boolean);
+    n.parent = deps[0] || null;
+    n.extra = deps.slice(1);
   }
   return out;
 }
@@ -506,15 +584,25 @@ function renderMap() {
   const nodes = treeNodes();
   const byId = new Map(nodes.map((n) => [n.item.id, n]));
 
-  /* branch labels, placed on the outer edge at the design's angles */
+  /* branch key: the rim labels are only reachable by panning, so the legend
+     carries the same names */
+  const legend = $("#map-branches");
+  if (legend) {
+    legend.setAttribute("aria-label", `Branches: ${Object.keys(BR).join(", ")}`);
+    legend.innerHTML = Object.keys(BR).map((cat) =>
+      `<span class="lg-branch"><i style="background:${BC[cat]}"></i>${cat}</span>`).join("");
+  }
+
+  /* branch labels, on the branch axis outside the outermost ring so no node
+     title can reach them */
   const branches = $("#tree-branches");
   branches.innerHTML = "";
   for (const cat of Object.keys(BR)) {
     const deg = BR[cat] * Math.PI / 180;
     const span = document.createElement("span");
     span.className = "branch-label";
-    span.style.left = `${CX + 455 * Math.cos(deg)}px`;
-    span.style.top = `${CX + 455 * Math.sin(deg)}px`;
+    span.style.left = `${CX + LABEL_R * Math.cos(deg)}px`;
+    span.style.top = `${CX + LABEL_R * Math.sin(deg)}px`;
     span.style.color = BC[cat];
     span.textContent = cat;
     branches.appendChild(span);
@@ -554,7 +642,7 @@ function renderMap() {
     el.type = "button";
     el.className = "tree-node";
     if (SELECTED?.kind === "node" && SELECTED.id === item.id) el.classList.add("is-selected");
-    el.style.left = `${node.x - 52}px`;
+    el.style.left = `${node.x - NODE_W / 2}px`;
     el.style.top = `${node.y - 26}px`;
     const frac = checks.total ? (checks.passed / checks.total) : 0;
     const op = st === "blocked" ? .35 : 1;
@@ -690,18 +778,119 @@ $("#go-home").addEventListener("click", () => go("home"));
 $$(".topnav button").forEach((b) => b.addEventListener("click", () => go(b.dataset.view)));
 addEventListener("popstate", () => applyRoute(false));
 
-/* scale the tech-tree disk to the available width */
-const ro = new ResizeObserver(([entry]) => {
-  const w = Math.round(entry.contentRect.width);
-  const disk = $(".tree-disk");
+/* ------------------------------------------------------- tree panning */
+/* The disk is 1500px wide — wider than the column — so the tree is navigated
+   by dragging. Pan is stored in screen pixels, scale keeps the disk readable
+   on narrow screens, and the view starts centered. */
+const PAN = { x: 0, y: 0, scale: 1 };
+let PAN_DRAG = null;
+let PAN_MOVED = false;
+
+function treeViewport() { return $("#tree-viewport"); }
+
+function panLimits() {
+  const vp = treeViewport();
+  if (!vp) return { x: 0, y: 0 };
+  const half = (DISK * PAN.scale) / 2;
+  return {
+    x: Math.max(0, vp.clientWidth / 2 + half - 140),
+    y: Math.max(0, vp.clientHeight / 2 + half - 140),
+  };
+}
+
+function clampPan() {
+  const lim = panLimits();
+  PAN.x = Math.max(-lim.x, Math.min(lim.x, PAN.x));
+  PAN.y = Math.max(-lim.y, Math.min(lim.y, PAN.y));
+}
+
+function applyPan() {
   const sized = $("#tree-sized");
-  if (!disk || !w) return;
-  const scale = Math.min(1, w / 1000);
-  disk.style.transform = `scale(${scale})`;
-  sized.style.width = `${Math.min(1000, w)}px`;
-  sized.style.height = `${Math.min(1000, w)}px`;
-});
-ro.observe($("#tree-ref"));
+  if (!sized) return;
+  sized.style.setProperty("--pan-x", `${PAN.x.toFixed(1)}px`);
+  sized.style.setProperty("--pan-y", `${PAN.y.toFixed(1)}px`);
+  sized.style.setProperty("--tree-scale", PAN.scale.toFixed(4));
+}
+
+function fitTree(center = false) {
+  const vp = treeViewport();
+  if (!vp || !vp.clientWidth) return;
+  /* keep nodes at their designed size — the disk is meant to be explored by
+     dragging, not shrunk to fit */
+  PAN.scale = vp.clientWidth >= 560 ? 1 : 0.8;
+  if (center) { PAN.x = 0; PAN.y = 0; }
+  clampPan();
+  applyPan();
+}
+
+function bindTreePan() {
+  const vp = treeViewport();
+  if (!vp) return;
+
+  vp.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    PAN_DRAG = { x: e.clientX, y: e.clientY, panX: PAN.x, panY: PAN.y, id: e.pointerId };
+    PAN_MOVED = false;
+  });
+
+  vp.addEventListener("pointermove", (e) => {
+    if (!PAN_DRAG || e.pointerId !== PAN_DRAG.id) return;
+    const dx = e.clientX - PAN_DRAG.x;
+    const dy = e.clientY - PAN_DRAG.y;
+    if (!PAN_MOVED && Math.abs(dx) + Math.abs(dy) < 5) return;
+    if (!PAN_MOVED) {
+      /* capture only once this is a drag: capturing on pointerdown would
+         retarget the click to the viewport and swallow node selection */
+      PAN_MOVED = true;
+      vp.setPointerCapture(e.pointerId);
+      vp.classList.add("is-dragging");
+    }
+    PAN.x = PAN_DRAG.panX + dx;
+    PAN.y = PAN_DRAG.panY + dy;
+    clampPan();
+    applyPan();
+  });
+
+  const end = (e) => {
+    if (!PAN_DRAG || (e && e.pointerId !== PAN_DRAG.id)) return;
+    vp.classList.remove("is-dragging");
+    if (e && vp.hasPointerCapture(e.pointerId)) vp.releasePointerCapture(e.pointerId);
+    PAN_DRAG = null;
+  };
+  vp.addEventListener("pointerup", end);
+  vp.addEventListener("pointercancel", end);
+
+  /* a drag must not select whatever node happened to be under the cursor */
+  vp.addEventListener("click", (e) => {
+    if (!PAN_MOVED) return;
+    PAN_MOVED = false;
+    e.stopPropagation();
+    e.preventDefault();
+  }, true);
+
+  vp.addEventListener("keydown", (e) => {
+    const step = 70;
+    const moves = {
+      ArrowLeft: [step, 0], ArrowRight: [-step, 0],
+      ArrowUp: [0, step], ArrowDown: [0, -step],
+    };
+    const d = moves[e.key];
+    if (!d) return;
+    e.preventDefault();
+    PAN.x += d[0];
+    PAN.y += d[1];
+    clampPan();
+    applyPan();
+  });
+
+  /* focusing a node would otherwise scroll the clip container and knock the
+     transform-based centering off */
+  vp.addEventListener("scroll", () => { vp.scrollLeft = 0; vp.scrollTop = 0; });
+
+  new ResizeObserver(() => fitTree()).observe(vp);
+  fitTree(true);
+}
+bindTreePan();
 
 /* ------------------------------------------------------------- live runs */
 function liveBadge(event) {

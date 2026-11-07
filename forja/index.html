@@ -139,24 +139,31 @@
           <div class="map-head">
             <h1>Tech tree</h1>
             <div class="map-legend">
+              <span id="map-branches" class="legend-branches"></span>
+              <span>Drag to explore</span>
               <span>Ring fills as checks pass</span>
               <span class="dim">Grey = missing from this repo</span>
             </div>
           </div>
           <div id="tree-ref" class="tree-box">
-            <div id="tree-sized" style="width:1000px;height:1000px">
-              <div class="tree-disk" style="width:1000px;height:1000px">
-                <svg width="1000" height="1000" class="tree-svg" id="tree-svg" aria-hidden="true">
-                  <circle cx="500" cy="500" r="140" class="orbit"></circle>
-                  <circle cx="500" cy="500" r="265" class="orbit"></circle>
-                  <circle cx="500" cy="500" r="390" class="orbit"></circle>
-                  <g id="tree-edges"></g>
-                </svg>
-                <div id="tree-branches"></div>
-                <div class="tree-core" id="tree-core">
-                  <img src="logos/forja.svg" width="44" height="44" alt="forja">
+            <div id="tree-viewport" class="tree-viewport" tabindex="0"
+                 role="application" aria-label="Tech tree — drag or use arrow keys to pan">
+              <div id="tree-sized" class="tree-sized">
+                <div class="tree-disk" style="width:1500px;height:1500px">
+                  <svg width="1500" height="1500" class="tree-svg" id="tree-svg" aria-hidden="true">
+                    <circle cx="750" cy="750" r="140" class="orbit"></circle>
+                    <circle cx="750" cy="750" r="265" class="orbit"></circle>
+                    <circle cx="750" cy="750" r="390" class="orbit"></circle>
+                    <circle cx="750" cy="750" r="505" class="orbit"></circle>
+                    <circle cx="750" cy="750" r="615" class="orbit"></circle>
+                    <g id="tree-edges"></g>
+                  </svg>
+                  <div id="tree-branches"></div>
+                  <div class="tree-core" id="tree-core">
+                    <img src="logos/forja.svg" width="44" height="44" alt="forja">
+                  </div>
+                  <div id="tree-nodes"></div>
                 </div>
-                <div id="tree-nodes"></div>
               </div>
             </div>
           </div>
