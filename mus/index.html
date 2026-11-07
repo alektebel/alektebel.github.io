@@ -957,7 +957,7 @@ function renderCenter(){
     inp.onkeydown = e => { if(e.key === 'Enter') startGame(); };
     lab.appendChild(inp);
     const b = el('button', 'cta', 'Sentarse'); b.id = 'startbtn'; b.onclick = startGame;
-    C.append(lab, b, el('div', 'note', esc(NOTE || 'Tres modelos al azar: uno de compañero, dos enfrente. Cada “Otros rivales” baraja el pool (nan, nvidia, jev…). Una vaca, a 40 piedras.')));
+    C.append(lab, b, el('div', 'note', esc(NOTE || 'Tres modelos al azar: uno de compañero, dos enfrente. Cada “Otros rivales” baraja el pool (nan, jev, Claude…). Una vaca, a 40 piedras.')));
     return;
   }
   const finished = S.status !== 'running';
