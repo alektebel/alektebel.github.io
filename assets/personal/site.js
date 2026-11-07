@@ -76,3 +76,49 @@ document.querySelectorAll('.barrapp-visual video').forEach(video => {
   reducedMotion.addEventListener('change', sync);
   sync();
 });
+
+const projectsSection = document.querySelector('.projects-section');
+if (projectsSection) {
+  const content = projectsSection.querySelector('.projects-content');
+  const viewport = projectsSection.querySelector('.project-window');
+  const track = projectsSection.querySelector('.project-track');
+  let travel = 0;
+  let enabled = false;
+  let frame = 0;
+
+  const render = () => {
+    frame = 0;
+    if (!enabled) return;
+    const distance = Math.min(travel, Math.max(0, -projectsSection.getBoundingClientRect().top));
+    track.style.transform = `translateX(${-distance}px)`;
+  };
+  const onScroll = () => {
+    if (!frame && enabled) frame = requestAnimationFrame(render);
+  };
+  const measure = () => {
+    travel = Math.max(0, track.scrollWidth - viewport.clientWidth);
+    // Mobile, short viewports and reduced-motion keep a normal swipeable row.
+    enabled = window.innerWidth >= 700 && !reducedMotion.matches && travel > 0 && content.offsetHeight + 64 <= window.innerHeight;
+    projectsSection.classList.toggle('has-scroll', enabled);
+    projectsSection.style.height = enabled ? `${content.offsetHeight + travel}px` : '';
+    track.style.transform = '';
+    if (enabled) viewport.scrollLeft = 0;
+    render();
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', measure);
+  reducedMotion.addEventListener('change', measure);
+  new ResizeObserver(measure).observe(content);
+  document.fonts.ready.then(measure);
+  viewport.addEventListener('focusin', event => {
+    if (!enabled) return;
+    const card = event.target.closest('.project-card');
+    if (!card) return;
+    const offset = card.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    const sectionTop = window.scrollY + projectsSection.getBoundingClientRect().top;
+    viewport.scrollLeft = 0;
+    window.scrollTo({ top: sectionTop + Math.min(travel, offset), behavior: 'instant' });
+    render();
+  });
+  measure();
+}
