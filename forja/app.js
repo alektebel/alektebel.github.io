@@ -930,6 +930,7 @@ async function ghConnect() {
       repo: fork.name,
       branch: fork.default_branch || "main",
       fork: fork.full_name,
+      created_at: fork.created_at || "",
     });
     $("#gh-modal").hidden = true;
     ghStatus("");
@@ -975,7 +976,8 @@ async function ghLoadProgress(account, force = false) {
     ));
     let commits = [];
     try {
-      commits = await ghApi(`/repos/${encodeURIComponent(account.login)}/${encodeURIComponent(account.repo)}/commits?path=${encodeURIComponent(dir)}&author=${encodeURIComponent(account.login)}&per_page=100`);
+      const since = account.created_at ? `&since=${encodeURIComponent(account.created_at)}` : "";
+      commits = await ghApi(`/repos/${encodeURIComponent(account.login)}/${encodeURIComponent(account.repo)}/commits?path=${encodeURIComponent(dir)}${since}&per_page=100`);
     } catch (err) {
       if (err.code === "rate_limit") throw err;
     }
@@ -1039,6 +1041,7 @@ function renderGhStats() {
   const body = $("#gh-stats-body");
   if (!body) return;
   if (!GH) {
+    if (!$("#gh-stats-modal").hidden) closeGhStats();
     body.innerHTML = `<p class="auth-lead dim">Connect a fork to see its commits.</p>`;
     return;
   }
@@ -1051,7 +1054,7 @@ function renderGhStats() {
     return;
   }
   const p = GH.progress;
-  const rows = p.rows.map((r) => {
+  const rows = (p.rows || []).map((r) => {
     const pct = r.stages ? Math.round((r.touched / r.stages) * 100) : 0;
     const count = r.capped ? "100+" : r.commits;
     return `<article class="gh-stat">
@@ -1102,6 +1105,7 @@ async function ghRestore() {
     GH.repo = fork.name;
     GH.branch = fork.default_branch || "main";
     GH.fork = fork.full_name;
+    GH.created_at = fork.created_at || GH.created_at || "";
     ghStore();
     renderGh();
     if (!GH.progress || Date.now() - GH.progress.checked_at > GH_TTL) ghRefreshProgress();

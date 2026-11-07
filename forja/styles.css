@@ -167,7 +167,7 @@ code, .mono {
   backdrop-filter: blur(4px);
 }
 .auth-dialog {
-  width: 100%; max-width: 390px; background: var(--surface);
+  width: 100%; max-width: 390px; min-width: 0; background: var(--surface);
   border: 1px solid var(--line); border-radius: 14px;
   box-shadow: var(--shadow); padding: 20px;
   display: flex; flex-direction: column; gap: 14px;
@@ -180,11 +180,11 @@ code, .mono {
   font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 4px;
 }
 .auth-x:hover { color: var(--ink); }
-.auth-lead { font-size: 13px; color: var(--muted); }
+.auth-lead { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .auth-lead a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .auth-lead a:hover { color: var(--bright); }
 .auth-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
-.auth-code-row { display: flex; align-items: center; gap: 8px; }
+.auth-code-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .auth-input {
   flex: 1; min-width: 0; background: var(--ground); color: var(--ink);
   border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
