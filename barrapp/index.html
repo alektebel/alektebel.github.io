@@ -8,16 +8,16 @@
 <meta property="og:title" content="barrapp — mide tus repeticiones">
 <meta property="og:description" content="Graba la serie. barrapp cuenta las repeticiones, puntúa cada una y señala los errores de técnica.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://diegoatencia.dev/barrapp/img/tracker-record-results.png">
+<link rel="canonical" href="https://diegoatencia.dev/barrapp/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#161826; --surface:#1C1D28; --surface-2:#232532;
-    --primary:#9184D9; --primary-bright:#7C5CFF; --primary-soft:#262A60;
-    --on-primary-container:#D2CEFD;
-    --outline:#3F424D; --fg:#E9E9ED; --muted:#9B9DAD;
-    --good:#3FD9A0; --warn:#E0A340;
+    --bg:#F1EEE6; --surface:#FFFFFF; --inset:#E9E5DC;
+    --ink:#141414; --muted:#5A564E; --faint:#B5AFA2; --line:#D6D0C2;
+    --primary:#FF4F1A; --teal:#1E9E63; --blue:#2F6BFF;
     --display:"Barlow Condensed",Impact,"Haettenschweiler","Arial Narrow",sans-serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -25,135 +25,163 @@
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{
-    margin:0; background:var(--bg); color:var(--fg);
+    margin:0; background:var(--bg); color:var(--ink);
     font:16px/1.65 var(--sans);
     overflow-x:hidden;
   }
-  .wrap{max-width:960px; margin:0 auto; padding:0 20px}
+  a{color:var(--ink)}
+  a:hover{color:var(--primary)}
+  a:focus-visible{outline:2px solid var(--primary); outline-offset:3px}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,40px)}
 
-  /* ---- top bar ---- */
   .top{
     display:flex; align-items:center; justify-content:space-between;
-    gap:16px; flex-wrap:wrap;
-    padding:22px 0 0;
+    gap:16px; flex-wrap:wrap; padding:22px 0 0;
   }
   .wordmark{
-    font:600 13px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase;
-    color:var(--primary);
+    font:900 28px/1 var(--display); letter-spacing:.02em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
   }
   .toplinks{display:flex; gap:18px; flex-wrap:wrap}
   .toplinks a{
     font:500 12px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase;
     color:var(--muted); text-decoration:none;
   }
-  .toplinks a:hover{color:var(--fg)}
+  .toplinks a:hover{color:var(--ink)}
 
-  /* ---- hero ---- */
-  header.hero{padding:56px 0 8px}
+  header.hero{
+    padding:48px 0 8px;
+    display:grid;
+    grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+    gap:40px 48px;
+    align-items:end;
+  }
+  @media (max-width:860px){
+    header.hero{grid-template-columns:1fr; gap:36px}
+  }
   .eyebrow{
-    display:inline-block; font:500 11px/1 var(--mono);
-    letter-spacing:.2em; text-transform:uppercase;
-    color:var(--on-primary-container); background:var(--primary-soft);
-    padding:7px 12px; border-radius:999px; margin-bottom:22px;
+    display:inline-block; font:600 11px/1 var(--mono);
+    letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink); margin-bottom:18px;
   }
   h1{
     font-family:var(--display); font-weight:900;
-    font-size:clamp(44px,10vw,88px); line-height:.94;
-    margin:0 0 20px; letter-spacing:.01em; text-transform:uppercase;
+    font-size:clamp(48px,9vw,84px); line-height:.92;
+    margin:0 0 22px; letter-spacing:.01em; text-transform:uppercase;
   }
   h1 .accent{color:var(--primary)}
   .lead{
-    font-size:clamp(17px,2.4vw,20px); line-height:1.55;
-    color:var(--muted); max-width:52ch; margin:0 0 14px;
+    font-size:clamp(16px,2.1vw,19px); line-height:1.55;
+    color:var(--muted); max-width:38ch; margin:0 0 14px;
   }
-  .lead strong{color:var(--fg); font-weight:600}
+  .lead strong{color:var(--ink); font-weight:600}
 
-  /* ---- shots ---- */
-  .shots{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));
-    gap:28px; margin:52px 0 8px; align-items:start;
+  .hero-phones{
+    display:flex; align-items:flex-end; justify-content:center;
+    gap:14px; min-width:0;
   }
-  .shot{min-width:0}
-  .shot img{
-    display:block; width:100%; height:auto; border-radius:20px;
-    border:1px solid var(--outline); background:var(--surface);
+  .hero-phones img{
+    display:block; width:min(42%, 220px); height:auto;
+    border:1px solid var(--ink); background:var(--surface);
+    box-shadow:6px 6px 0 var(--ink);
+    opacity:0; transform:translateY(18px);
+    animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards;
   }
-  .shot figcaption{
-    font:400 12.5px/1.5 var(--mono); color:var(--muted);
-    margin-top:12px; letter-spacing:.02em;
+  .hero-phones img:nth-child(2){animation-delay:.12s}
+  @keyframes rise{to{opacity:1; transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .hero-phones img{opacity:1; transform:none; animation:none}
   }
 
-  /* ---- sections ---- */
-  section{padding:64px 0 0}
+  section{padding:72px 0 0}
   h2{
-    font-family:var(--display); font-weight:700; text-transform:uppercase;
-    font-size:clamp(26px,4.5vw,38px); line-height:1.05;
-    margin:0 0 8px; letter-spacing:.02em;
+    font-family:var(--display); font-weight:900; text-transform:uppercase;
+    font-size:clamp(28px,4.5vw,42px); line-height:1.02;
+    margin:0 0 10px; letter-spacing:.02em;
   }
-  .sub{color:var(--muted); margin:0 0 30px; max-width:56ch}
+  .sub{color:var(--muted); margin:0 0 28px; max-width:52ch}
 
   .steps{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));
-    gap:18px; margin:0;
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:0; border-top:1px solid var(--ink);
   }
+  @media (max-width:720px){.steps{grid-template-columns:1fr}}
   .step{
-    min-width:0; background:var(--surface); border:1px solid var(--outline);
-    border-radius:18px; padding:22px 22px 24px;
+    min-width:0; padding:22px 0 8px;
+    border-bottom:1px solid var(--line);
+  }
+  @media (min-width:721px){
+    .step{padding:22px 22px 8px 0; border-bottom:0; border-right:1px solid var(--line)}
+    .step:last-child{border-right:0; padding-right:0}
+    .step:first-child{padding-left:0}
   }
   .step .n{
     font:600 11px/1 var(--mono); letter-spacing:.18em;
     color:var(--primary); text-transform:uppercase; display:block; margin-bottom:14px;
   }
   .step h3{
-    font-family:var(--display); font-weight:700; text-transform:uppercase;
-    font-size:22px; line-height:1.1; margin:0 0 8px; letter-spacing:.02em;
+    font-family:var(--display); font-weight:900; text-transform:uppercase;
+    font-size:26px; line-height:1.05; margin:0 0 10px; letter-spacing:.02em;
   }
   .step p{margin:0; color:var(--muted); font-size:15px; line-height:1.6}
 
-  /* ---- honesty panel ---- */
+  .more-shots{
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:28px; margin-top:8px; align-items:start;
+  }
+  @media (max-width:640px){.more-shots{grid-template-columns:1fr; max-width:320px}}
+  .shot{min-width:0; margin:0}
+  .shot img{
+    display:block; width:100%; max-width:280px; height:auto;
+    border:1px solid var(--ink); background:var(--surface);
+  }
+  .shot figcaption{
+    font:400 12.5px/1.5 var(--mono); color:var(--muted);
+    margin-top:12px; letter-spacing:.02em; max-width:32ch;
+  }
+
   .honest{
-    background:var(--surface-2); border:1px solid var(--outline);
-    border-left:3px solid var(--primary);
-    border-radius:0 18px 18px 0; padding:26px 26px 28px; margin-top:8px;
+    background:var(--inset); border-left:3px solid var(--primary);
+    padding:26px 26px 28px; margin-top:8px;
   }
   .honest h2{margin-bottom:14px}
   .honest ul{margin:0; padding-left:20px}
   .honest li{margin:9px 0; color:var(--muted); font-size:15.5px}
-  .honest li strong{color:var(--fg); font-weight:600}
+  .honest li strong{color:var(--ink); font-weight:600}
   .tag{
     display:inline-block; font:500 11px/1 var(--mono);
     letter-spacing:.12em; text-transform:uppercase;
-    padding:5px 9px; border-radius:7px; margin-right:4px;
-    border:1px solid var(--warn); color:var(--warn);
+    padding:5px 9px; margin-right:4px;
+    border:1px solid var(--ink); color:var(--ink); background:var(--surface);
   }
 
-  /* ---- status ---- */
   .status{
     display:flex; gap:14px; align-items:flex-start;
-    background:var(--surface); border:1px solid var(--outline);
-    border-radius:18px; padding:22px 24px; margin-top:20px;
+    border:1px solid var(--ink); background:var(--surface);
+    padding:22px 24px; margin-top:20px;
   }
   .status .dot{
-    width:9px; height:9px; border-radius:50%; background:var(--good);
+    width:9px; height:9px; border-radius:50%; background:var(--teal);
     flex:none; margin-top:9px;
   }
   .status p{margin:0; color:var(--muted); font-size:15px}
-  .status strong{color:var(--fg)}
+  .status strong{color:var(--ink)}
+  .status a{color:var(--primary)}
 
-  /* ---- en ---- */
   .en{
-    margin-top:56px; padding-top:26px; border-top:1px solid var(--outline);
+    margin-top:48px; padding-top:24px; border-top:1px solid var(--line);
     color:var(--muted); font-size:14.5px; max-width:60ch;
   }
-  .en b{color:var(--fg); font-weight:600}
+  .en b{color:var(--ink); font-weight:600}
+  .en a{color:var(--primary)}
 
   footer{
-    margin-top:56px; padding:26px 0 60px; border-top:1px solid var(--outline);
+    margin-top:56px; padding:26px 0 60px; border-top:1px solid var(--ink);
     display:flex; gap:10px 26px; flex-wrap:wrap; align-items:center;
     font:400 13px/1.6 var(--mono); color:var(--muted);
   }
-  footer a{color:var(--primary); text-decoration:none}
-  footer a:hover{text-decoration:underline}
+  footer a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line)}
+  footer a:hover{color:var(--primary); border-color:var(--primary)}
   .spacer{flex:1 1 auto}
 </style>
 </head>
@@ -161,7 +189,7 @@
 <div class="wrap">
 
   <div class="top">
-    <span class="wordmark">barrapp</span>
+    <a class="wordmark" href="/barrapp/">barrapp</a>
     <nav class="toplinks">
       <a href="privacidad.html">Privacidad</a>
       <a href="eliminar-cuenta.html">Eliminar cuenta</a>
@@ -170,31 +198,28 @@
   </div>
 
   <header class="hero">
-    <span class="eyebrow">Calistenia · medición</span>
-    <h1>Graba la serie.<br><span class="accent">Mira los números.</span></h1>
-    <p class="lead">
-      Grabas una serie con el móvil. barrapp reconoce el movimiento, cuenta las
-      repeticiones, puntúa cada una y te señala qué falló —
-      <strong>y en qué segundo</strong>.
-    </p>
-    <p class="lead">
-      Es una herramienta de medición, no un entrenador que te anima. Si una
-      repetición no se puede leer, lo dice.
-    </p>
-  </header>
-
-  <div class="shots">
-    <figure class="shot">
+    <div>
+      <span class="eyebrow">Calistenia · medición</span>
+      <h1>Graba la serie.<br><span class="accent">Mira los números.</span></h1>
+      <p class="lead">
+        Grabas una serie con el móvil. barrapp reconoce el movimiento, cuenta las
+        repeticiones, puntúa cada una y te señala qué falló —
+        <strong>y en qué segundo</strong>.
+      </p>
+      <p class="lead">
+        Es una herramienta de medición, no un entrenador que te anima. Si una
+        repetición no se puede leer, lo dice.
+      </p>
+    </div>
+    <div class="hero-phones" aria-hidden="false">
       <img src="img/tracker-home.png"
-           alt="Nueva pantalla de inicio de barrapp: botón para analizar una serie y resumen de la última sesión.">
-      <figcaption>Inicio: analiza una serie y revisa la última sesión.</figcaption>
-    </figure>
-    <figure class="shot">
+           alt="Pantalla de inicio: analizar una serie y última sesión."
+           width="945" height="2100">
       <img src="img/tracker-record-results.png"
-           alt="Nueva pantalla de resultados de barrapp: nota 71 para seis dominadas y tres indicaciones concretas para la próxima serie.">
-      <figcaption>Resultado: nota de la serie y qué mejorar en la próxima.</figcaption>
-    </figure>
-  </div>
+           alt="Resultado: nota 71 en seis dominadas y tres cosas que mejorar."
+           width="945" height="2100">
+    </div>
+  </header>
 
   <section>
     <h2>Cómo funciona</h2>
@@ -234,6 +259,25 @@
   </section>
 
   <section>
+    <h2>Progreso y coach</h2>
+    <p class="sub">La nota de cada serie entra en el histórico. El coach habla solo de lo que se midió.</p>
+    <div class="more-shots">
+      <figure class="shot">
+        <img src="img/tracker-progress.png"
+             alt="Pestaña de progreso: racha, calidad media y hitos."
+             width="945" height="2100">
+        <figcaption>Progreso: racha, calidad media y el siguiente hito.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="img/tracker-coach.png"
+             alt="Pestaña de coach con feedback sobre la calidad media."
+             width="945" height="2100">
+        <figcaption>Coach: preguntas sobre tus series, con evidencia del vídeo.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
     <div class="honest">
       <h2>Lo que no hace</h2>
       <ul>
@@ -267,7 +311,7 @@
       <p>
         <strong>En pruebas internas.</strong> barrapp todavía no está publicada
         de forma abierta en Google Play. Si quieres probarla, escribe a
-        <a href="mailto:dratencia@gmail.com" style="color:var(--primary)">dratencia@gmail.com</a>
+        <a href="mailto:dratencia@gmail.com">dratencia@gmail.com</a>
         y te añado a la lista de testers.
       </p>
     </div>
@@ -278,7 +322,7 @@
       flags the technique faults it found — and says plainly when a rep could not
       be read rather than guessing. It is a measurement tool, not a coach, and
       not a substitute for a professional. Currently in internal testing; email
-      <a href="mailto:dratencia@gmail.com" style="color:var(--primary)">dratencia@gmail.com</a>
+      <a href="mailto:dratencia@gmail.com">dratencia@gmail.com</a>
       to join.
     </p>
   </section>
