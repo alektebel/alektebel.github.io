@@ -22,19 +22,17 @@ button{cursor:pointer}
 @media(max-width:640px){.hero-gallery{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;flex-basis:100%!important}.hero-gallery img{width:100%!important;aspect-ratio:3 / 4!important;object-fit:cover!important}}
 .github-link{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .github-icon{display:block;width:14px;height:14px;flex:none}
-/* Project carousel */
-.projects-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-12px 0 22px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted)}
-.project-motion-toggle{padding:6px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-family:inherit;font-size:12px;white-space:nowrap}
-.project-motion-toggle:hover{border-color:var(--ink)}
+/* Natural vertical scroll drives the project row one pixel to the left per pixel down. */
+.projects-section{margin-top:80px}
+.projects-content{max-width:1240px;margin:0 auto;padding:0 clamp(16px,4vw,48px);width:100%}
 .project-window{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#9a958b transparent}
-.project-track{display:flex;gap:28px;width:max-content;animation:projects-drift 52s linear infinite}
-.project-group{display:flex;gap:28px}
-.project-card{width:min(320px,78vw);flex:none}
+.project-track{width:max-content}
+.project-group{display:flex;gap:32px}
+.project-card{width:min(350px,78vw);flex:none}
 .project-card>a:first-child,.project-card>.unibox-visual{height:auto;aspect-ratio:4 / 3}
-.project-window:hover .project-track,.project-window:focus-within .project-track,.projects-section.is-paused .project-track{animation-play-state:paused}
-.project-group-copy{pointer-events:none}
+.projects-section.has-scroll .projects-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center}
+.projects-section.has-scroll .project-window{overflow:hidden}
+.projects-section.has-scroll .project-track{will-change:transform}
 .unibox-visual{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:linear-gradient(145deg,#e5e0f2,#cbc3e7);overflow:hidden}
 .unibox-visual img{display:block;width:88px;height:88px;border-radius:22px;box-shadow:0 12px 26px #3525682b}
 .unibox-visual span{font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:-.05em;color:#312758}
-@keyframes projects-drift{to{transform:translateX(calc(-50% - 14px))}}
-@media(prefers-reduced-motion:reduce){.project-track{animation:none}.project-group-copy{display:none}.project-motion-toggle{display:none}}
