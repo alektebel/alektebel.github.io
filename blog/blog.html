@@ -1,255 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Blog • Diego Rodríguez Atencia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #000000;
-      --text: #00ff00;
-      --accent: #00ff00;
-      --gray: #00aa00;
-      --light-gray: #003300;
-      --card-bg: rgba(0,255,0,0.05);
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Source Code Pro', 'Courier New', monospace;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-
-    nav {
-      background: var(--bg);
-      border-bottom: 1px solid var(--light-gray);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: saturate(180%) blur(10px);
-    }
-
-    .nav-container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 70px;
-    }
-
-    .logo {
-      font-weight: 700;
-      font-size: 1.3rem;
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .nav-links a {
-      margin-left: 2rem;
-      text-decoration: none;
-      color: var(--text);
-      font-weight: 500;
-      opacity: 0.9;
-      transition: all 0.2s;
-    }
-
-    .nav-links a:hover {
-      opacity: 1;
-      color: var(--accent);
-    }
-
-    .nav-links a.active {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .nav-links a.coming-soon {
-      color: var(--gray);
-      cursor: not-allowed;
-      position: relative;
-    }
-
-    .nav-links a.coming-soon::after {
-      content: " (coming soon)";
-      font-size: 0.8rem;
-      opacity: 0.7;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    h1 {
-      font-size: 2.8rem;
-      margin: 0 0 12px 0;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .page-description {
-      text-align: center;
-      font-size: 1.2rem;
-      color: var(--gray);
-      max-width: 600px;
-      margin: 0 auto 60px;
-    }
-
-    .posts {
-      display: grid;
-      gap: 32px;
-    }
-
-    .post-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 28px;
-      transition: transform 0.2s, border-color 0.2s;
-      border: 1px solid var(--light-gray);
-    }
-
-    .post-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--accent);
-    }
-
-    .post-card h2 {
-      margin: 0 0 12px 0;
-      font-size: 1.65rem;
-    }
-
-    .post-card h2 a {
-      color: var(--text);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .post-card h2 a:hover {
-      color: var(--accent);
-    }
-
-    .post-meta {
-      color: var(--gray);
-      font-size: 0.95rem;
-      margin-bottom: 16px;
-    }
-
-    .post-excerpt {
-      margin: 0;
-      font-size: 1.05rem;
-    }
-
-    footer {
-      text-align: center;
-      padding: 80px 0 40px;
-      color: var(--gray);
-      font-size: 0.9rem;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .post-card:hover {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-      }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Blog — Diego Rodríguez Atencia</title>
+<meta content="Writing on mathematics, language models, and building things from scratch." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="/assets/personal/blog.css" rel="stylesheet"/>
 </head>
 <body>
-
-  <!-- Navigation -->
-  <nav>
-    <div class="nav-container">
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/blog/blog.html" class="active">Blog</a>
-        <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
-      </div>
-    </div>
-  </nav>
-
-  <div class="container">
-    <h1>Blog</h1>
-    <p class="page-description">
-      Thoughts on mathematics, cryptography, decentralized systems, machine learning, and whatever I'm exploring at the moment.
-    </p>
-
-    <div class="posts">
-
-      <article class="post-card">
-        <h2><a href="/blog/mus-against-the-machine.html">Teaching LLMs to wink</a></h2>
-        <div class="post-meta">September 2026 • Multi-agent systems • Game theory • Language models</div>
-        <p class="post-excerpt">
-          Two AI teams play mus — the Spanish card game whose rulebook allows partners to speak
-          only through facial gestures. An órdago accepted on a tiebreak rule, a quarter of the
-          signal channel lost to timing, and the harness catching an error I had already written
-          into a draft.
-        </p>
-      </article>
-
-      <article class="post-card">
-        <h2><a href="/blog/master-thesis-reinforcement-learning.html">Master Thesis: Reinforcement Learning Applications</a></h2>
-        <div class="post-meta">October 2025 • Machine Learning • Reinforcement Learning</div>
-        <p class="post-excerpt">
-          My master thesis exploring advanced reinforcement learning techniques and their applications. Featuring implementations of Soft Actor-Critic (SAC) algorithm and comprehensive analysis of modern RL methods in continuous control tasks.
-        </p>
-      </article>
-<!--
-      <article class="post-card">
-        <h2><a href="/blog/exploring-collatz-conjecture-using-linear-algebra.html">Exploring the Collatz Conjecture Using Algebra</a></h2>
-        <div class="post-meta">November 2025 • Mathematics</div>
-        <p class="post-excerpt">
-          A fresh algebraic perspective on the Collatz conjecture: representing the 3n+1 and n/2 steps with matrices, exploring invariant structures, and attempting to prove convergence for certain classes of starting values.
-        </p>
-      </article>
--->
-
-
-      <article class="post-card">
-        <h2><a href="/blog/kan-implementation-pytorch-taylor.html">Kolmogorov-Arnold neural network implementation in pytorch using Taylor Polynominal expansion</a></h2>
-        <div class="post-meta">January 2025 • Pytorch • Deep Learning</div>
-        <p class="post-excerpt">
-          Implementation of a Kolmogorov-Arnold neural network using Taylor polynomial expansion in PyTorch. Exploring novel approaches to function approximation and deep learning architectures.
-        </p>
-      </article>
-
-
-      <article class="post-card">
-        <h2><a href="/blog/proposal-for-consensus-algorithm.html">Consensus algorithm for data labeling</a></h2>
-        <div class="post-meta">November 2025 • Cryptography • Distributed Systems</div>
-        <p class="post-excerpt">
-        Introducing a bayesian approach to determine the label of a data example based on the labels provided by multiple noisy annotators. In progress
-        </p>
-      </article>
-<!--
-      <article class="post-card">
-        <h2><a href="/blog/decentralized-form-of-government-dao.html">A Decentralized Form of Government: Building a Real-World DAO</a></h2>
-        <div class="post-meta">October 2025 • Governance • Blockchain</div>
-        <p class="post-excerpt">
-          From theory to implementation: designing quadratic voting, futarchy-inspired prediction markets, and reputation-weighted delegation for a fully on-chain decentralized autonomous organization capable of managing real budgets and policy. Coming soon
-        </p>
-      </article>
--->
-
-<!--
-      <article class="post-card">
-        <h2><a href="/blog/solving-sofa-problem-reinforcement-learning.html">Solving the Sofa Moving Problem Using Reinforcement Learning</a></h2>
-        <div class="post-meta">September 2025 • Reinforcement Learning • Geometry</div>
-        <p class="post-excerpt">
-          Training a soft-actor critic agent to navigate the largest possible sofa around an L-shaped corridor. Coming soon
-        </p>
-      </article>
--->
-
-    </div>
-
-    <footer>
-      © 2025 Diego Rodríguez Atencia • Deployed on GitHub Pages
-    </footer>
-  </div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<a href="/">diego rodríguez atencia</a>
+<nav aria-label="Site">
+<a href="/index.html">me</a>
+<a href="/cv.html">cv</a>
+<a aria-current="page" href="/blog/blog.html">blog</a>
+<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" target="_blank"><svg aria-hidden="true" class="github-icon" focusable="false" viewBox="0 0 24 24"><path d="M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.006 0c2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.221 0 4.61-2.805 5.624-5.476 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.216.694.825.576C20.565 22.092 24 17.596 24 12.297 24 5.67 18.627.297 12 .297z" fill="currentColor"></path></svg>github ↗</a>
+</nav>
+</header>
+<main class="wrap" id="main">
+<h1 class="page-title">Writing</h1>
+<p class="page-lead">Notes on mathematics, language models, and the open questions I keep coming back to.</p>
+<ul class="post-list">
+<li>
+<a href="/blog/mus-against-the-machine.html">
+<span class="when">sep 2026 · multi-agent · games</span>
+<span class="title">Teaching LLMs to wink</span>
+<span class="excerpt">Two AI teams play mus — partners speak only through facial gestures. An órdago on a tiebreak, a quarter of the signal channel lost to timing, and the harness catching an error I had already written into a draft.</span>
+</a>
+</li>
+<li>
+<a href="/blog/proposal-for-consensus-algorithm.html">
+<span class="when">nov 2025 · bayesian · labeling</span>
+<span class="title">A Bayesian consensus algorithm for noisy labels</span>
+<span class="excerpt">A Bayesian approach to recover the true label of an example from several noisy annotators. Still in progress.</span>
+</a>
+</li>
+<li>
+<a href="/blog/exploring-collatz-conjecture-using-linear-algebra.html">
+<span class="when">nov 2025 · mathematics · open question</span>
+<span class="title">Can the Collatz map be read as linear algebra?</span>
+<span class="excerpt">Representing 3n+1 and n/2 as a sparse linear operator, and asking whether spectral structure explains why orbits fall to 1.</span>
+</a>
+</li>
+<li>
+<a href="/blog/master-thesis-reinforcement-learning.html">
+<span class="when">oct 2025 · reinforcement learning</span>
+<span class="title">Master thesis: reinforcement learning with SAC</span>
+<span class="excerpt">Soft Actor-Critic and continuous control — the thesis write-up.</span>
+</a>
+</li>
+<li>
+<a href="/blog/kan-implementation-pytorch-taylor.html">
+<span class="when">jan 2025 · deep learning</span>
+<span class="title">Kolmogorov-Arnold networks via Taylor expansion</span>
+<span class="excerpt">KANs with Taylor polynomials in place of B-splines, implemented in PyTorch.</span>
+</a>
+</li>
+</ul>
+<p class="back-row" style="margin-top:40px"><a href="/#open-questions">open questions on the homepage →</a></p>
+</main>
+<footer class="site-footer">
+<div class="inner">
+<nav aria-label="Elsewhere">
+<a href="mailto:dratencia@gmail.com">email</a>
+<a href="https://github.com/alektebel" rel="noopener noreferrer" target="_blank">github</a>
+<a href="/">home</a>
+</nav>
+<span class="copy">© 2026 Diego Rodríguez Atencia</span>
+</div>
+</footer>
 </body>
 </html>

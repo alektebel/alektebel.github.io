@@ -33,7 +33,7 @@ button{cursor:pointer}
 .projects-section.has-scroll .projects-sticky{position:sticky;top:0}
 .projects-section.has-scroll .project-window{overflow:hidden}
 .projects-section.has-scroll .project-track{will-change:transform}
-.barrapp-visual{display:flex;align-items:center;justify-content:center;aspect-ratio:4 / 3;overflow:hidden;background:#e9e5dc;padding:12px;box-sizing:border-box}
-.barrapp-visual video{display:block;height:100%;width:auto;max-width:100%;object-fit:contain;border-radius:18px;box-shadow:0 0 0 1px #d5d0c5,0 10px 24px #11111014;background:#f4f2ed}
+.barrapp-visual{display:flex;align-items:center;justify-content:center;gap:10px;aspect-ratio:4 / 3;overflow:hidden;background:#e9e5dc;padding:12px;box-sizing:border-box}
+.barrapp-visual video{display:block;height:100%;width:auto;max-width:calc(50% - 5px);object-fit:contain;border-radius:18px;box-shadow:0 0 0 1px #d5d0c5,0 10px 24px #11111014;background:#f4f2ed}
 .unibox-visual{aspect-ratio:4 / 3;display:block;overflow:hidden;background:#eceae4}
 .unibox-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}

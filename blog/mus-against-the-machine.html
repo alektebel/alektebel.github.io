@@ -5,80 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Teaching LLMs to wink • Diego Rodríguez Atencia</title>
   <meta name="description" content="Two AI teams play mus — the Spanish card game whose rulebook allows partners to speak only through facial gestures. An órdago accepted on a tiebreak rule, a quarter of the signal channel lost to timing, and the harness catching an error I had already written into a draft.">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #fafafa; --text: #1a1a1a; --accent: #2563eb; --gray: #666;
-      --light-gray: #e5e7eb; --card-bg: rgba(0,0,0,0.04);
-      --quote-bg: #f0f7ff; --quote-border: #bfdbfe; --code-bg: #f5f5f5;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f0f0f; --text: #f0f0f0; --gray: #aaa; --accent: #3b82f6;
-        --light-gray: #1f2937; --card-bg: rgba(255,255,255,0.06);
-        --quote-bg: #1e2a44; --quote-border: #3b82f6; --code-bg: #1a1a1a;
-      }
-    }
-    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
-      color: var(--text); line-height: 1.7; }
-    nav { background: var(--bg); border-bottom: 1px solid var(--light-gray);
-      position: sticky; top: 0; z-index: 100; backdrop-filter: saturate(180%) blur(10px); }
-    .nav-container { max-width: 800px; margin: 0 auto; padding: 0 20px; display: flex;
-      justify-content: space-between; align-items: center; height: 70px; }
-    .nav-links a { margin-left: 2rem; text-decoration: none; color: var(--text);
-      font-weight: 500; opacity: 0.9; transition: all 0.2s; }
-    .nav-links a:hover { opacity: 1; color: var(--accent); }
-    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-    .post-header { text-align: center; margin-bottom: 60px; }
-    .post-header h1 { font-size: 2.5rem; margin: 0 0 16px 0; font-weight: 700; line-height: 1.2; }
-    .post-meta { color: var(--gray); font-size: 1rem; }
-    .content { font-size: 1.1rem; }
-    .content h2 { font-size: 2rem; margin-top: 48px; margin-bottom: 20px; }
-    .content h3 { font-size: 1.4rem; margin-top: 34px; margin-bottom: 14px; }
-    .content p { margin: 20px 0; }
-    .content ul, .content ol { margin: 20px 0; padding-left: 28px; }
-    .content li { margin: 12px 0; line-height: 1.6; }
-    .content code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
-      font-size: 0.95em; font-family: 'Courier New', monospace; }
-    .content pre { background: var(--code-bg); padding: 14px 18px; border-radius: 8px;
-      overflow-x: auto; font-size: 0.92em; line-height: 1.5; }
-    .content pre code { background: none; padding: 0; }
-    .content blockquote { background: var(--quote-bg); border-left: 4px solid var(--quote-border);
-      padding: 14px 22px; margin: 20px 0; border-radius: 4px; }
-    .content blockquote p { margin: 8px 0; }
-    .content blockquote .who { display: block; margin-top: 6px; font-size: 0.9rem;
-      color: var(--gray); font-style: normal; }
-    .highlight-box { background: var(--card-bg); border-radius: 12px; padding: 24px;
-      margin: 32px 0; border: 1px solid var(--light-gray); }
-    .highlight-box h4 { margin-top: 0; font-size: 1.2rem; }
-    table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.98rem; }
-    th, td { padding: 8px 10px; border-bottom: 1px solid var(--light-gray); text-align: left; }
-    th { color: var(--gray); font-weight: 600; font-size: 0.85rem; text-transform: uppercase;
-      letter-spacing: 0.04em; }
-    .cta { display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
-      padding: 14px 22px; border-radius: 8px; font-weight: 600; margin: 8px 0 4px; }
-    .cta:hover { filter: brightness(1.08); }
-    .cta + .cta { margin-left: 10px; }
-    footer { text-align: center; padding: 80px 0 40px; color: var(--gray); font-size: 0.9rem; }
-    @media (max-width: 768px) { .post-header h1 { font-size: 2rem; } .content { font-size: 1rem; } }
-  </style>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="/assets/personal/blog.css" rel="stylesheet"/>
 </head>
 <body>
 
-  <nav>
-    <div class="nav-container">
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/blog/blog.html">Blog</a>
-        <a href="https://regllm.xyz" target="_blank" rel="noopener">regllm.xyz</a>
-      </div>
-    </div>
-  </nav>
+  <a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<a href="/">diego rodríguez atencia</a>
+<nav aria-label="Site">
+<a href="/index.html">me</a>
+<a href="/cv.html">cv</a>
+<a aria-current="page" href="/blog/blog.html">blog</a>
+<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" target="_blank"><svg aria-hidden="true" class="github-icon" focusable="false" viewBox="0 0 24 24"><path d="M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.006 0c2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.221 0 4.61-2.805 5.624-5.476 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.216.694.825.576C20.565 22.092 24 17.596 24 12.297 24 5.67 18.627.297 12 .297z" fill="currentColor"></path></svg>github ↗</a>
+</nav>
+</header>
 
-  <div class="container">
+  <main class="wrap" id="main">
     <header class="post-header">
       <h1>Teaching LLMs to wink</h1>
-      <div class="post-meta">September 2026 • Multi-agent systems • Game theory • Language models</div>
+      <p class="post-meta">September 2026 • Multi-agent systems • Game theory • Language models</p>
     </header>
 
     <article class="content">
@@ -441,10 +389,18 @@ python publish/export_trace.py results/live_run \
 
       <p><em>Card artwork by Basquetteur via Wikimedia Commons, CC BY-SA 3.0.</em></p>
     </article>
-
-    <footer>
-      © 2026 Diego Rodríguez Atencia • Deployed on GitHub Pages
-    </footer>
-  </div>
+<p class="back-row"><a href="/blog/blog.html">← all posts</a></p>
+</main>
+<footer class="site-footer">
+<div class="inner">
+<nav aria-label="Elsewhere">
+<a href="mailto:dratencia@gmail.com">email</a>
+<a href="https://github.com/alektebel" rel="noopener noreferrer" target="_blank">github</a>
+<a href="/blog/blog.html">all posts</a>
+<a href="/">home</a>
+</nav>
+<span class="copy">© 2026 Diego Rodríguez Atencia</span>
+</div>
+</footer>
 </body>
 </html>
