@@ -65,6 +65,13 @@ h1,h2,h3{font-family:var(--font-heading);margin:0}
 @keyframes seatFx{0%{opacity:0;transform:scale(.85)}14%{opacity:1;transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
 @keyframes dropIn{0%{opacity:0;transform:translateY(-48px)}60%{opacity:1;transform:translateY(3px)}100%{opacity:1;transform:none}}
 @keyframes flip{0%{transform:rotateY(90deg);opacity:.4}100%{transform:none;opacity:1}}
+@keyframes pereteBoom{0%{opacity:0;letter-spacing:.55em;filter:blur(16px);transform:scale(1.2)}18%{opacity:1;letter-spacing:-.03em;filter:blur(0);transform:scale(1)}72%{opacity:1}100%{opacity:0;transform:scale(1.08);filter:blur(8px)}}
+@keyframes pereteFly{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1)}18%{opacity:1;transform:translate(calc(var(--dx)*.12),calc(var(--dy)*.08)) rotate(calc(var(--rot)*.2)) scale(1.05)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.55)}}
+#tfxlayer .flycard{position:fixed;z-index:55;pointer-events:none;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.55);
+  animation:pereteFly 1.15s cubic-bezier(.2,.8,.2,1) forwards;will-change:transform,opacity}
+#tfxlayer .flycard img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block}
+.tfx.perete .big{font-size:clamp(52px,11vw,120px);color:var(--color-accent-100);
+  text-shadow:0 0 50px color-mix(in srgb,var(--color-accent) 75%,transparent);animation:pereteBoom var(--dur) var(--ease) forwards}
 
 /* ── header ── */
 header.top{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:var(--space-6);
@@ -514,8 +521,8 @@ footer.foot a{color:var(--color-neutral-400)}
     <div class="sep"></div>
 
     <article class="art">
-      <div class="txt"><div class="num">VI</div><h2>Envites y órdago</h2>
-        <p>En cada lance se pasa o se envida: dos piedras. Cualquiera de los dos rivales puede querer o subir — «y yo», dos más, o reenvidar, el doble —. Solo si los dos no quieren cobras lo último que aceptaron. El órdago lo apuesta todo: basta que uno quiera para jugarse la vaca. Si los dos se retiran, cobras el lance y se sigue — Grande, Chica, Pares, Juego.</p></div>
+      <div class="txt"><div class="num">VI</div><h2>Envites, órdago y perete</h2>
+        <p>En cada lance se pasa o se envida: dos piedras. Cualquiera de los dos rivales puede querer o subir — «y yo», dos más, o reenvidar, el doble —. Solo si los dos no quieren cobras lo último que aceptaron. El órdago lo apuesta todo: basta que uno quiera para jugarse la vaca. Si los dos se retiran, cobras el lance y se sigue. Y si te cae el tío Perete — cuatro, cinco, seis y siete — grítalo: tiras las cuatro a la izquierda y recibes mano nueva.</p></div>
       <figure class="envfig">
         <div class="envlines" id="d-envlines"></div>
         <div class="stake">
@@ -884,10 +891,10 @@ function toggleCard(w){
   renderMe();
 }
 
-const LABELS = {mus:'Mus', no:'No hay mus', ordago:'Órdago', tengo:'Tengo', 'no-tengo':'No tengo', paso:'Paso',
+const LABELS = {mus:'Mus', no:'No hay mus', ordago:'Órdago', perete:'¡Perete!', tengo:'Tengo', 'no-tengo':'No tengo', paso:'Paso',
   envido:'Envido · 2', 'y-yo':'Y yo · +2', reenvido:'Reenvido · ×2', quiero:'Quiero', 'no-quiero':'No quiero'};
 const SOFT = new Set(['paso','no-quiero','no-tengo']);
-const ORDER = ['mus','no','tengo','no-tengo','paso','envido','y-yo','reenvido','quiero','no-quiero','ordago'];
+const ORDER = ['perete','mus','no','tengo','no-tengo','paso','envido','y-yo','reenvido','quiero','no-quiero','ordago'];
 let btnSig = null, armTimer = null;
 function renderButtons(legal){
   const sig = legal.join(',') + '|' + selected.size + '|' + (S && S.lance);
@@ -906,7 +913,7 @@ function renderButtons(legal){
     shown = shown.filter(a => a !== 'tengo' && a !== 'no-tengo');
     if(!shown.length) return;
     shown.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).forEach(a => {
-      const b = el('button', 'pill' + (a === 'ordago' ? ' hot' : SOFT.has(a) ? ' soft' : ''), esc(LABELS[a] || a));
+      const b = el('button', 'pill' + (a === 'ordago' || a === 'perete' ? ' hot' : SOFT.has(a) ? ' soft' : ''), esc(LABELS[a] || a));
       b.onclick = () => {
         if(a === 'ordago' && !b.classList.contains('arm')){
           b.classList.add('arm'); b.textContent = '¿Órdago? Confirma';
@@ -1031,7 +1038,7 @@ function feedRow(ev){
   const nameOf = s => S && S.seats[s] ? displayName(s) : '';
   if(ev.kind === 'chat' && seat != null){
     who = nameOf(seat); color = family(modelKey(seat)).color; text = chatText(ev.text);
-  } else if(['envite','declare','discard','mus','sena','sena_caught','fallback','timeout','rejected','api_error'].includes(ev.kind) && seat != null){
+  } else if(['envite','declare','discard','mus','perete','sena','sena_caught','fallback','timeout','rejected','api_error'].includes(ev.kind) && seat != null){
     who = nameOf(seat); color = family(modelKey(seat)).color;
     const raw = S && S.seats[seat] ? S.seats[seat].name : '';
     if(raw && text.startsWith(raw)) text = text.slice(raw.length).replace(/^[\s:]+/, '');
@@ -1063,7 +1070,7 @@ function renderFeed(reset){
 /* ── animations driven by new events ── */
 let animLast = null;
 const SAY = {mus:'mus', no:'no hay mus', paso:'paso', envido:'envido', 'y-yo':'y yo', reenvido:'reenvido', quiero:'quiero',
-  'no-quiero':'no quiero', ordago:'órdago', tengo:'tengo', 'no-tengo':'no tengo'};
+  'no-quiero':'no quiero', ordago:'órdago', perete:'¡perete!', tengo:'tengo', 'no-tengo':'no tengo'};
 function actionOf(ev){
   if(ev.action) return ev.action;
   const t = ev.text || '';
@@ -1073,11 +1080,13 @@ function actionOf(ev){
   }
   if(ev.kind === 'declare') return /no tengo/.test(t) ? 'no-tengo' : 'tengo';
   if(ev.kind === 'mus') return /no hay mus|corta/i.test(t) ? 'no' : 'mus';
+  if(ev.kind === 'perete') return 'perete';
   if(ev.kind === 'discard') return 'discard';
   return null;
 }
 function decisionLine(ev){
   const a = actionOf(ev);
+  if(ev.kind === 'perete') return '¡perete!';
   if(ev.kind === 'discard'){
     const n = Number(ev.n != null ? ev.n : ((ev.cards || []).length || 0));
     if(!n) return 'descarta';
@@ -1124,13 +1133,44 @@ function seatFx(area, kind, text, n){
   setTimeout(() => { if(box.parentNode) box.remove(); }, dur);
 }
 function tableFx(kind, text, sub){
-  const dur = 2600;
+  const dur = kind === 'perete' ? 2800 : 2600;
   const L = $('tfxlayer');
-  const f = el('div', 'tfx'); f.style.setProperty('--dur', dur + 'ms');
-  if(kind === 'ordago') f.innerHTML = '<div class="rg"></div><div class="rg b"></div><div class="rg c"></div>';
+  const f = el('div', 'tfx' + (kind === 'perete' ? ' perete' : '')); f.style.setProperty('--dur', dur + 'ms');
+  if(kind === 'ordago' || kind === 'perete') f.innerHTML = '<div class="rg"></div><div class="rg b"></div><div class="rg c"></div>';
   f.innerHTML += '<div class="big">' + esc(text) + '</div><div class="sub">' + esc(sub || '') + '</div>';
-  L.replaceChildren(f);
+  L.appendChild(f);
   setTimeout(() => { if(f.parentNode) f.remove(); }, dur);
+}
+function pereteFx(fromSeat, toSeat){
+  const fromA = areaOf(fromSeat), toA = areaOf(toSeat);
+  const fromE = seatEls[fromA], toE = seatEls[toA];
+  if(!fromE || !toE) return;
+  const handEl = fromE.hand || fromE.root;
+  const targetEl = toE.avatar || toE.root;
+  const a0 = handEl.getBoundingClientRect();
+  const a1 = targetEl.getBoundingClientRect();
+  const sx = a0.left + a0.width / 2, sy = a0.top + a0.height / 2;
+  const tx = a1.left + a1.width / 2, ty = a1.top + a1.height / 2;
+  const suits = ['oros','copas','espadas','bastos'];
+  const ranks = [4,5,6,7];
+  const L = $('tfxlayer');
+  tableFx('perete', '¡Perete!', displayName(fromSeat) + ' · 4·5·6·7 hacia ' + displayName(toSeat));
+  ranks.forEach((r, i) => {
+    const w = innerWidth < 720 ? 54 : 72;
+    const node = cardNode({s:suits[i], r}, w, 'flycard');
+    const ox = (i - 1.5) * (w * 0.55);
+    node.style.left = (sx - w / 2 + ox) + 'px';
+    node.style.top = (sy - w * 0.8) + 'px';
+    node.style.width = w + 'px';
+    node.style.height = Math.round(w * 1.618) + 'px';
+    node.style.setProperty('--dx', (tx - sx - ox) + 'px');
+    node.style.setProperty('--dy', (ty - sy) + 'px');
+    node.style.setProperty('--rot', ((i - 1.5) * 28) + 'deg');
+    node.style.animationDelay = (60 + i * 70) + 'ms';
+    L.appendChild(node);
+    setTimeout(() => { if(node.parentNode) node.remove(); }, 1400 + i * 70);
+  });
+  if(fromA){ setCall(fromA, '¡perete!', true); speak(fromA, '¡perete!'); }
 }
 function animate(evs){
   const chatBySeat = {};
@@ -1147,6 +1187,11 @@ function animate(evs){
       const va = S.scores.vacas_a, vb = S.scores.vacas_b;
       const us = myTeam() === 0 ? va : vb, them = myTeam() === 0 ? vb : va;
       tableFx('ordago', 'Vaca', (us > them ? 'para nosotros' : 'para ellos') + ' · ' + us + '–' + them); return;
+    }
+    if(ev.kind === 'perete' && seat != null){
+      const to = ev.to_seat != null ? ev.to_seat : (seat + 1) % 4;
+      pereteFx(seat, to);
+      return;
     }
     if(!area) return;
     const a = actionOf(ev);
