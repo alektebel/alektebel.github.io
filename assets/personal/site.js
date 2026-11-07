@@ -66,3 +66,20 @@ for (const form of document.querySelectorAll('.ask-form')) {
     }
   });
 }
+const projectsSection = document.querySelector('.projects-section');
+const projectMotionToggle = document.getElementById('project-motion-toggle');
+if (projectsSection && projectMotionToggle) {
+  const pauseProjects = () => {
+    projectsSection.classList.add('is-paused');
+    projectMotionToggle.setAttribute('aria-pressed', 'true');
+    projectMotionToggle.textContent = 'Resume motion';
+  };
+  projectMotionToggle.addEventListener('click', () => {
+    if (projectsSection.classList.contains('is-paused')) {
+      projectsSection.classList.remove('is-paused');
+      projectMotionToggle.setAttribute('aria-pressed', 'false');
+      projectMotionToggle.textContent = 'Pause motion';
+    } else pauseProjects();
+  });
+  projectsSection.querySelector('.project-window')?.addEventListener('pointerdown', pauseProjects);
+}

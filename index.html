@@ -8,7 +8,7 @@
 <a aria-current="page" href="/index.html" style="padding: 10px 0; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px">me</a>
 <a href="/cv.html" style="padding: 10px 0; text-decoration: none">cv</a>
 <a href="/blog/blog.html" style="padding: 10px 0; text-decoration: none">blog</a>
-<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" style="padding: 10px 0; text-decoration: none" target="_blank"><svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.006 0c2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.221 0 4.61-2.805 5.624-5.476 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.216.694.825.576C20.565 22.092 24 17.596 24 12.297 24 5.67 18.627.297 12 .297z"/></svg>github ↗</a>
+<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" style="padding: 10px 0; text-decoration: none" target="_blank"><svg aria-hidden="true" class="github-icon" focusable="false" viewbox="0 0 24 24"><path d="M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.006 0c2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.221 0 4.61-2.805 5.624-5.476 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.216.694.825.576C20.565 22.092 24 17.596 24 12.297 24 5.67 18.627.297 12 .297z" fill="currentColor"></path></svg>github ↗</a>
 </nav>
 </header>
 <main id="top">
@@ -71,10 +71,10 @@
 </div>
 </section>
 <!-- BUILDING -->
-<section style="max-width: 1240px; margin: 0 auto; padding: 80px clamp(16px, 4vw, 48px) 0">
-<h2 style="margin: 0 0 28px; font-size: 22px; font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #111110">Things I'm building</h2>
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 40px 32px">
-<article style="display: flex; flex-direction: column; gap: 14px">
+<section aria-labelledby="projects-heading" class="projects-section" style="max-width: 1240px; margin: 0 auto; padding: 80px clamp(16px, 4vw, 48px) 0">
+<h2 id="projects-heading" style="margin: 0 0 28px; font-size: 22px; font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #111110">Things I'm building</h2><div class="projects-controls"><span class="projects-hint">Scroll to browse projects</span><button aria-controls="projects-window" aria-pressed="false" class="project-motion-toggle" id="project-motion-toggle" type="button">Pause motion</button></div>
+<div aria-label="Projects" class="project-window" id="projects-window" role="region"><div class="project-track"><div class="project-group">
+<article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
 <a class="barrapp-visual" href="/barrapp/" style="display:flex;align-items:center;justify-content:center;gap:10px;aspect-ratio:4 / 3;background:#e9e5dc;padding:12px;box-sizing:border-box;overflow:hidden"><img alt="Barrapp tracker home screen" loading="lazy" src="/barrapp/img/tracker-home.png" style="display:block;width:auto;max-width:48%;height:100%;object-fit:contain;box-shadow:0 0 0 1px #d5d0c5"/><img alt="Barrapp updated rep results screen" loading="lazy" src="/barrapp/img/tracker-record-results.png" style="display:block;width:auto;max-width:48%;height:100%;object-fit:contain;box-shadow:0 0 0 1px #d5d0c5"/></a>
 <div>
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
@@ -83,8 +83,8 @@
 </div>
 <p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Counts and scores your calisthenics reps from a phone video, and says so when a rep can't be read.</p>
 </div>
-</article>
-<article style="display: flex; flex-direction: column; gap: 14px">
+</article><article class="project-card" style="display:flex;flex-direction:column;gap:14px"><div aria-label="Unibox app icon" class="unibox-visual"><img alt="Unibox app icon" loading="lazy" src="/assets/personal/unibox.png"/><span>unibox</span></div><div><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px"><h3 style="margin:0;font-size:20px;font-weight:600">unibox</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b6862">private build</span></div><p style="margin:6px 0 0;font-size:15px;color:#3c3a35;text-wrap:pretty">One place for messages, saved links and loose thoughts, turned into a ranked digest and a list of things to do.</p></div></article>
+<article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
 <a href="/forja" style="display: block; aspect-ratio: 4 / 3; background: #111110; overflow: hidden">
 <img alt="forja challenges page with a build-your-own-AWS stage in progress" loading="lazy" src="/assets/personal/forja.png" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left"/>
 </a>
@@ -96,7 +96,7 @@
 <p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Rebuild the systems you use every day from scratch, in your editor, graded locally.</p>
 </div>
 </article>
-<article style="display: flex; flex-direction: column; gap: 14px">
+<article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
 <a href="/mus/" style="display:block;aspect-ratio:4 / 3;background:#111110;overflow:hidden"><img alt="Mus against the LLMs live game table" loading="lazy" src="/assets/personal/mus.png" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top center"/></a>
 <div>
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
@@ -106,7 +106,40 @@
 <p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35">Play the Spanish card game against live language models, with covert señas and rivals that can read them.</p>
 </div>
 </article>
+</div><div aria-hidden="true" class="project-group project-group-copy" inert="">
+<article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
+<a class="barrapp-visual" href="/barrapp/" style="display:flex;align-items:center;justify-content:center;gap:10px;aspect-ratio:4 / 3;background:#e9e5dc;padding:12px;box-sizing:border-box;overflow:hidden"><img alt="Barrapp tracker home screen" loading="lazy" src="/barrapp/img/tracker-home.png" style="display:block;width:auto;max-width:48%;height:100%;object-fit:contain;box-shadow:0 0 0 1px #d5d0c5"/><img alt="Barrapp updated rep results screen" loading="lazy" src="/barrapp/img/tracker-record-results.png" style="display:block;width:auto;max-width:48%;height:100%;object-fit:contain;box-shadow:0 0 0 1px #d5d0c5"/></a>
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/barrapp/" style="text-decoration: none">barrapp</a></h3>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">closed testing</span>
 </div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Counts and scores your calisthenics reps from a phone video, and says so when a rep can't be read.</p>
+</div>
+</article><article class="project-card" style="display:flex;flex-direction:column;gap:14px"><div aria-label="Unibox app icon" class="unibox-visual"><img alt="Unibox app icon" loading="lazy" src="/assets/personal/unibox.png"/><span>unibox</span></div><div><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px"><h3 style="margin:0;font-size:20px;font-weight:600">unibox</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b6862">private build</span></div><p style="margin:6px 0 0;font-size:15px;color:#3c3a35;text-wrap:pretty">One place for messages, saved links and loose thoughts, turned into a ranked digest and a list of things to do.</p></div></article>
+<article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
+<a href="/forja" style="display: block; aspect-ratio: 4 / 3; background: #111110; overflow: hidden">
+<img alt="forja challenges page with a build-your-own-AWS stage in progress" loading="lazy" src="/assets/personal/forja.png" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left"/>
+</a>
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/forja" style="text-decoration: none">forja</a></h3>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">73 challenges · 130 checks</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35; text-wrap: pretty">Rebuild the systems you use every day from scratch, in your editor, graded locally.</p>
+</div>
+</article>
+<article class="project-card" style="display: flex; flex-direction: column; gap: 14px">
+<a href="/mus/" style="display:block;aspect-ratio:4 / 3;background:#111110;overflow:hidden"><img alt="Mus against the LLMs live game table" loading="lazy" src="/assets/personal/mus.png" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top center"/></a>
+<div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600"><a href="/mus/">mus against the LLMs</a></h3>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862">live</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #3c3a35">Play the Spanish card game against live language models, with covert señas and rivals that can read them.</p>
+</div>
+</article>
+</div></div></div>
 </section>
 <!-- WRITING -->
 <section style="max-width: 1240px; margin: 0 auto; padding: 88px clamp(16px, 4vw, 48px) 0">
@@ -173,7 +206,7 @@
 <div style="max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 48px) 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; font-family: 'IBM Plex Mono', monospace; font-size: 13px">
 <nav aria-label="Elsewhere" style="display: flex; flex-wrap: wrap; gap: 4px 24px">
 <a href="mailto:dratencia@gmail.com" style="padding: 8px 0">email</a>
-<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" style="padding: 8px 0" target="_blank"><svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.006 0c2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.221 0 4.61-2.805 5.624-5.476 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.216.694.825.576C20.565 22.092 24 17.596 24 12.297 24 5.67 18.627.297 12 .297z"/></svg>github</a>
+<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" style="padding: 8px 0" target="_blank"><svg aria-hidden="true" class="github-icon" focusable="false" viewbox="0 0 24 24"><path d="M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.043-1.416-4.043-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.006 0c2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.221 0 4.61-2.805 5.624-5.476 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.216.694.825.576C20.565 22.092 24 17.596 24 12.297 24 5.67 18.627.297 12 .297z" fill="currentColor"></path></svg>github</a>
 <a href="https://linkedin.com/in/diego-rodríguez-atencia-45a249190" rel="noopener noreferrer" style="padding: 8px 0" target="_blank">linkedin</a>
 <a href="https://twitter.com/didacum333" rel="noopener noreferrer" style="padding: 8px 0" target="_blank">x</a>
 <a href="/skill-tree.html" style="padding: 8px 0">skill tree</a>
