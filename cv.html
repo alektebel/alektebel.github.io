@@ -43,12 +43,13 @@
 <li>Signed off UAT on the SAS → Oracle migration of that database: the new implementation (~20k lines of business logic) was closed to inspection, so I re-derived it from the requirements and the legacy code and reconciled outputs against it.</li>
 <li>Built a FINREP/COREP reconciliation tool automating checks against stress-test report templates, directing two junior analysts. Used in the last three stress-test cycles.</li>
 <li>Replicated an ECB methodology paper on climate-risk PD stress testing into a working application, settling specification questions directly with NGFS.</li>
-<li>Leading a refactor of the LGD database for a twofold throughput gain on the bottleneck steps, exploiting symmetries the data guarantees by construction.</li>
+<li>Leading a data-quality tool that derives controls from field dictionaries, writes them in plain language and compiles them to SQL.</li>
+<li>Designed the validation framework for the LLM that writes those controls: a clean PD/LGD base with 21 errors seeded from EBA/GL/2017/16, an executable oracle per error so the ground truth is itself checked, and scoring that attributes each failure to schema linking, retrieval or control generation while penalising false positives.</li>
+<li>Refactoring the LGD database for a twofold throughput gain on the bottleneck steps, exploiting symmetries the data guarantees by construction.</li>
 <li>Built the client relationship directly; delivery quality turned into 8+ consecutive contract renewals under hard regulatory deadlines.</li>
 </ul>
 <div style="margin: 22px 0 0; padding: 18px 20px; background: #eae6dc; border-left: 3px solid #111110">
-<p style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6862; text-transform: uppercase; letter-spacing: 0.06em">the part that generalises</p>
-<p style="margin: 10px 0 0; color: #3c3a35; font-size: 15px; text-wrap: pretty">Our LLM system at the bank was generating the right content, but the client required it in their own approved Word templates, and no existing tool could fill them. I went down to the raw XML and built a library that clones, fills and duplicates table fragments from the approved template on the fly, with heuristic fallbacks for tables it had never seen. It's now in production across three languages, used in every audit project for the entity.</p>
+<p style="margin: 0; color: #3c3a35; font-size: 15px; text-wrap: pretty">Our LLM system at the bank was generating the right content, but the client required it in their own approved Word templates, and no existing tool could fill them. I went down to the raw XML and built a library that clones, fills and duplicates table fragments from the approved template on the fly, with heuristic fallbacks for tables it had never seen. It's now in production across three languages, used in every audit project for the entity.</p>
 <p style="margin: 10px 0 0; color: #111110; font-size: 15px; font-weight: 500; text-wrap: pretty">The bottleneck for AI in regulated industries often isn't the model or the content: it's getting the output into the client's final deliverable.</p>
 </div>
 </article>
