@@ -27,6 +27,9 @@
 }
 
 * { box-sizing: border-box; }
+/* Author display rules (.view, .also, #work-detail, …) outrank the UA
+   `[hidden] { display: none }`, which would otherwise stack every view. */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -110,6 +113,7 @@ code, .mono {
 }
 .cta:hover { opacity: .9; }
 .cta-green { background: var(--green); color: var(--green-ink); }
+.hero-card .cta { padding: 14px 26px; font-size: 15px; }
 .cta-light { background: var(--bright); color: #191B24; }
 .primary-btn, .copy {
   background: var(--bright); color: #191B24; border: 0;
@@ -383,7 +387,8 @@ code, .mono {
   text-transform: uppercase; white-space: nowrap;
 }
 .tree-core {
-  position: absolute; width: 72px; height: 72px; border-radius: 50%;
+  position: absolute; left: 464px; top: 464px;
+  width: 72px; height: 72px; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--sunk); border: 2px solid rgba(232, 234, 235, .25);
   box-shadow: 0 0 0 6px rgba(232, 234, 235, .04);

@@ -18,16 +18,14 @@ const STATE_LABEL = {
 };
 /* status → colour, mirroring the v2 palette */
 const C = { complete: "#54d1a4", doing: "#e0b44e", ready: "#9AA3AB", blocked: "#6B747C" };
-const C_INK = { complete: "#54d1a4", doing: "#e0b44e", ready: "#9AA3AB", blocked: "#6B747C" };
 
-/* Branch layout for the tech tree: phase code → (angle, colour). */
-const BR = {
-  A: -90, I: -18, G: 54, M: 126, J: 198,
-};
+/* Branch layout for the tech tree, straight from the design comp:
+   category → angle (deg) and colour. */
+const BR = { AI: -90, Distributed: -18, Networking: 54, Systems: 126, Finance: 198 };
 const BC = {
-  A: "#a58cf0", I: "#54d1a4", G: "#6aa5f0", M: "#e0b44e", J: "#f0995a",
+  AI: "#a58cf0", Distributed: "#54d1a4", Networking: "#f0995a",
+  Systems: "#6aa5f0", Finance: "#e0b44e",
 };
-const OTHER_BRANCH = { angle: 234, color: "#6B747C", label: "More" };
 const RR = [0, 140, 265, 390], CX = 500, CIRC = 169.6;
 
 let STATE = null;
@@ -440,139 +438,166 @@ function nodeLabel(item) {
   return st;
 }
 
-/* Phase code → ring + angle offset, mirroring the v2 tree geometry.
-   First item of a phase sits at the branch angle; children fan out ±13°,
-   grandchildren ±27°/±9°. */
-function nodePositions() {
-  const byPhase = {};
-  for (const phase of STATE.phases) {
-    const arr = phase.items.filter((i) => i.kind === "ready");
-    if (arr.length) byPhase[phase.code] = arr;
-  }
-  const pos = {};
-  for (const [code, items] of Object.entries(byPhase)) {
-    const known = code in BR;
-    const base = known ? BR[code] : OTHER_BRANCH.angle;
-    items.forEach((item, idx) => {
-      /* fan out within the branch, ±13° steps, wrapping around 0 */
-      const offsets = [0, -13, 13, -27, 27, -9, 9, -18, 18, -22, 22, -31, 31, -4, 4];
-      const ang = (base + (offsets[idx % offsets.length] || 0)) * Math.PI / 180;
-      const ring = 1 + Math.floor(idx / 7) === 0 ? 1 : Math.min(3, 1 + Math.floor(idx / 8));
-      const r = RR[Math.min(3, ring)];
-      pos[item.id] = {
-        x: CX + r * Math.cos(ang),
-        y: CX + r * Math.sin(ang),
-        color: known ? BC[code] : OTHER_BRANCH.color,
-        ring: Math.min(3, ring),
-        branch: known ? code : "OTHER",
-      };
+/* The tech tree is curated exactly like the design comp: five branches,
+   30 flagship nodes, fixed angles and rings. [slug, branch, parent, angle, ring,
+   secondaryParents]. Courses absent from this repo are skipped. */
+const TREE = [
+  ["autograd-from-scratch", "AI", null, 0, 1],
+  ["llm-from-scratch", "AI", "autograd-from-scratch", -13, 2],
+  ["vector-index-from-scratch", "AI", "autograd-from-scratch", 13, 2],
+  ["context-caching", "AI", "llm-from-scratch", -27, 3],
+  ["evals-from-scratch", "AI", "llm-from-scratch", -9, 3],
+  ["rag-from-scratch", "AI", "vector-index-from-scratch", 9, 3, ["llm-from-scratch"]],
+  ["agent-harness-from-scratch", "AI", "vector-index-from-scratch", 27, 3, ["evals-from-scratch"]],
+
+  ["infrastructure-from-scratch", "Distributed", null, 0, 1],
+  ["aws-from-scratch", "Distributed", "infrastructure-from-scratch", -13, 2],
+  ["queue-and-workers-from-scratch", "Distributed", "infrastructure-from-scratch", 13, 2],
+  ["agents-from-scratch", "Distributed", "aws-from-scratch", -27, 3, ["evals-from-scratch"]],
+  ["dynamo-paper", "Distributed", "aws-from-scratch", -9, 3],
+  ["durable-execution-from-scratch", "Distributed", "queue-and-workers-from-scratch", 9, 3],
+  ["consensus-from-scratch", "Distributed", "queue-and-workers-from-scratch", 27, 3],
+
+  ["tcp-ip-from-scratch", "Networking", null, 0, 1],
+  ["concurrent-servers-from-scratch", "Networking", "tcp-ip-from-scratch", -13, 2],
+  ["websocket-from-scratch", "Networking", "tcp-ip-from-scratch", 13, 2],
+  ["blockchain-from-scratch", "Networking", "concurrent-servers-from-scratch", -18, 3],
+  ["mqtt-broker-from-scratch", "Networking", "websocket-from-scratch", 14, 3],
+
+  ["cpu-from-scratch", "Systems", null, 0, 1],
+  ["os-from-scratch", "Systems", "cpu-from-scratch", -13, 2],
+  ["c-compiler", "Systems", "cpu-from-scratch", 13, 2],
+  ["shell-from-scratch", "Systems", "os-from-scratch", -27, 3],
+  ["cuda-from-scratch", "Systems", "os-from-scratch", -9, 3],
+  ["git-from-scratch", "Systems", "c-compiler", 9, 3],
+  ["query-engine-from-scratch", "Systems", "c-compiler", 27, 3],
+
+  ["credit-origination-from-scratch", "Finance", null, 0, 1],
+  ["irb-capital-from-scratch", "Finance", "credit-origination-from-scratch", -13, 2],
+  ["lbo-model-from-scratch", "Finance", "credit-origination-from-scratch", 13, 2],
+  ["distressed-debt-from-scratch", "Finance", "lbo-model-from-scratch", 13, 3],
+];
+
+/** Resolve the tree against live state: one entry per node present here. */
+function treeNodes() {
+  const out = [];
+  for (const [slug, cat, parent, angle, ring, extra] of TREE) {
+    const item = findNodeByCourse(slug);
+    if (!item) continue;
+    const deg = (BR[cat] + angle) * Math.PI / 180;
+    const r = RR[ring];
+    out.push({
+      item, slug, cat, ring,
+      parentSlug: parent,
+      extraSlugs: extra || [],
+      x: CX + r * Math.cos(deg),
+      y: CX + r * Math.sin(deg),
     });
   }
-  return pos;
+  const bySlug = new Map(out.map((n) => [n.slug, n]));
+  for (const n of out) {
+    n.parent = n.parentSlug ? bySlug.get(n.parentSlug) : null;
+    n.extra = n.extraSlugs.map((s) => bySlug.get(s)).filter(Boolean);
+  }
+  return out;
 }
 
 function renderMap() {
-  const pos = nodePositions();
+  const nodes = treeNodes();
+  const byId = new Map(nodes.map((n) => [n.item.id, n]));
 
-  /* branch labels */
+  /* branch labels, placed on the outer edge at the design's angles */
   const branches = $("#tree-branches");
   branches.innerHTML = "";
-  const labels = new Map();
-  for (const [code, items] of Object.entries(posByBranch(pos))) {
-    const deg = code in BR ? BR[code] : OTHER_BRANCH.angle;
-    const color = code in BR ? BC[code] : OTHER_BRANCH.color;
-    const label = code in BR
-      ? (STATE.phases.find((p) => p.code === code)?.title || code)
-      : OTHER_BRANCH.label;
-    if (!labels.has(code)) {
-      const span = document.createElement("span");
-      span.className = "branch-label";
-      span.style.left = `${CX + 455 * Math.cos(deg * Math.PI / 180)}px`;
-      span.style.top = `${CX + 455 * Math.sin(deg * Math.PI / 180)}px`;
-      span.style.color = color;
-      span.textContent = label;
-      branches.appendChild(span);
-      labels.set(code, span);
-    }
+  for (const cat of Object.keys(BR)) {
+    const deg = BR[cat] * Math.PI / 180;
+    const span = document.createElement("span");
+    span.className = "branch-label";
+    span.style.left = `${CX + 455 * Math.cos(deg)}px`;
+    span.style.top = `${CX + 455 * Math.sin(deg)}px`;
+    span.style.color = BC[cat];
+    span.textContent = cat;
+    branches.appendChild(span);
   }
 
-  /* edges: phase → item and prereq chains */
+  /* edges: core spoke for roots, line for the primary parent, dashed arc for
+     the secondary ones — matching the comp */
   const edges = $("#tree-edges");
   edges.innerHTML = "";
-  for (const phase of STATE.phases) {
-    for (const item of phase.items) {
-      const me = pos[item.id];
-      if (!me) continue;
-      if (item.prereq?.length) {
-        for (const reqId of item.prereq) {
-          const from = pos[reqId] || pos[findItem(reqId)?.id];
-          if (!from) continue;
-          const ok = itemState(findItem(reqId)) === "complete";
-          const hot = SELECTED?.kind === "node" && (SELECTED.id === item.id || SELECTED.id === reqId);
-          addEdge(edges, from, me, ok ? me.color : hot ? "rgba(232,234,235,.5)" : "rgba(255,255,255,.13)",
-            hot ? 3 : 1.5);
-        }
-      }
+  for (const node of nodes) {
+    const hot = SELECTED?.kind === "node" && SELECTED.id === node.item.id;
+    if (!node.parent) {
+      const deg = (BR[node.cat]) * Math.PI / 180;
+      addEdge(edges, { x: CX + 38 * Math.cos(deg), y: CX + 38 * Math.sin(deg) },
+        node, BC[node.cat], hot ? 3 : 2, "");
+      continue;
+    }
+    const parentHot = SELECTED?.kind === "node" && SELECTED.id === node.parent.item.id;
+    const done = itemState(node.parent.item) === "complete";
+    addEdge(edges, node.parent, node,
+      done ? BC[node.cat] : hot || parentHot ? "rgba(232,234,235,.5)" : "rgba(255,255,255,.13)",
+      hot || parentHot ? 3 : 2, "");
+    for (const sec of node.extra) {
+      addEdge(edges, sec, node, done ? BC[node.cat] : "rgba(255,255,255,.13)",
+        hot ? 3 : 1.25, "3 5", true);
     }
   }
 
   /* nodes */
   const nodesRoot = $("#tree-nodes");
   nodesRoot.innerHTML = "";
-  for (const item of allItems()) {
-    const p = pos[item.id];
-    if (!p) continue;
+  for (const node of nodes) {
+    const item = node.item;
     const st = nodeStatus(item);
     const checks = item.checks || {};
-    const node = document.createElement("button");
-    node.type = "button";
-    node.className = "tree-node";
-    if (SELECTED?.kind === "node" && SELECTED.id === item.id) node.classList.add("is-selected");
-    node.style.left = `${p.x - 52}px`;
-    node.style.top = `${p.y - 26}px`;
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "tree-node";
+    if (SELECTED?.kind === "node" && SELECTED.id === item.id) el.classList.add("is-selected");
+    el.style.left = `${node.x - 52}px`;
+    el.style.top = `${node.y - 26}px`;
     const frac = checks.total ? (checks.passed / checks.total) : 0;
     const op = st === "blocked" ? .35 : 1;
-    node.innerHTML = `
-      <span class="tn-ring" style="background:${st === "done" ? "#162027" : "#10161a"};box-shadow:${st === "ready" ? `0 0 0 1px ${p.color}55` : "none"}">
+    el.innerHTML = `
+      <span class="tn-ring" style="background:${st === "done" ? "#162027" : "#10161a"};box-shadow:${st === "ready" ? `0 0 0 1px ${BC[node.cat]}55` : "none"}">
         <svg width="52" height="52" viewBox="0 0 60 60">
           <circle cx="30" cy="30" r="27" stroke="${st === "blocked" ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.12)"}" stroke-width="3" fill="none"></circle>
-          <circle cx="30" cy="30" r="27" stroke="${frac ? p.color : "transparent"}" stroke-width="3" fill="none"
+          <circle cx="30" cy="30" r="27" stroke="${frac ? BC[node.cat] : "transparent"}" stroke-width="3" fill="none"
             stroke-dasharray="${(frac * CIRC).toFixed(1)} ${CIRC}" stroke-linecap="round"></circle>
         </svg>
         <img src="${asset(item.logo_url)}" width="32" height="32" alt="" style="opacity:${op};filter:${st === "blocked" ? "grayscale(1)" : "none"}">
       </span>
       <span class="tn-title">${item.title}</span>
       <span class="tn-label" style="color:${stateColor(itemState(item))}">${nodeLabel(item)}</span>`;
-    node.onclick = () => selectNode(item.id, "map");
-    nodesRoot.appendChild(node);
+    el.onclick = () => selectNode(item.id, "map");
+    nodesRoot.appendChild(el);
   }
 
-  renderMapSide(pos);
+  renderMapSide(nodes, byId);
 }
 
-function posByBranch(pos) {
-  const out = {};
-  for (const [id, p] of Object.entries(pos)) (out[p.branch] ||= []).push(p);
-  return out;
-}
-
-function addEdge(root, a, b, color, w) {
+function addEdge(root, a, b, color, w, dash = "", curved = false) {
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", `M${a.x} ${a.y} L${b.x} ${b.y}`);
+  const d = curved
+    ? `M${a.x} ${a.y} Q${CX + (a.x + b.x - 2 * CX) * .35} ${CX + (a.y + b.y - 2 * CX) * .35} ${b.x} ${b.y}`
+    : `M${a.x} ${a.y} L${b.x} ${b.y}`;
+  path.setAttribute("d", d);
   path.setAttribute("stroke", color);
   path.setAttribute("stroke-width", w);
+  if (dash) path.setAttribute("stroke-dasharray", dash);
+  path.setAttribute("stroke-linecap", "round");
   path.setAttribute("fill", "none");
   root.appendChild(path);
 }
 
-function renderMapSide(pos) {
+function renderMapSide(nodes, byId) {
   const side = $("#map-side");
-  const item = SELECTED?.kind === "node" ? findItem(SELECTED.id) : null;
-  if (!item) {
+  const sel = SELECTED?.kind === "node" ? byId.get(SELECTED.id) : null;
+  if (!sel) {
     side.innerHTML = `<div class="map-empty-hint">Select a node in the tree to see what it requires and what it unlocks.</div>`;
     return;
   }
-  const p = pos[item.id];
+  const item = sel.item;
   const st = nodeStatus(item);
   side.innerHTML = "";
   const head = document.createElement("div");
@@ -581,7 +606,7 @@ function renderMapSide(pos) {
     <img src="${asset(item.logo_url)}" width="52" height="52" alt="">
     <div class="map-side-titlerow">
       <h2>${item.title}</h2>
-      <span class="mono" style="color:${stateColor(itemState(item))}">${nodeLabel(item)}</span>
+      <span class="mono" style="color:${BC[sel.cat]}">${nodeLabel(item)}</span>
     </div>`;
   side.appendChild(head);
 
@@ -589,14 +614,15 @@ function renderMapSide(pos) {
   blurb.textContent = item.why || "";
   side.appendChild(blurb);
 
-  const reqList = mkRefList("Requires",
-    (item.prereq || []).map((id) => ({ id, item: findItem(id) })).filter((r) => r.item),
-    (r) => `${r.id} ${r.item.title}`);
-  side.appendChild(reqList.box);
+  const reqs = [sel.parent, ...sel.extra].filter(Boolean);
+  side.appendChild(mkRefList("Requires",
+    reqs.map((n) => ({ id: n.item.id, item: n.item })),
+    (r) => r.item.title).box);
 
-  const unlocks = allItems().filter((i) => (i.prereq || []).includes(item.id));
-  side.appendChild(mkRefList("Unlocks", unlocks.map((i) => ({ id: i.id, item: i })),
-    (r) => `${r.id} ${r.item.title}`).box);
+  const unlocks = nodes.filter((n) => n.parent === sel || n.extra.includes(sel));
+  side.appendChild(mkRefList("Unlocks",
+    unlocks.map((n) => ({ id: n.item.id, item: n.item })),
+    (r) => r.item.title).box);
 
   const cta = document.createElement("button");
   cta.type = "button";
