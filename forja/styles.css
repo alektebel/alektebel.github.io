@@ -160,7 +160,7 @@ code, .mono {
 .gh-signout { color: var(--red); }
 .gh-signout:hover { background: rgba(208, 90, 90, .1); }
 
-/* device-flow dialog */
+/* fork dialog */
 .auth-modal {
   position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
   padding: 20px; background: rgba(0, 0, 0, .62);
@@ -172,6 +172,7 @@ code, .mono {
   box-shadow: var(--shadow); padding: 20px;
   display: flex; flex-direction: column; gap: 14px;
 }
+.auth-dialog-wide { max-width: 560px; }
 .auth-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .auth-head h2 { font-size: 20px; line-height: 1.2; }
 .auth-x {
@@ -182,22 +183,39 @@ code, .mono {
 .auth-lead { font-size: 13px; color: var(--muted); }
 .auth-lead a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .auth-lead a:hover { color: var(--bright); }
+.auth-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
 .auth-code-row { display: flex; align-items: center; gap: 8px; }
-.auth-code {
-  flex: 1; text-align: center; font-size: 22px; letter-spacing: .14em;
-  padding: 10px; border: 1px solid var(--line); border-radius: 8px;
-  background: var(--ground); color: var(--ink);
+.auth-input {
+  flex: 1; min-width: 0; background: var(--ground); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  font-size: 13px;
 }
-.auth-copy, .auth-cancel {
+.auth-input:focus { outline: none; border-color: var(--green); }
+.auth-check, .auth-cancel {
   background: transparent; color: var(--ink); border: 1px solid var(--line);
   border-radius: 8px; padding: 8px 12px; font: inherit; font-size: 13px;
   cursor: pointer; white-space: nowrap;
 }
-.auth-copy:hover, .auth-cancel:hover { background: var(--sunk); }
+.auth-check { background: var(--bright); color: #191B24; border-color: var(--bright); font-weight: 600; }
+.auth-check:hover { opacity: .92; }
+.auth-check:disabled { opacity: .55; cursor: default; }
+.auth-cancel:hover { background: var(--sunk); }
 .auth-status { font-size: 11px; color: var(--faint); min-height: 1.5em; }
 .auth-status[data-kind="error"] { color: var(--red-soft); }
 .auth-status[data-kind="busy"], .auth-status[data-kind="waiting"] { color: var(--amber); }
-.auth-foot { display: flex; justify-content: flex-end; }
+.auth-foot { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* fork stats */
+.gh-stats { display: flex; flex-direction: column; gap: 10px; max-height: min(60vh, 520px); overflow: auto; }
+.gh-stat { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.gh-stat-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.gh-stat-top a { color: var(--ink); font-size: 13px; font-weight: 600; text-decoration: none; }
+.gh-stat-top a:hover { color: var(--green); }
+.gh-stat-top .mono { font-size: 11px; color: var(--faint); white-space: nowrap; }
+.gh-stat-bar { height: 4px; border-radius: 999px; background: var(--sunk); overflow: hidden; }
+.gh-stat-bar span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
+.gh-stat-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--faint); }
+.gh-stat-last { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--muted); }
 
 /* ---------------------------------------------------------------- shared */
 .cta {
@@ -545,6 +563,18 @@ code, .mono {
 .tree-node .tn-label { font-family: var(--mono); font-size: 12px; }
 .tree-node.is-selected .tn-ring {
   box-shadow: 0 0 0 3px var(--ground), 0 0 0 5px var(--bright);
+}
+
+/* startable courses: bold white ring + title so the eye lands on what can
+   begin now, on the 2D tree and everywhere the node ring is reused */
+.tree-node .tn-ring.is-startable {
+  box-shadow: 0 0 0 2px var(--bright), 0 0 14px rgba(255, 255, 255, .28);
+}
+.tree-node .tn-ring.is-startable img { opacity: 1; filter: none; }
+.tree-node:has(.is-startable) .tn-title {
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 255, 255, .35);
 }
 
 .map-side {

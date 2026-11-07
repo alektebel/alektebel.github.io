@@ -665,7 +665,7 @@ function renderMap() {
     const frac = checks.total ? (checks.passed / checks.total) : 0;
     const op = st === "blocked" ? .35 : 1;
     el.innerHTML = `
-      <span class="tn-ring" style="background:${st === "done" ? "#162027" : "#10161a"};box-shadow:${st === "ready" ? `0 0 0 1px ${BC[node.cat]}55` : "none"}">
+      <span class="tn-ring ${st === "ready" ? "is-startable" : ""}" style="background:${st === "done" ? "#162027" : "#10161a"}">
         <svg width="52" height="52" viewBox="0 0 60 60">
           <circle cx="30" cy="30" r="27" stroke="${st === "blocked" ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.12)"}" stroke-width="3" fill="none"></circle>
           <circle cx="30" cy="30" r="27" stroke="${frac ? BC[node.cat] : "transparent"}" stroke-width="3" fill="none"
@@ -793,30 +793,37 @@ document.addEventListener("click", async (event) => {
 });
 
 /* ---------------------------------------------------------------- github */
-/* Device flow keeps the static page static: the proxy asks GitHub for a short
-   code, the visitor approves it on github.com, and the page polls the proxy
-   for a token. GitHub's device endpoints answer without CORS, so the browser
-   cannot call them directly; the proxy (codecraft/github_proxy/) is the only
-   server-side piece and holds the OAuth App client ID. No client secret. */
-const GH_PROXY = (($('meta[name="forja-github-proxy"]')?.content || "").trim()).replace(/\/+$/, "");
+/* "Sign in" here means connecting a public fork, not OAuth. The page reads
+   only public data — the fork, its commits, and the diff against upstream.
+   No token, no client secret, no server. Progress is what those commits touch. */
 const GH_KEY = "forja.github";
-let GH = null;
-let GH_DEVICE = null;      // in-flight device authorization
-let GH_POLL_TIMER = null;
+const GH_UPSTREAM = { owner: "alektebel", repo: "forja", branch: "main" };
+const GH_API = "https://api.github.com";
+const GH_TTL = 120000;             // reuse a fork read for two minutes
+let GH = null;                     // {login, name, repo, branch, progress}
+let GH_BUSY = false;
 
 function ghLoad() {
-  try { GH = JSON.parse(localStorage.getItem(GH_KEY) || "null"); } catch { GH = null; }
-  if (!GH || !GH.token || !GH.login) GH = null;
+  try {
+    const raw = JSON.parse(localStorage.getItem(GH_KEY) || "null");
+    GH = raw && raw.login && !raw.token ? raw : null;   // old device-flow rows have no login
+  } catch { GH = null; }
 }
-function ghSave(user) {
-  GH = user;
-  try { localStorage.setItem(GH_KEY, JSON.stringify(user)); } catch { /* private mode */ }
+function ghStore() {
+  if (!GH) return;
+  const { progress_loading, ...rest } = GH;
+  try { localStorage.setItem(GH_KEY, JSON.stringify(rest)); } catch { /* private mode */ }
+}
+function ghSave(account) {
+  GH = account;
+  ghStore();
   renderGh();
 }
 function ghClear() {
   GH = null;
   try { localStorage.removeItem(GH_KEY); } catch { /* private mode */ }
   renderGh();
+  renderGhStats();
 }
 function ghInitials(user) {
   const name = (user.name || user.login || "").trim();
@@ -832,7 +839,7 @@ function renderGh() {
   $("#gh-avatar").textContent = ghInitials(GH);
   $("#gh-login").textContent = GH.login;
   $("#gh-name").textContent = GH.name || GH.login;
-  $("#gh-handle").textContent = GH.login;
+  $("#gh-handle").textContent = `@${GH.login}`;
   $("#gh-user").setAttribute("aria-label", `GitHub account: ${GH.login}`);
 }
 function closeGhMenu() {
@@ -851,140 +858,258 @@ function ghStatus(msg, kind = "") {
   el.textContent = msg;
   if (kind) el.dataset.kind = kind; else delete el.dataset.kind;
 }
-function ghStopPolling() {
-  if (GH_POLL_TIMER) { clearTimeout(GH_POLL_TIMER); GH_POLL_TIMER = null; }
-  GH_DEVICE = null;
+function ghEsc(value) {
+  return String(value).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
 }
-function ghClose() {
-  ghStopPolling();
-  $("#gh-modal").hidden = true;
-  ghStatus("");
-}
-function ghShowPending() {
-  $("#gh-pending").hidden = false;
-  $("#gh-setup").hidden = true;
-  $("#gh-title").textContent = "Sign in with GitHub";
-  $("#gh-code").textContent = "····-····";
-  $("#gh-copy").textContent = "Copy";
-  $("#gh-modal").hidden = false;
-  $("#gh-x").focus();
-}
-function ghShowSetup() {
-  $("#gh-pending").hidden = true;
-  $("#gh-setup").hidden = false;
-  $("#gh-title").textContent = "GitHub sign-in";
-  $("#gh-modal").hidden = false;
-  $("#gh-cancel").focus();
-}
-function ghSchedule(seconds) {
-  GH_POLL_TIMER = setTimeout(() => { GH_POLL_TIMER = null; ghPoll(); }, seconds * 1000);
-}
-async function ghSignIn() {
-  closeGhMenu();
-  if (!GH_PROXY) { ghShowSetup(); return; }
-  ghShowPending();
-  ghStatus("Requesting a device code…", "busy");
-  try {
-    const res = await fetch(`${GH_PROXY}/device`, {
-      method: "POST",
-      headers: { "Accept": "application/json", "Content-Type": "application/json" },
-      body: "{}",
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.device_code) {
-      if (data.error === "github_proxy_not_configured") {
-        throw new Error("The sign-in proxy has no GitHub client ID. Check its GITHUB_CLIENT_ID setting.");
-      }
-      if (res.status === 404) throw new Error("GitHub rejected the OAuth App. Check the client ID and that device flow is enabled.");
-      throw new Error(data.error_description || data.error || `GitHub returned ${res.status}.`);
-    }
-    GH_DEVICE = {
-      device_code: data.device_code,
-      interval: Math.max(5, Number(data.interval) || 5),
-      expires_at: Date.now() + (Number(data.expires_in) || 900) * 1000,
-    };
-    $("#gh-code").textContent = data.user_code;
-    $("#gh-open").href = data.verification_uri || "https://github.com/login/device";
-    ghStatus("Waiting for you to authorize this browser…", "waiting");
-    ghPoll();
-  } catch (err) {
-    ghStatus(err.message || "Could not start GitHub sign-in.", "error");
+async function ghApi(path) {
+  const res = await fetch(`${GH_API}${path}`, {
+    headers: { "Accept": "application/vnd.github+json" },
+  });
+  if (res.status === 403 || res.status === 429) {
+    const reset = Number(res.headers.get("x-ratelimit-reset") || 0);
+    const mins = reset ? Math.max(1, Math.ceil((reset * 1000 - Date.now()) / 60000)) : 0;
+    const err = new Error(mins
+      ? `GitHub API rate limit. Try again in about ${mins} min.`
+      : "GitHub API rate limit. Try again in a few minutes.");
+    err.code = "rate_limit";
+    throw err;
   }
+  if (res.status === 404) {
+    const err = new Error("GitHub returned 404.");
+    err.code = "not_found";
+    throw err;
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const err = new Error(data.message || `GitHub returned ${res.status}.`);
+    err.code = res.status;
+    throw err;
+  }
+  return res.json();
 }
-async function ghPoll() {
-  const device = GH_DEVICE;
-  if (!device) return;
-  if (Date.now() > device.expires_at) {
-    ghStatus("The code expired. Close this and start again.", "error");
-    ghStopPolling();
+async function ghFindFork(login) {
+  const upstream = `${GH_UPSTREAM.owner}/${GH_UPSTREAM.repo}`;
+  try {
+    const repo = await ghApi(`/repos/${encodeURIComponent(login)}/${GH_UPSTREAM.repo}`);
+    if (repo.fork && repo.parent && repo.parent.full_name === upstream) return repo;
+  } catch (err) {
+    if (err.code !== "not_found") throw err;
+  }
+  // The fork may have been renamed; GitHub keeps parent.full_name.
+  const repos = await ghApi(`/users/${encodeURIComponent(login)}/repos?per_page=100&sort=updated`);
+  const found = repos.find((r) => r.fork && r.parent && r.parent.full_name === upstream);
+  if (!found) {
+    const err = new Error("no_fork");
+    err.code = "no_fork";
+    throw err;
+  }
+  return found;
+}
+async function ghConnect() {
+  if (GH_BUSY) return;
+  const login = $("#gh-username").value.trim().replace(/^@/, "");
+  if (!/^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(login)) {
+    ghStatus("Enter a GitHub username, not a URL.", "error");
+    $("#gh-username").focus();
     return;
   }
+  GH_BUSY = true;
+  $("#gh-check").disabled = true;
+  ghStatus("Looking for your fork…", "busy");
   try {
-    const res = await fetch(`${GH_PROXY}/token`, {
-      method: "POST",
-      headers: { "Accept": "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ device_code: device.device_code }),
+    const [user, fork] = await Promise.all([
+      ghApi(`/users/${encodeURIComponent(login)}`),
+      ghFindFork(login),
+    ]);
+    ghSave({
+      login: user.login,
+      name: user.name || "",
+      avatar_url: user.avatar_url || "",
+      repo: fork.name,
+      branch: fork.default_branch || "main",
+      fork: fork.full_name,
     });
-    const data = await res.json().catch(() => ({}));
-    if (GH_DEVICE !== device) return; // cancelled while the request was in flight
-    if (data.access_token) { await ghFinish(data.access_token); return; }
-    const err = data.error || "";
-    if (err === "authorization_pending") { ghSchedule(device.interval); return; }
-    if (err === "slow_down") { device.interval += 5; ghSchedule(device.interval); return; }
-    if (err === "expired_token") {
-      ghStatus("The code expired. Close this and start again.", "error");
-      ghStopPolling();
-      return;
-    }
-    if (err === "access_denied") {
-      ghStatus("Authorization was cancelled on GitHub.", "error");
-      ghStopPolling();
-      return;
-    }
-    throw new Error(data.error_description || err || `GitHub returned ${res.status}.`);
+    $("#gh-modal").hidden = true;
+    ghStatus("");
+    ghRefreshProgress(true);
   } catch (err) {
-    ghStatus(err.message || "GitHub did not answer. Try again.", "error");
+    if (err.code === "no_fork") {
+      ghStatus(`@${login} has no fork of ${GH_UPSTREAM.owner}/${GH_UPSTREAM.repo}. Fork it below, then connect.`, "error");
+      $("#gh-fork").focus();
+    } else if (err.code === "not_found") {
+      ghStatus(`GitHub user @${login} was not found.`, "error");
+    } else {
+      ghStatus(err.message || "Could not read GitHub.", "error");
+    }
+  } finally {
+    GH_BUSY = false;
+    $("#gh-check").disabled = false;
   }
 }
-async function ghFinish(token) {
-  ghStatus("Signed in. Reading your profile…", "busy");
-  const res = await fetch("https://api.github.com/user", {
-    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" },
-  });
-  if (!res.ok) throw new Error(`Could not read your GitHub profile (${res.status}).`);
-  const user = await res.json();
-  ghStopPolling();
-  ghSave({
-    token,
-    login: user.login,
-    name: user.name || "",
-    id: user.id,
-    avatar_url: user.avatar_url || "",
-  });
-  $("#gh-modal").hidden = true;
-  ghStatus("");
+async function ghLoadProgress(account, force = false) {
+  const cached = account.progress;
+  if (!force && cached && cached.checked_at && Date.now() - cached.checked_at < GH_TTL) {
+    return cached;
+  }
+  const base = `${GH_UPSTREAM.owner}:${GH_UPSTREAM.branch}`;
+  const head = `${account.login}:${account.branch}`;
+  let compare = null;
+  let warning = "";
+  try {
+    compare = await ghApi(`/repos/${encodeURIComponent(account.login)}/${encodeURIComponent(account.repo)}/compare/${base}...${head}`);
+  } catch (err) {
+    if (err.code === "rate_limit") throw err;
+    warning = err.message || "Could not compare the fork with upstream.";
+  }
+  const files = ((compare && compare.files) || []).map((f) => f.filename);
+  const track = (STATE?.showcase?.track || []).filter((row) => row.ready);
+  const rows = [];
+  for (const row of track) {
+    const dir = row.slug;
+    const courseFiles = files.filter((f) => f === dir || f.startsWith(`${dir}/`));
+    const stages = (row.stages_detail || []).filter((s) => s.file);
+    const touched = stages.filter((s) => courseFiles.includes(
+      s.file.includes("/") ? s.file : `${dir}/${s.file}`
+    ));
+    let commits = [];
+    try {
+      commits = await ghApi(`/repos/${encodeURIComponent(account.login)}/${encodeURIComponent(account.repo)}/commits?path=${encodeURIComponent(dir)}&author=${encodeURIComponent(account.login)}&per_page=100`);
+    } catch (err) {
+      if (err.code === "rate_limit") throw err;
+    }
+    const last = commits[0]?.commit;
+    rows.push({
+      slug: row.slug,
+      label: row.label || row.slug,
+      commits: commits.length,
+      capped: commits.length === 100,
+      stages: stages.length,
+      touched: touched.length,
+      files: courseFiles.length,
+      last: last ? { message: last.message.split("\n")[0], date: last.author?.date || last.committer?.date } : null,
+      url: `https://github.com/${account.login}/${account.repo}/commits/${encodeURIComponent(account.branch)}/${encodeURIComponent(dir)}`,
+    });
+  }
+  const progress = {
+    checked_at: Date.now(),
+    ahead: compare ? compare.ahead_by : null,
+    behind: compare ? compare.behind_by : null,
+    total_commits: compare ? (compare.commits || []).length : null,
+    files: files.length,
+    warning,
+    rows,
+  };
+  account.progress = progress;
+  if (GH && GH.login === account.login) {
+    GH.progress = progress;
+    GH.progress_error = "";
+    ghStore();
+  }
+  return progress;
 }
-async function ghValidate() {
+async function ghRefreshProgress(force = false) {
+  if (!GH || GH.progress_loading) return;
+  const login = GH.login;
+  GH.progress_loading = true;
+  GH.progress_error = "";
+  renderGhStats();
+  try {
+    await ghLoadProgress(GH, force);
+  } catch (err) {
+    if (GH && GH.login === login) GH.progress_error = err.message || "Could not read commits.";
+  } finally {
+    if (GH && GH.login === login) {
+      GH.progress_loading = false;
+      ghStore();
+      renderGhStats();
+    }
+  }
+}
+function ghAgo(iso) {
+  if (!iso) return "";
+  const seconds = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return `${Math.floor(seconds / 86400)}d ago`;
+}
+function renderGhStats() {
+  const body = $("#gh-stats-body");
+  if (!body) return;
+  if (!GH) {
+    body.innerHTML = `<p class="auth-lead dim">Connect a fork to see its commits.</p>`;
+    return;
+  }
+  if (GH.progress_error) {
+    body.innerHTML = `<p class="auth-lead dim">${ghEsc(GH.progress_error)}</p>`;
+    return;
+  }
+  if (!GH.progress) {
+    body.innerHTML = `<p class="auth-lead dim">Reading your fork's commits…</p>`;
+    return;
+  }
+  const p = GH.progress;
+  const rows = p.rows.map((r) => {
+    const pct = r.stages ? Math.round((r.touched / r.stages) * 100) : 0;
+    const count = r.capped ? "100+" : r.commits;
+    return `<article class="gh-stat">
+      <div class="gh-stat-top">
+        <a href="${ghEsc(r.url)}" target="_blank" rel="noopener">${ghEsc(r.label)}</a>
+        <span class="mono">${count} commit${r.commits === 1 ? "" : "s"}</span>
+      </div>
+      <div class="gh-stat-bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+      <div class="gh-stat-meta">
+        <span>${r.touched}/${r.stages} stages touched</span>
+        <span>${r.files} file${r.files === 1 ? "" : "s"}</span>
+        <span>${r.last ? ghAgo(r.last.date) : "no commits"}</span>
+      </div>
+      ${r.last ? `<div class="gh-stat-last">${ghEsc(r.last.message)}</div>` : ""}
+    </article>`;
+  }).join("");
+  const ahead = p.ahead == null ? "commits by course" : `${p.ahead} commit${p.ahead === 1 ? "" : "s"} ahead`;
+  const behind = p.behind ? ` · ${p.behind} behind upstream` : "";
+  body.innerHTML = `
+    <p class="auth-lead">
+      <a href="https://github.com/${ghEsc(GH.login)}/${ghEsc(GH.repo)}" target="_blank" rel="noopener">@${ghEsc(GH.login)}/${ghEsc(GH.repo)}</a>
+      · ${ahead}${behind} · ${p.files} file${p.files === 1 ? "" : "s"} changed.
+    </p>
+    <p class="auth-lead dim">Progress is what your commits touch, not a server-side test result. Run <code>forja test</code> locally to prove a stage.</p>
+    ${p.warning ? `<p class="auth-status mono" data-kind="error">${ghEsc(p.warning)}</p>` : ""}
+    ${rows || `<p class="auth-lead dim">No commits yet — fork, solve, commit.</p>`}
+  `;
+}
+function openGhStats() {
+  if (!GH) return;
+  closeGhMenu();
+  $("#gh-stats-modal").hidden = false;
+  $("#gh-stats-x").focus();
+  renderGhStats();
+  if (!GH.progress || Date.now() - GH.progress.checked_at > GH_TTL) ghRefreshProgress();
+}
+function closeGhStats() {
+  $("#gh-stats-modal").hidden = true;
+}
+async function ghRestore() {
   ghLoad();
   renderGh();
   if (!GH) return;
-  const token = GH.token;
+  const login = GH.login;
   try {
-    const res = await fetch("https://api.github.com/user", {
-      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json" },
-    });
-    if (res.status === 401) { if (GH && GH.token === token) ghClear(); return; }
-    if (!res.ok) return;
-    const user = await res.json();
-    if (!GH || GH.token !== token) return;
-    ghSave({
-      token,
-      login: user.login,
-      name: user.name || "",
-      id: user.id,
-      avatar_url: user.avatar_url || "",
-    });
-  } catch { /* offline: keep the cached identity */ }
+    const fork = await ghFindFork(login);
+    if (!GH || GH.login !== login) return;
+    GH.repo = fork.name;
+    GH.branch = fork.default_branch || "main";
+    GH.fork = fork.full_name;
+    ghStore();
+    renderGh();
+    if (!GH.progress || Date.now() - GH.progress.checked_at > GH_TTL) ghRefreshProgress();
+  } catch (err) {
+    if ((err.code === "no_fork" || err.code === "not_found") && GH && GH.login === login) {
+      ghClear();
+    }
+  }
 }
 
 
@@ -992,44 +1117,52 @@ $("#go-home").addEventListener("click", () => go("home"));
 $$(".topnav button").forEach((b) => b.addEventListener("click", () => go(b.dataset.view)));
 addEventListener("popstate", () => applyRoute(false));
 
-/* GitHub account, device-flow dialog, and menu. */
-$("#gh-signin").addEventListener("click", ghSignIn);
+/* GitHub account and the fork dialog. */
+$("#gh-signin").addEventListener("click", () => {
+  $("#gh-username").value = GH?.login || "";
+  ghStatus("");
+  $("#gh-modal").hidden = false;
+  $("#gh-username").focus();
+});
+$("#gh-check").addEventListener("click", ghConnect);
+$("#gh-username").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); ghConnect(); }
+});
 $("#gh-user").addEventListener("click", (event) => {
   event.stopPropagation();
   if ($("#gh-menu").hidden) openGhMenu(); else closeGhMenu();
 });
-$("#gh-progress").addEventListener("click", () => { closeGhMenu(); go("map"); });
+$("#gh-progress").addEventListener("click", openGhStats);
 $("#gh-repos").addEventListener("click", () => {
-  if (GH) window.open(`https://github.com/${encodeURIComponent(GH.login)}?tab=repositories`, "_blank", "noopener");
+  if (GH) window.open(`https://github.com/${encodeURIComponent(GH.login)}/${encodeURIComponent(GH.repo)}`, "_blank", "noopener");
   closeGhMenu();
 });
-$("#gh-signout").addEventListener("click", () => { closeGhMenu(); ghClear(); });
-$("#gh-x").addEventListener("click", ghClose);
-$("#gh-cancel").addEventListener("click", ghClose);
+$("#gh-signout").addEventListener("click", () => { closeGhMenu(); ghClear(); closeGhStats(); });
+$("#gh-x").addEventListener("click", () => { $("#gh-modal").hidden = true; ghStatus(""); });
+$("#gh-cancel").addEventListener("click", () => { $("#gh-modal").hidden = true; ghStatus(""); });
 $("#gh-modal").addEventListener("click", (event) => {
-  if (event.target === $("#gh-modal")) ghClose();
+  if (event.target === $("#gh-modal")) { $("#gh-modal").hidden = true; ghStatus(""); }
 });
-$("#gh-copy").addEventListener("click", async () => {
-  const code = $("#gh-code").textContent.trim();
-  if (!code || code === "····-····") return;
-  try {
-    await navigator.clipboard.writeText(code);
-    $("#gh-copy").textContent = "Copied";
-    setTimeout(() => { $("#gh-copy").textContent = "Copy"; }, 1500);
-  } catch {
-    $("#gh-copy").textContent = "⌘/Ctrl-C";
-  }
+$("#gh-stats-x").addEventListener("click", closeGhStats);
+$("#gh-stats-close").addEventListener("click", closeGhStats);
+$("#gh-stats-modal").addEventListener("click", (event) => {
+  if (event.target === $("#gh-stats-modal")) closeGhStats();
 });
+$("#gh-refresh").addEventListener("click", () => ghRefreshProgress(true));
 document.addEventListener("click", (event) => {
   if (!$("#gh-account").contains(event.target)) closeGhMenu();
 });
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  if (!$("#gh-modal").hidden) ghClose();
+  if (!$("#gh-stats-modal").hidden) closeGhStats();
+  else if (!$("#gh-modal").hidden) { $("#gh-modal").hidden = true; ghStatus(""); }
   else closeGhMenu();
 });
 addEventListener("storage", (event) => {
-  if (event.key === GH_KEY) { ghLoad(); renderGh(); }
+  if (event.key !== GH_KEY) return;
+  ghLoad();
+  renderGh();
+  renderGhStats();
 });
 
 /* ------------------------------------------------------- tree panning */
@@ -1188,8 +1321,9 @@ function pollEvents() {
 }
 
 async function init() {
-  ghValidate();               // loads the cached identity, then re-checks it
+  ghLoad(); renderGh();      // cached pill immediately; commits need STATE below
   STATE = await loadState();
+  ghRestore();               // re-check the fork, then read its commits
   applyRoute(false);
   render();
 }
