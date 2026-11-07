@@ -624,22 +624,22 @@ function renderMap() {
     const nodeDone = itemState(node.item) === "complete";
     if (!node.parent) {
       const deg = (BR[node.cat]) * Math.PI / 180;
+      const rootStartable = nodeStatus(node.item) === "ready";
       addEdge(edges, { x: CX + 38 * Math.cos(deg), y: CX + 38 * Math.sin(deg) },
-        node, nodeDone ? GROW : BC[node.cat], nodeDone ? 3.4 : hot ? 3 : 2, "",
-        false, nodeDone);
+        node, nodeDone ? GROW : rootStartable ? BC[node.cat] : "rgba(255,255,255,.13)",
+        nodeDone ? 3.4 : rootStartable ? 3 : hot ? 3 : 2, "",
+        false, nodeDone || rootStartable);
       continue;
     }
     const parentHot = SELECTED?.kind === "node" && SELECTED.id === node.parent.item.id;
     const parentDone = itemState(node.parent.item) === "complete";
     const bothDone = parentDone && nodeDone;
     const touched = parentDone || nodeDone;
-    const startable = nodeStatus(node.item) === "ready";
     addEdge(edges, node.parent, node,
       touched ? (bothDone ? GROW : GROW_SOFT)
-        : startable ? BC[node.cat]
         : hot || parentHot ? "rgba(232,234,235,.5)" : "rgba(255,255,255,.13)",
-      touched ? (bothDone ? 3.4 : 2.6) : startable ? 3 : hot || parentHot ? 3 : 2,
-      "", false, touched || startable);
+      touched ? (bothDone ? 3.4 : 2.6) : hot || parentHot ? 3 : 2,
+      "", false, touched);
     for (const sec of node.extra) {
       const secDone = itemState(sec.item) === "complete";
       const secBoth = secDone && nodeDone;
