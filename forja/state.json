@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-08T14:46:24",
+ "generated_at": "2026-11-08T15:05:33",
  "order": "Anyformat prep track: AWS → infra → LLM → evals → agents; then RAG, MCP, harness, the machine stack",
  "brand": {
   "name": "forja",
@@ -30,8 +30,8 @@
   "stage": 1,
   "file": "iam.py",
   "stage_title": "Implicit deny",
-  "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
-  "why": "An IAM request starts denied until a policy grants it.",
+  "action": "In iam.py, replace the raise in evaluate() with one return statement: Decision(False, \"implicit deny\"). The stage-1 checker calls evaluate with an empty policies list; matching statements comes in stage 2.",
+  "why": "A request with no policies has no Allow statement, so IAM denies it by default. The supplied Decision class takes an allowed boolean and a reason string.",
   "predict": "What is allowed for a request with no policies?",
   "command": "forja test aws-from-scratch --stage 1"
  },
@@ -62,8 +62,8 @@
       "title": "Implicit deny",
       "tags": [],
       "status": "TODO",
-      "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
-      "why": "An IAM request starts denied until a policy grants it.",
+      "action": "In iam.py, replace the raise in evaluate() with one return statement: Decision(False, \"implicit deny\"). The stage-1 checker calls evaluate with an empty policies list; matching statements comes in stage 2.",
+      "why": "A request with no policies has no Allow statement, so IAM denies it by default. The supplied Decision class takes an allowed boolean and a reason string.",
       "predict": "What is allowed for a request with no policies?"
      },
      {
@@ -1740,8 +1740,8 @@
    "stage": 1,
    "file": "iam.py",
    "stage_title": "Implicit deny",
-   "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
-   "why": "An IAM request starts denied until a policy grants it.",
+   "action": "In iam.py, replace the raise in evaluate() with one return statement: Decision(False, \"implicit deny\"). The stage-1 checker calls evaluate with an empty policies list; matching statements comes in stage 2.",
+   "why": "A request with no policies has no Allow statement, so IAM denies it by default. The supplied Decision class takes an allowed boolean and a reason string.",
    "predict": "What is allowed for a request with no policies?",
    "command": "forja test aws-from-scratch --stage 1"
   }
@@ -1783,8 +1783,8 @@
        "title": "Implicit deny",
        "tags": [],
        "status": "TODO",
-       "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
-       "why": "An IAM request starts denied until a policy grants it.",
+       "action": "In iam.py, replace the raise in evaluate() with one return statement: Decision(False, \"implicit deny\"). The stage-1 checker calls evaluate with an empty policies list; matching statements comes in stage 2.",
+       "why": "A request with no policies has no Allow statement, so IAM denies it by default. The supplied Decision class takes an allowed boolean and a reason string.",
        "predict": "What is allowed for a request with no policies?"
       },
       {
@@ -18330,5 +18330,5 @@
  ],
  "repo": "alektebel/forja",
  "ref": "main",
- "generated": "2026-11-08T14:46:24"
+ "generated": "2026-11-08T15:05:33"
 }
