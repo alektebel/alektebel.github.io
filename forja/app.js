@@ -3,7 +3,7 @@
    Static: alektebel.github.io/forja   →  state.json (baked by scripts/forja_site.py)
 
    Views: home (continue + catalog), work (challenge detail + stages),
-   map (tech tree of phases/branches). State lives in the URL query
+   map (dependency graph of projects). State lives in the URL query
    (?view=&challenge=&node=) so refresh and back/forward work. */
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -19,24 +19,28 @@ const STATE_LABEL = {
 /* status → colour, mirroring the v2 palette */
 const C = { complete: "#54d1a4", doing: "#e0b44e", ready: "#9AA3AB", blocked: "#6B747C" };
 
-/* Branch layout for the tech tree: category → angle (deg) and colour. Every
+/* Branch layout for the dependency graph: category → angle (deg) and colour. Every
    project in the repo gets a node; the disk is bigger than the viewport so the
-   tree is explored by dragging. */
+   graph is explored by dragging. */
 const BR = { AI: -90, Distributed: -18, Networking: 54, Systems: 126, Finance: 198 };
 const BC = {
   AI: "#a58cf0", Distributed: "#54d1a4", Networking: "#f0995a",
   Systems: "#6aa5f0", Finance: "#e0b44e",
 };
 const DISK = 1500, CX = 750, CIRC = 169.6;
-const RING_R = [0, 140, 265, 390, 505, 615];
+const RING_R = [0, 140, 265, 390, 505, 615, 690];
 const WEDGE = 72;                 // degrees of arc owned by one branch
-const LABEL_R = 706;              // branch labels sit beyond the outermost ring
+const LABEL_R = 740;              // branch labels sit beyond the outermost ring
 const NODE_W = 104, NODE_HALF_GAP = 60;
 /* Completion paints lines in its own growth colour, deliberately distinct from
    the five branch hues: bright when both ends are complete, soft when only one
    is, so the tree fills in as courses land. */
 const GROW = "#6ee7a8";
 const GROW_SOFT = "rgba(110,231,168,.7)";
+/* All-project dependency graph in the project detail: grouped lanes, one node
+   per project, depth on the x axis. */
+const DEP_GROUP_ORDER = Object.keys(BR);
+const DEP_GAP_X = 142, DEP_NODE_W = 118, DEP_NODE_H = 28, DEP_ROW = 34, DEP_LEFT = 146;
 
 /* which branch a project belongs to */
 const CATEGORY = {
@@ -47,7 +51,10 @@ const CATEGORY = {
   "mcp-from-scratch": "AI", "agent-harness-from-scratch": "AI",
   "benchmark-from-scratch": "AI", "eval-framework-from-scratch": "AI",
   "agentic-retrieval-from-scratch": "AI", "transformer-inference-physics": "AI",
-  "llm-security-from-scratch": "AI",
+  "llm-security-from-scratch": "AI", "mechinterp-from-scratch": "AI",
+  "continual-learning-from-scratch": "AI", "hierarchical-sequence-from-scratch": "AI",
+  "recursive-depth-from-scratch": "AI", "library-learning-from-scratch": "AI",
+  "causal-invariance-from-scratch": "AI",
 
   "infrastructure-from-scratch": "Distributed", "aws-from-scratch": "Distributed",
   "queue-and-workers-from-scratch": "Distributed", "dynamo-paper": "Distributed",
@@ -66,7 +73,8 @@ const CATEGORY = {
   "runtime-from-scratch": "Systems", "compiler-and-vgpu": "Systems",
   "git-from-scratch": "Systems", "query-engine-from-scratch": "Systems",
   "linux-device-driver-from-scratch": "Systems", "compression-from-scratch": "Systems",
-  "interconnects-from-scratch": "Systems",
+  "interconnects-from-scratch": "Systems", "physics-engine-from-scratch": "Systems",
+  "rasterizer-from-scratch": "Systems",
 
   "credit-origination-from-scratch": "Finance", "credit-lifecycle-from-scratch": "Finance",
   "collections-workout-from-scratch": "Finance", "irb-capital-from-scratch": "Finance",
@@ -76,6 +84,8 @@ const CATEGORY = {
 let STATE = null;
 let VIEW = "home";          // home | work | map
 let SELECTED = null;        // { kind: "challenge"|"node", id }
+let MAP_PREVIEW = null;     // course hovered/focused in the map side panel
+let DEP_HIDDEN = new Set(); // groups folded away in the project dependency graph
 let FILTER = "All";
 let LIVE = false;
 let LAST_SEQ = 0;
@@ -151,6 +161,7 @@ function findNodeByCourse(course) {
 /* ---------------------------------------------------------------- routing */
 function applyRoute(push = false) {
   if (!push) {
+    MAP_PREVIEW = null;
     /* derive from the URL (initial load, back/forward) */
     const params = new URLSearchParams(location.search);
     const challenge = params.get("challenge");
@@ -179,13 +190,15 @@ function applyRoute(push = false) {
   render();
 }
 
-function go(view) { VIEW = view; applyRoute(true); }
+function go(view) { MAP_PREVIEW = null; VIEW = view; applyRoute(true); }
 function selectChallenge(slug) {
+  MAP_PREVIEW = null;
   VIEW = "work";
   SELECTED = findChallenge(slug) ? { kind: "challenge", id: slug } : null;
   applyRoute(true);
 }
 function selectNode(id, view = "map") {
+  MAP_PREVIEW = null;
   VIEW = view;
   SELECTED = findItem(id) ? { kind: "node", id } : null;
   applyRoute(true);
@@ -315,12 +328,15 @@ function renderWork() {
   if (!item && !track) {
     empty.hidden = false;
     detail.hidden = true;
+    $("#w-deps").hidden = true;
     return;
   }
   empty.hidden = true;
   detail.hidden = false;
 
   const course = item?.course || track?.slug;
+  const graph = course ? courseGraph() : null;
+  const current = graph?.byCourse.get(course) || null;
   const stages = item?.stages || track?.stages_detail || [];
   const checks = item?.checks || track?.checks || {};
   const logo = track?.logo_url || item?.logo_url || "logos/forge.svg";
@@ -336,17 +352,38 @@ function renderWork() {
   $("#w-title").textContent = title;
   $("#w-why").textContent = why;
 
-  /* prereq chips */
+  /* direct dependency chips, both directions */
   const uses = $("#w-uses");
   uses.innerHTML = "";
-  for (const p of item?.prereq || []) {
-    const req = findItem(p);
-    if (!req) continue;
-    const chip = document.createElement("span");
-    chip.className = "chip";
-    chip.textContent = `requires ${p} ${req.title}`;
-    uses.appendChild(chip);
+  if (graph && current) {
+    const addChip = (otherCourse, label, cls) => {
+      const other = graph.byCourse.get(otherCourse);
+      if (!other) return;
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = `chip ${cls}`;
+      chip.textContent = `${label} ${other.item.title}`;
+      chip.title = `Open ${other.item.title}`;
+      chip.onclick = () => selectNode(other.item.id, "work");
+      uses.appendChild(chip);
+    };
+    const reqs = [...(graph.deps.get(course) || [])];
+    const unlocks = [...(graph.rev.get(course) || [])];
+    if (!reqs.length) {
+      const chip = document.createElement("span");
+      chip.className = "chip chip-muted";
+      chip.textContent = "no prerequisites";
+      uses.appendChild(chip);
+    }
+    for (const c of reqs) addChip(c, "requires", "chip-req");
+    for (const c of unlocks) addChip(c, "unlocks", "chip-unlock");
   }
+
+  const jump = $("#w-deps-jump");
+  if (jump) jump.onclick = () => {
+    const sec = $("#w-deps");
+    if (sec && !sec.hidden) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   /* interface block: the stage action + why + prediction read like a spec */
   const iface = $("#w-interface-sec");
@@ -421,6 +458,8 @@ function renderWork() {
   } else {
     revSec.hidden = true;
   }
+
+  renderAllDeps(course, graph);
 }
 
 function renderStageBar(logo, title, checks, stages, current) {
@@ -513,30 +552,56 @@ function ringCap(r) {
   return Math.max(1, Math.floor((WEDGE - 2 * half) / (2 * half)) + 1);
 }
 
-function treeNodes() {
+/* The project graph every surface shares: one course per node, an edge for
+   every prerequisite, and depth = longest prerequisite chain. */
+function courseGraph() {
   const { byId, courses } = courseIndex();
-  const prereq = new Map();
+  const deps = new Map();
+  const rev = new Map();
   for (const course of courses.keys()) {
-    const ids = courses.get(course).prereq || [];
-    const deps = [];
-    for (const id of ids) {
-      const c = byId.get(id)?.course;
-      if (c && c !== course && courses.has(c) && !deps.includes(c)) deps.push(c);
+    deps.set(course, new Set());
+    rev.set(course, new Set());
+  }
+  for (const [course, item] of courses) {
+    for (const id of item.prereq || []) {
+      const parent = byId.get(id)?.course;
+      if (!parent || parent === course || !courses.has(parent)) continue;
+      deps.get(course).add(parent);
+      rev.get(parent).add(course);
     }
-    prereq.set(course, deps);
   }
 
   const depth = new Map();
-  const depthOf = (c, seen = new Set()) => {
-    if (depth.has(c)) return depth.get(c);
-    if (seen.has(c)) return 0;
-    seen.add(c);
-    const deps = prereq.get(c) || [];
-    const d = deps.length ? 1 + Math.max(...deps.map((p) => depthOf(p, seen))) : 0;
-    seen.delete(c);
-    depth.set(c, d);
+  const depthOf = (course, seen = new Set()) => {
+    if (depth.has(course)) return depth.get(course);
+    if (seen.has(course)) return 0;
+    seen.add(course);
+    const parents = deps.get(course) || new Set();
+    const d = parents.size ? 1 + Math.max(...[...parents].map((p) => depthOf(p, seen))) : 0;
+    seen.delete(course);
+    depth.set(course, d);
     return d;
   };
+
+  const nodes = [];
+  const byCourse = new Map();
+  for (const [course, item] of courses) {
+    const node = { course, item, cat: CATEGORY[course] || "Systems", depth: depthOf(course) };
+    nodes.push(node);
+    byCourse.set(course, node);
+  }
+
+  const edges = [];
+  for (const [course, parents] of deps) {
+    for (const parent of parents) {
+      edges.push({ from: byCourse.get(parent), to: byCourse.get(course) });
+    }
+  }
+  return { nodes, edges, deps, rev, depth, depthOf, byCourse, courses, byId };
+}
+
+function treeNodes() {
+  const { courses, deps, depthOf } = courseGraph();
 
   const branches = new Map();
   for (const [course, item] of courses) {
@@ -579,9 +644,11 @@ function treeNodes() {
 
   const byCourse = new Map(out.map((n) => [n.course, n]));
   for (const n of out) {
-    const deps = (prereq.get(n.course) || []).map((c) => byCourse.get(c)).filter(Boolean);
-    n.parent = deps[0] || null;
-    n.extra = deps.slice(1);
+    const parents = [...(deps.get(n.course) || [])]
+      .map((c) => byCourse.get(c))
+      .filter(Boolean);
+    n.parent = parents[0] || null;
+    n.extra = parents.slice(1);
   }
   return out;
 }
@@ -589,6 +656,9 @@ function treeNodes() {
 function renderMap() {
   const nodes = treeNodes();
   const byId = new Map(nodes.map((n) => [n.item.id, n]));
+  const preview = MAP_PREVIEW ? nodes.find((n) => n.course === MAP_PREVIEW) : null;
+  const selected = SELECTED?.kind === "node" ? byId.get(SELECTED.id) : null;
+  const focus = preview || selected;
 
   /* branch key: the rim labels are only reachable by panning, so the legend
      carries the same names */
@@ -620,7 +690,7 @@ function renderMap() {
   const edges = $("#tree-edges");
   edges.innerHTML = "";
   for (const node of nodes) {
-    const hot = SELECTED?.kind === "node" && SELECTED.id === node.item.id;
+    const hot = focus && focus.item.id === node.item.id;
     const nodeDone = itemState(node.item) === "complete";
     if (!node.parent) {
       const deg = (BR[node.cat]) * Math.PI / 180;
@@ -631,7 +701,7 @@ function renderMap() {
         false, nodeDone || rootStartable);
       continue;
     }
-    const parentHot = SELECTED?.kind === "node" && SELECTED.id === node.parent.item.id;
+    const parentHot = focus && node.parent && focus.item.id === node.parent.item.id;
     const parentDone = itemState(node.parent.item) === "complete";
     const bothDone = parentDone && nodeDone;
     const touched = parentDone || nodeDone;
@@ -644,9 +714,10 @@ function renderMap() {
       const secDone = itemState(sec.item) === "complete";
       const secBoth = secDone && nodeDone;
       const secTouched = secDone || nodeDone;
+      const secHot = focus && focus.item.id === sec.item.id;
       addEdge(edges, sec, node,
         secTouched ? (secBoth ? GROW : GROW_SOFT) : "rgba(255,255,255,.13)",
-        secTouched ? (secBoth ? 1.8 : 1.5) : hot ? 3 : 1.25,
+        secTouched ? (secBoth ? 1.8 : 1.5) : hot || secHot ? 3 : 1.25,
         "3 5", true, secTouched);
     }
   }
@@ -662,6 +733,9 @@ function renderMap() {
     el.type = "button";
     el.className = "tree-node";
     if (SELECTED?.kind === "node" && SELECTED.id === item.id) el.classList.add("is-selected");
+    if (preview && preview.item.id === item.id) el.classList.add("is-preview");
+    el.title = `Open ${item.title}`;
+    el.setAttribute("aria-label", `Open ${item.title} project detail`);
     el.style.left = `${node.x - NODE_W / 2}px`;
     el.style.top = `${node.y - 26}px`;
     const frac = checks.total ? (checks.passed / checks.total) : 0;
@@ -677,7 +751,9 @@ function renderMap() {
       </span>
       <span class="tn-title">${item.title}</span>
       <span class="tn-label" style="color:${stateColor(itemState(item))}">${nodeLabel(item)}</span>`;
-    el.onclick = () => selectNode(item.id, "map");
+    el.onclick = () => selectNode(item.id, "work");
+    el.onmouseenter = () => { MAP_PREVIEW = node.course; renderMapSide(nodes, byId); };
+    el.onfocus = () => { MAP_PREVIEW = node.course; renderMapSide(nodes, byId); };
     nodesRoot.appendChild(el);
   }
 
@@ -701,9 +777,10 @@ function addEdge(root, a, b, color, w, dash = "", curved = false, glow = false) 
 
 function renderMapSide(nodes, byId) {
   const side = $("#map-side");
-  const sel = SELECTED?.kind === "node" ? byId.get(SELECTED.id) : null;
+  const preview = MAP_PREVIEW ? nodes.find((n) => n.course === MAP_PREVIEW) : null;
+  const sel = preview || (SELECTED?.kind === "node" ? byId.get(SELECTED.id) : null);
   if (!sel) {
-    side.innerHTML = `<div class="map-empty-hint">Select a node in the tree to see what it requires and what it unlocks.</div>`;
+    side.innerHTML = `<div class="map-empty-hint">Hover or focus a node to preview it, then click it to open the project detail.</div>`;
     return;
   }
   const item = sel.item;
@@ -773,6 +850,193 @@ function mkRefList(title, refs, label) {
   }
   box.appendChild(list);
   return { box };
+}
+
+/* ------------------------------------------------------- dependencies */
+/* Every project in the repo, grouped into lanes, with prerequisite edges
+   running left to right. This is the detail view's map of the whole repo. */
+function depClosure(course, links) {
+  const out = new Set();
+  const stack = [...(links.get(course) || [])];
+  while (stack.length) {
+    const c = stack.pop();
+    if (c === course || out.has(c)) continue;
+    out.add(c);
+    for (const next of links.get(c) || []) stack.push(next);
+  }
+  return out;
+}
+
+function depLayout(g) {
+  const visible = g.nodes.filter((n) => !DEP_HIDDEN.has(n.cat));
+  const lanes = [];
+  let y = 10;
+  let maxDepth = 0;
+  for (const cat of DEP_GROUP_ORDER) {
+    const list = visible
+      .filter((n) => n.cat === cat)
+      .sort((a, b) => a.depth - b.depth || a.item.title.localeCompare(b.item.title));
+    if (!list.length) continue;
+    const slots = new Map();
+    let rows = 0;
+    for (const n of list) {
+      maxDepth = Math.max(maxDepth, n.depth);
+      const k = slots.get(n.depth) || 0;
+      n.x = DEP_LEFT + n.depth * DEP_GAP_X;
+      n.y = y + 28 + k * DEP_ROW;
+      slots.set(n.depth, k + 1);
+      rows = Math.max(rows, k + 1);
+    }
+    const h = 28 + rows * DEP_ROW + 12;
+    lanes.push({ cat, y, h, count: list.length });
+    y += h + 8;
+  }
+  return {
+    lanes, nodes: visible,
+    width: DEP_LEFT + maxDepth * DEP_GAP_X + DEP_NODE_W + 24,
+    height: y + 8,
+  };
+}
+
+function renderDepGroups(g, sel) {
+  const root = $("#w-deps-groups");
+  root.innerHTML = "";
+  const counts = new Map(DEP_GROUP_ORDER.map((cat) => [cat, 0]));
+  for (const n of g.nodes) counts.set(n.cat, (counts.get(n.cat) || 0) + 1);
+  for (const cat of DEP_GROUP_ORDER) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "dep-group-chip";
+    b.classList.toggle("is-off", DEP_HIDDEN.has(cat));
+    b.classList.toggle("is-selected", cat === sel.cat);
+    b.style.setProperty("--gc", BC[cat]);
+    b.setAttribute("aria-pressed", String(!DEP_HIDDEN.has(cat)));
+    b.title = cat === sel.cat
+      ? "The selected project's group stays open"
+      : `${DEP_HIDDEN.has(cat) ? "Show" : "Fold"} ${cat}`;
+    b.innerHTML = `<i></i><span>${cat}</span><b>${counts.get(cat) || 0}</b>`;
+    if (cat === sel.cat) {
+      b.setAttribute("aria-disabled", "true");
+    } else {
+      b.onclick = () => {
+        if (DEP_HIDDEN.has(cat)) DEP_HIDDEN.delete(cat); else DEP_HIDDEN.add(cat);
+        renderAllDeps(sel.course, g);
+      };
+    }
+    root.appendChild(b);
+  }
+  if (DEP_HIDDEN.size) {
+    const all = document.createElement("button");
+    all.type = "button";
+    all.className = "dep-group-chip is-reset";
+    all.textContent = "Show all groups";
+    all.onclick = () => { DEP_HIDDEN.clear(); renderAllDeps(sel.course, g); };
+    root.appendChild(all);
+  }
+}
+
+function renderDepLanes(layout) {
+  const root = $("#w-deps-lanes");
+  root.innerHTML = "";
+  for (const lane of layout.lanes) {
+    const el = document.createElement("div");
+    el.className = "deps-lane";
+    el.style.top = `${lane.y}px`;
+    el.style.height = `${lane.h}px`;
+    el.style.setProperty("--gc", BC[lane.cat]);
+    const label = document.createElement("div");
+    label.className = "deps-lane-label";
+    label.style.color = BC[lane.cat];
+    label.innerHTML = `<span>${lane.cat}</span><b>${lane.count}</b>`;
+    el.appendChild(label);
+    root.appendChild(el);
+  }
+}
+
+function renderDepEdges(layout, g, sel) {
+  const svg = $("#w-deps-svg");
+  const visible = new Set(layout.nodes.map((n) => n.course));
+  const defs = DEP_GROUP_ORDER.map((cat) => `
+    <marker id="dep-arrow-${cat}" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="${BC[cat]}"></path>
+    </marker>`).join("");
+  const paths = [];
+  for (const edge of g.edges) {
+    if (!visible.has(edge.from.course) || !visible.has(edge.to.course)) continue;
+    const hot = edge.from.course === sel.course || edge.to.course === sel.course;
+    const x1 = edge.from.x + DEP_NODE_W, y1 = edge.from.y + DEP_NODE_H / 2;
+    const x2 = edge.to.x, y2 = edge.to.y + DEP_NODE_H / 2;
+    const bend = Math.max(28, (x2 - x1) * .45);
+    const d = `M${x1} ${y1} C${x1 + bend} ${y1} ${x2 - bend} ${y2} ${x2} ${y2}`;
+    paths.push(`<path d="${d}" fill="none" stroke="${BC[edge.to.cat]}"
+      stroke-width="${hot ? 2.2 : 1.2}" opacity="${hot ? 1 : .35}"
+      marker-end="url(#dep-arrow-${edge.to.cat})"></path>`);
+  }
+  svg.setAttribute("width", String(layout.width));
+  svg.setAttribute("height", String(layout.height));
+  svg.setAttribute("viewBox", `0 0 ${layout.width} ${layout.height}`);
+  svg.innerHTML = `<defs>${defs}</defs>${paths.join("")}`;
+}
+
+function renderDepNodes(layout, g, sel) {
+  const root = $("#w-deps-nodes");
+  root.innerHTML = "";
+  for (const n of layout.nodes) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "dep-node";
+    b.dataset.course = n.course;
+    b.style.left = `${n.x}px`;
+    b.style.top = `${n.y}px`;
+    b.style.setProperty("--gc", BC[n.cat]);
+    b.classList.toggle("is-selected", n.course === sel.course);
+    if (n.course === sel.course) b.setAttribute("aria-current", "true");
+    const reqs = g.deps.get(n.course)?.size || 0;
+    const unlocks = g.rev.get(n.course)?.size || 0;
+    b.title = `${n.item.title} — ${nodeLabel(n.item)}; requires ${reqs}, unlocks ${unlocks}`;
+    b.setAttribute("aria-label", `${n.item.title}: ${nodeLabel(n.item)}. Requires ${reqs} projects, unlocks ${unlocks}.`);
+    b.innerHTML = `<i class="dep-dot" style="background:${stateColor(itemState(n.item))}"></i><span>${n.item.title}</span>`;
+    b.onclick = () => selectNode(n.item.id, "work");
+    root.appendChild(b);
+  }
+}
+
+function renderAllDeps(selectedCourse, g = null) {
+  const sec = $("#w-deps");
+  if (!sec) return;
+  if (!selectedCourse || !STATE) { sec.hidden = true; return; }
+  g = g || courseGraph();
+  const sel = g.byCourse.get(selectedCourse);
+  if (!sel) { sec.hidden = true; return; }
+  sec.hidden = false;
+  DEP_HIDDEN.delete(sel.cat);
+
+  const before = depClosure(sel.course, g.deps);
+  const after = depClosure(sel.course, g.rev);
+  $("#w-deps-note").textContent =
+    `${g.nodes.length} projects in ${DEP_GROUP_ORDER.length} groups · ${sel.item.title}: ` +
+    `${before.size} upstream, ${after.size} downstream.`;
+
+  renderDepGroups(g, sel);
+  const layout = depLayout(g);
+  const canvas = $("#w-deps-canvas");
+  canvas.style.width = `${layout.width}px`;
+  canvas.style.height = `${layout.height}px`;
+  renderDepLanes(layout);
+  renderDepEdges(layout, g, sel);
+  renderDepNodes(layout, g, sel);
+
+  const tree = $("#w-deps-tree");
+  if (tree) tree.onclick = () => selectNode(sel.item.id, "map");
+
+  requestAnimationFrame(() => {
+    const scroll = $("#w-deps-scroll");
+    const node = layout.nodes.find((n) => n.course === sel.course);
+    if (scroll && node) {
+      scroll.scrollLeft = Math.max(0, node.x - Math.max(0, (scroll.clientWidth - DEP_NODE_W) / 2));
+    }
+  });
 }
 
 /* ---------------------------------------------------------------- copy */

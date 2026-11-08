@@ -97,7 +97,7 @@
         <main class="work-main" id="work-main">
           <div class="work-empty" id="work-empty">
             <h1>Pick a challenge</h1>
-            <p class="dim">Select a challenge on the Home tab or from the Dependencies tree to open its stages.</p>
+            <p class="dim">Select a challenge on the Home tab or from the Dependencies graph to open its stages.</p>
           </div>
           <div id="work-detail" hidden>
             <div class="work-head">
@@ -105,6 +105,7 @@
               <h1 id="w-title"></h1>
               <p class="work-why" id="w-why"></p>
               <div class="uses" id="w-uses"></div>
+              <button type="button" class="deps-jump" id="w-deps-jump">Dependencies across all projects ↓</button>
             </div>
 
             <section class="w-section" id="w-interface-sec">
@@ -158,6 +159,27 @@
           </section>
         </aside>
       </div>
+
+      <section class="w-deps" id="w-deps" hidden aria-labelledby="w-deps-h">
+        <div class="w-deps-in">
+          <div class="w-deps-head">
+            <div class="w-deps-copy">
+              <h2 class="kicker" id="w-deps-h">Dependencies across all projects</h2>
+              <p class="w-deps-note" id="w-deps-note"></p>
+            </div>
+            <button type="button" class="deps-tree-btn" id="w-deps-tree">Open full graph</button>
+          </div>
+          <div class="deps-groups" id="w-deps-groups" role="group" aria-label="Project groups"></div>
+          <div class="deps-scroll" id="w-deps-scroll" tabindex="0" role="region" aria-label="Dependency graph; scroll horizontally to explore">
+            <div class="deps-canvas" id="w-deps-canvas">
+              <svg class="deps-svg" id="w-deps-svg" aria-hidden="true"></svg>
+              <div id="w-deps-lanes"></div>
+              <div id="w-deps-nodes"></div>
+            </div>
+          </div>
+          <p class="deps-hint">Arrows run from a prerequisite to what it unlocks. Click any project to open its detail; fold a group to focus the graph.</p>
+        </div>
+      </section>
     </div>
 
     <!-- ================================================== map -->
@@ -165,7 +187,7 @@
       <div class="map-wrap">
         <main class="map-main">
           <div class="map-head">
-            <h1>Tech tree</h1>
+            <h1>Dependency graph</h1>
             <div class="map-legend">
               <span id="map-branches" class="legend-branches"></span>
               <span>Drag to explore</span>
@@ -176,7 +198,7 @@
           </div>
           <div id="tree-ref" class="tree-box">
             <div id="tree-viewport" class="tree-viewport" tabindex="0"
-                 role="application" aria-label="Tech tree — drag or use arrow keys to pan">
+                 role="application" aria-label="Dependency graph — drag or use arrow keys to pan">
               <div id="tree-sized" class="tree-sized">
                 <div class="tree-disk" style="width:1500px;height:1500px">
                   <svg width="1500" height="1500" class="tree-svg" id="tree-svg" aria-hidden="true">
@@ -185,6 +207,7 @@
                     <circle cx="750" cy="750" r="390" class="orbit"></circle>
                     <circle cx="750" cy="750" r="505" class="orbit"></circle>
                     <circle cx="750" cy="750" r="615" class="orbit"></circle>
+                    <circle cx="750" cy="750" r="690" class="orbit"></circle>
                     <g id="tree-edges"></g>
                   </svg>
                   <div id="tree-branches"></div>
