@@ -142,6 +142,9 @@ let FILTER = "All";
 let LIVE = false;
 let LAST_SEQ = 0;
 let LIVE_POLLING = false;
+const SOURCE_CACHE = new Map(); // "course\0stage" → analyzer payload
+const SOURCE_MISS = new Set();  // stages with no source target (authored courses)
+let SOURCE_TOKEN = 0;           // drops a late source response after a stage switch
 const PERSONAL_KEY = "forja.personal.completed.v1";
 let PERSONAL_DONE = {};
 const BROWSER_KEY = "forja.browser.passed.v1";
@@ -588,6 +591,7 @@ function renderWork() {
   } else {
     iface.hidden = true;
   }
+  renderSource(course, stage);
 
   /* requirements: per-stage titles */
   $("#w-reqs-sec").hidden = Boolean(stage?.action);
@@ -667,6 +671,114 @@ function renderWork() {
   renderAllDeps(course, graph);
 }
 
+/* ---------------------------------------------------------- stage source */
+function sourceKey(course, stage) { return `${course}\u0000${stage}`; }
+
+async function fetchStageSource(course, stage) {
+  const key = sourceKey(course, stage);
+  if (SOURCE_CACHE.has(key)) return SOURCE_CACHE.get(key);
+  const url = `/api/stage-source?course=${encodeURIComponent(course)}&stage=${encodeURIComponent(stage)}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`source HTTP ${res.status}`);
+  const data = await res.json().catch(() => ({}));
+  if (!data.ok || !data.source) throw new Error(data.error || "no source target");
+  SOURCE_CACHE.set(key, data.source);
+  return data.source;
+}
+
+function renderSource(course, stage) {
+  const wrap = $("#w-source-wrap");
+  if (!wrap) return;
+  const token = ++SOURCE_TOKEN;
+  if (!LIVE || !course || !stage?.action || !stage.file) {
+    wrap.hidden = true;
+    return;
+  }
+  const key = sourceKey(course, stage.id);
+  const cached = SOURCE_CACHE.get(key);
+  if (cached) {
+    paintSource(cached);
+    return;
+  }
+  if (SOURCE_MISS.has(key)) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  $("#w-source-lines").replaceChildren();
+  $("#w-source-meta").textContent = "reading source…";
+  $("#w-source-note").textContent = "";
+  fetchStageSource(course, stage.id)
+    .then((source) => {
+      if (token !== SOURCE_TOKEN) return;
+      paintSource(source);
+    })
+    .catch(() => {
+      if (token !== SOURCE_TOKEN) return;
+      SOURCE_MISS.add(key);
+      wrap.hidden = true;
+    });
+}
+
+function paintSource(source) {
+  const wrap = $("#w-source-wrap");
+  const list = $("#w-source-lines");
+  wrap.hidden = false;
+  list.replaceChildren();
+  const ranges = source.ranges || [];
+  const inTarget = (n) => ranges.some(([start, end]) => n >= start && n <= end);
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < (source.lines || []).length; i += 1) {
+    const n = i + 1;
+    const li = document.createElement("li");
+    li.className = "source-line";
+    const target = inTarget(n);
+    const failed = source.failure_line === n;
+    if (target) li.classList.add("is-target");
+    if (failed) li.classList.add("is-fail");
+    if (failed) {
+      li.title = source.failure_kind === "last"
+        ? "The checker last executed this line"
+        : "The checker stopped at this line";
+    } else if (target) {
+      li.title = "Line in the stage's target function";
+    }
+    const number = document.createElement("span");
+    number.className = "sl-n";
+    number.textContent = String(n);
+    const code = document.createElement("code");
+    code.textContent = source.lines[i] || " ";
+    li.append(number, code);
+    frag.appendChild(li);
+  }
+  list.appendChild(frag);
+  requestAnimationFrame(() => {
+    const focus = list.querySelector(".is-fail") || list.querySelector(".is-target");
+    if (!focus) return;
+    const box = list.getBoundingClientRect();
+    const row = focus.getBoundingClientRect();
+    if (row.top < box.top || row.bottom > box.bottom) {
+      list.scrollTop += row.top - box.top - 18;
+    }
+  });
+
+  const rangeText = ranges
+    .map(([start, end]) => (start === end ? String(start) : `${start}–${end}`))
+    .join(", ");
+  let note = source.target
+    ? `Target function${source.target.includes("/") ? "s" : ""}: ${source.target}` +
+      (rangeText ? ` · line${rangeText.includes(",") ? "s" : ""} ${rangeText}` : " · not found in this file")
+    : "No target function is declared for this stage.";
+  if (source.status) note += ` · checker: ${source.status}`;
+  if (source.failure_line) {
+    note += source.failure_kind === "last"
+      ? ` · last executed at line ${source.failure_line}`
+      : ` · stopped at line ${source.failure_line}`;
+  }
+  $("#w-source-meta").textContent = `${source.file} · ${(source.lines || []).length} lines`;
+  $("#w-source-note").textContent = note;
+}
+
 function renderStageBar(logo, title, checks, stages, current, course) {
   const bar = $("#stagebar");
   bar.innerHTML = "";
@@ -689,6 +801,10 @@ function renderStageBar(logo, title, checks, stages, current, course) {
   for (const s of stages) {
     const li = document.createElement("li");
     if (current && s.id === current.id) li.classList.add("is-current");
+    if (course) {
+      li.classList.add("is-clickable");
+      li.onclick = () => openStage(course, s.id);
+    }
     const sym = { PASS: "✓", PERSONAL: "✓", BROWSER: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
     const color = ["PASS", "PERSONAL", "BROWSER"].includes(s.status)
       ? "#54d1a4" : s.status === "TODO" ? "#6B747C" : "#d05a5a";
@@ -1533,6 +1649,7 @@ async function copyText(text) {
 
 async function runStage(course, stage, button) {
   const command = `forja test ${course} --stage ${stage}`;
+  if (VIEW === "work" && STAGE !== stage) openStage(course, stage);
   const original = button ? button.textContent : "Run";
   if (button) {
     button.disabled = true;
@@ -1563,6 +1680,11 @@ async function runStage(course, stage, button) {
     const color = status === "PASS" ? "#54d1a4"
       : status === "TODO" ? "#9AA3AB" : "#d05a5a";
     runToast(`Stage ${stage} · ${status}`, row.detail || command, color);
+    if (data.source) {
+      data.source.status = status;
+      data.source.detail = row.detail || "";
+      SOURCE_CACHE.set(sourceKey(course, stage), data.source);
+    }
     /* The stage result is the freshest fact here, and authored courses do not
        expose it through /api/state. Keep it on the in-memory item instead of
        re-running every checker just to repaint one line. */

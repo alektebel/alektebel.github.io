@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-08T18:21:53",
+ "generated": "2026-11-08T18:24:39",
  "repo": "alektebel/forja",
  "ref": "main",
  "brand": {
@@ -2295,15 +2295,15 @@
   "command": "forja test aws-from-scratch --stage 1"
  },
  "totals": {
-  "courses": 73,
+  "courses": 74,
   "complete": 0,
   "doing": 0,
-  "ready": 73,
+  "ready": 74,
   "missing": 8,
   "checks_passed": 0,
   "checks_total": 192,
-  "repo_remaining": 2392,
-  "repo_baseline": 2392,
+  "repo_remaining": 2490,
+  "repo_baseline": 2490,
   "repo_fraction": 0.0
  },
  "phases": [
@@ -8367,19 +8367,202 @@
   "G11": {
    "id": "G11",
    "title": "Advanced Algorithms & Data Structures",
-   "kind": "author",
-   "why": "La Rocca's book mechanised, one stage per chapter, every structure judged against a work counter and a reference the way B2 judges HNSW against brute force: priority queues and d-way heaps measured on Dijkstra (ch. 2), treaps where the rotation is right because the expected height the profiler prints agrees with the theory (ch. 3), Bloom filters whose false-positive rate is measured, not assumed, against the exact set (ch. 4), disjoint sets by path compression and union by rank counted in finds (ch. 5), tries and T9 and autocomplete with the compressed variant (ch. 6), LRU and LFU caches with the hit rate the workload produces (ch. 7), k-d trees whose nearest neighbour is checked against the linear scan it must beat (ch. 8–9), SS-trees and approximate search with the recall the book's own image retrieval asks for (ch. 10–11), DBSCAN and OPTICS clustering on the points the reference clusters identically (ch. 12–13), graphs from BFS and connected components to Dijkstra and minimum spanning trees (ch. 14), graph embeddings, planarity and the force-directed drawing whose crossings the checker counts (ch. 15), then gradient descent (ch. 16) and simulated annealing (ch. 17) as optimisation on those graphs, and the genetic algorithm that closes the book on TSP, its tours compared against the branch-and-bound answer on the small instances (ch. 18). Author advanced-dsa-from-scratch in pure Python with no float where a counter suffices — nothing must come first; the book is the reading, the checker the grade.",
+   "kind": "ready",
+   "why": "The heap ladder and what it is for, on a provided fixture world and a work counter that is the lesson. A binary heap over its array with hole-and-place sifts and counted comparisons and moves; the d-way heap generalising the layout (children D*i+1..D*i+D, parent (i-1)//D) with a shared position map so decrease-key is real; then the Fibonacci heap in three separate stages — the O(1) lazy union on one circular doubly-linked root ring, consolidation that buckets roots by degree from the watermark, and the cut rule whose cascade is pinned as (cuts, cascades) == (3, 1) with the potential going 8 -> 6; Dijkstra run on all three heaps, each engine returning its own ledger (lazy pops and skipped stale entries, d-ary comparisons, Fibonacci work with no duplicate pops); union-find with union by rank and iterative compression counted in finds, judging Kruskal's minimum spanning tree; a trie whose autocomplete is the prefix's subtree in lexical order and whose longest prefix is the deepest terminal; an LFU cache whose eviction is one (frequency, age) total order, replayed on a fixed script; and a capstone k-d tree checked against the linear scan by its counted visits, closing with an audit that fails any work bar left unmeasured. The ten stages are the ones this repo grades; the book's treaps, Bloom filters, SS-trees, clustering and optimisation chapters are not claimed.",
    "prereq": [],
-   "course": null,
-   "command": null,
-   "state": "author",
+   "course": "advanced-dsa-from-scratch",
+   "command": "cz run advanced-dsa-from-scratch",
+   "state": "ready",
    "showcase": false,
    "checks": {
     "passed": 0,
     "total": 0
    },
-   "stages": [],
-   "files": []
+   "stages": [
+    {
+     "id": 1,
+     "file": "stage_01.py",
+     "title": "The binary heap: the array is the contract",
+     "tags": [
+      "heap",
+      "sift",
+      "counted-work"
+     ],
+     "status": "TODO",
+     "action": "Write `Heap` (`push`, `pop`, `peek`, `_sift_up`, `_sift_down`), `heapify` and `heap_sort` in stage_01.py: children at 2i+1 and 2i+2, hole-and-place sifts, every comparison counted.",
+     "why": "",
+     "predict": "Whether popping the last element back through the array costs the same as three-way swaps, and which counter proves which sift ran.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 2,
+     "file": "stage_02.py",
+     "title": "The d-way heap: a wider child scan, a shallower tree",
+     "tags": [
+      "heap",
+      "arity",
+      "tradeoff"
+     ],
+     "status": "TODO",
+     "action": "Write `DaryHeap` and `dary_sort` in stage_02.py: children of i at D*i+1..D*i+D, parent (i-1)//D, the bottom-up build starting at (n-2)//D, pair keys, and an optional shared position map for decrease-key.",
+     "why": "",
+     "predict": "At which arity the comparisons-per-pop of a sort stop improving, and why the scan cannot be shortened without making the counter lie.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 3,
+     "file": "stage_03.py",
+     "title": "The Fibonacci heap I: the merge is lazy",
+     "tags": [
+      "fibonacci-heap",
+      "lazy-merge",
+      "amortized"
+     ],
+     "status": "TODO",
+     "action": "Write `FibNode`, `FibHeap.insert`, `FibHeap.union`, `peek`, `roots` and `is_well_formed` in stage_03.py: one circular doubly-linked root ring, child rings of their own, a watermark, and an integrity walk that terminates on corruption.",
+     "why": "",
+     "predict": "What a union costs with a ring splice, and what a ring's left links would hide if the walk only ever went right.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 4,
+     "file": "stage_04.py",
+     "title": "The Fibonacci heap II: consolidation pays the bill",
+     "tags": [
+      "fibonacci-heap",
+      "extract-min",
+      "consolidation"
+     ],
+     "status": "TODO",
+     "action": "Write `consolidate`, `extract_min`, `pop` and `degrees` in stage_04.py: orphan the min's children in ONE splice, bucket roots by degree from the watermark, and rebuild the root ring in degree order.",
+     "why": "",
+     "predict": "Why the bucket table is sized by the watermark and not the live node count, and which off-by-one hides at D=4, n=6.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 5,
+     "file": "stage_05.py",
+     "title": "The Fibonacci heap III: the cut rule keeps it affordable",
+     "tags": [
+      "fibonacci-heap",
+      "decrease-key",
+      "cascading-cut"
+     ],
+     "status": "TODO",
+     "action": "Write `decrease_key`, `delete`, `_move_up`, `_cut_and_maybe_cascade`, `marked_nodes` and `potential` in stage_05.py: cut to the root ring, mark the first loss, cascade every already-marked ancestor, never mark a root.",
+     "why": "",
+     "predict": "What a decrease-key costs with and without the mark, and how the potential changes when the cascade fires once.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 6,
+     "file": "stage_06.py",
+     "title": "Dijkstra: three heaps, three ledgers",
+     "tags": [
+      "graphs",
+      "dijkstra",
+      "priority-queue"
+     ],
+     "status": "TODO",
+     "action": "Write `dijkstra_lazy`, `dijkstra_dary`, `dijkstra_fib` and `report` in stage_06.py: the same relaxation over heapq, the indexed d-ary heap, and the Fibonacci heap, each returning its own counted work.",
+     "why": "",
+     "predict": "Which engine makes the fewest settlements, and which one's extra work shows up as skipped stale pops instead.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 7,
+     "file": "stage_07.py",
+     "title": "The disjoint set: the forest that counts its finds",
+     "tags": [
+      "union-find",
+      "mst",
+      "kruskal"
+     ],
+     "status": "TODO",
+     "action": "Write `DisjointSet` (`add`, `find`, `union`, `connected`, `sizes`) and `mst_kruskal` in stage_07.py: union by rank, iterative path compression, reported finds and path steps.",
+     "why": "",
+     "predict": "Whether rank alone keeps a chain shallow, and what the path-step counter says the day compression is dropped.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 8,
+     "file": "stage_08.py",
+     "title": "The trie: autocomplete is the prefix's subtree",
+     "tags": [
+      "trie",
+      "prefix",
+      "autocomplete"
+     ],
+     "status": "TODO",
+     "action": "Write `Trie` (`insert`, `walk`, `autocomplete`, `longest_prefix_of`, `__contains__`) and `build` in stage_08.py: terminal bool on the node, lexical order from sorted child keys, a visit counter on the walk.",
+     "why": "",
+     "predict": "Why a word that prefixes another must stay a member, and what a refused duplicate must not do to the ledger.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 9,
+     "file": "stage_09.py",
+     "title": "The LFU cache: eviction is one total order",
+     "tags": [
+      "cache",
+      "lfu",
+      "eviction"
+     ],
+     "status": "TODO",
+     "action": "Write `LFUCache` (`get`, `put`, `_touch`, `_coldest`, `snapshot`) and `replay` in stage_09.py: (frequency, age) as one pair, a scanned coldest with counted probes, exact eviction order on the script.",
+     "why": "",
+     "predict": "Which key leaves when two share the minimum frequency, and why a miss must not age anything.",
+     "example": "",
+     "target": "",
+     "hints": []
+    },
+    {
+     "id": 10,
+     "file": "stage_10.py",
+     "title": "The capstone: a k-d tree that beats the scan by counting",
+     "tags": [
+      "k-d-tree",
+      "nearest-neighbour",
+      "audit"
+     ],
+     "status": "TODO",
+     "action": "Write `build`, `nearest` and `measure`/`audit` in stage_10.py: median splits on alternating axes, the prune on gap*gap > worst, the tie law, and the audit of every WORK_BARS entry.",
+     "why": "",
+     "predict": "What a prune inverted to always-descend costs, and why the tie band at query (7,7) needs > and not >=.",
+     "example": "",
+     "target": "",
+     "hints": []
+    }
+   ],
+   "files": [
+    "check.py",
+    "stage_01.py",
+    "stage_02.py",
+    "stage_03.py",
+    "stage_04.py",
+    "stage_05.py",
+    "stage_06.py",
+    "stage_07.py",
+    "stage_08.py",
+    "stage_09.py",
+    "stage_10.py"
+   ]
   },
   "G12": {
    "id": "G12",
