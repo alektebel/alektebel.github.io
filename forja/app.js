@@ -144,6 +144,8 @@ let LAST_SEQ = 0;
 let LIVE_POLLING = false;
 const PERSONAL_KEY = "forja.personal.completed.v1";
 let PERSONAL_DONE = {};
+const BROWSER_KEY = "forja.browser.passed.v1";
+let BROWSER_DONE = {};
 
 function loadPersonalDone() {
   try {
@@ -154,6 +156,8 @@ function loadPersonalDone() {
 
 function importPersonalCompletion() {
   PERSONAL_DONE = loadPersonalDone();
+  try { BROWSER_DONE = JSON.parse(localStorage.getItem(BROWSER_KEY) || "{}"); }
+  catch { BROWSER_DONE = {}; }
   const url = new URL(location.href);
   if (url.searchParams.get("complete") !== "aws-iam") return;
   const previous = Array.isArray(PERSONAL_DONE["aws-from-scratch"])
@@ -165,7 +169,7 @@ function importPersonalCompletion() {
 }
 
 function completion(stages) {
-  const done = stages.filter((s) => s.status === "PASS" || s.status === "PERSONAL").length;
+  const done = stages.filter((s) => s.status === "PASS" || s.status === "PERSONAL" || s.status === "BROWSER").length;
   const previous = stages.filter((s) => s.status === "PERSONAL").length;
   return { done, previous, total: stages.length };
 }
@@ -174,13 +178,15 @@ function applyPersonalDone() {
   for (const item of allItems()) {
     if (!item.course || !item.stages?.length) continue;
     const completed = new Set(Array.isArray(PERSONAL_DONE[item.course]) ? PERSONAL_DONE[item.course] : []);
+    const browserPassed = new Set(Array.isArray(BROWSER_DONE[item.course]) ? BROWSER_DONE[item.course] : []);
     for (const stage of item.stages) {
       if (completed.has(stage.id) && stage.status !== "PASS") stage.status = "PERSONAL";
+      if (browserPassed.has(stage.id) && stage.status !== "PASS") stage.status = "BROWSER";
     }
     const progress = completion(item.stages);
-    if (!progress.previous) continue;
+    if (!progress.done) continue;
     item.personal_done = progress.previous;
-    item.next_step = item.stages.find((s) => s.status !== "PASS" && s.status !== "PERSONAL")?.id || null;
+    item.next_step = item.stages.find((s) => !["PASS", "PERSONAL", "BROWSER"].includes(s.status))?.id || null;
     if (item.state === "ready") item.state = "doing";
     const track = trackRows().find((row) => row.slug === item.course);
     if (track) {
@@ -197,6 +203,13 @@ function applyPersonalDone() {
     }
   }
 }
+
+window.forjaBrowserPassed = (course, stageId) => {
+  const ids = Array.isArray(BROWSER_DONE[course]) ? BROWSER_DONE[course] : [];
+  BROWSER_DONE[course] = [...new Set([...ids, stageId])];
+  applyPersonalDone();
+  render();
+};
 
 /* ---------------------------------------------------------------- utils */
 function basePath() {
@@ -566,6 +579,12 @@ function renderWork() {
       source.href = `https://github.com/${STATE?.repo || "alektebel/forja"}/blob/${STATE?.ref || "main"}/${course}/${stage.file}`;
       source.textContent = `Open ${stage.file} in the source repo ↗`;
     }
+    const editorButton = $("#w-open-editor");
+    editorButton.hidden = course !== "aws-from-scratch";
+    if (!editorButton.hidden) {
+      editorButton.onclick = () => window.forjaEditor?.open(course, stage);
+      window.forjaEditor?.onStage(course, stage);
+    }
   } else {
     iface.hidden = true;
   }
@@ -594,8 +613,7 @@ function renderWork() {
   const hintsSec = $("#w-hints-sec");
   const hintsRoot = $("#w-hints");
   hintsRoot.innerHTML = "";
-  const upcoming = stages.filter((s) => s.id !== stage?.id && s.status !== "PASS"
-    && s.status !== "PERSONAL" && s.action);
+  const upcoming = stages.filter((s) => s.id !== stage?.id && !["PASS", "PERSONAL", "BROWSER"].includes(s.status) && s.action);
   if (!upcoming.length) {
     hintsSec.hidden = true;
   } else {
@@ -626,8 +644,8 @@ function renderWork() {
   $("#w-cmd-hint").textContent = track?.smoke ? `smoke test: ${track.smoke}` : "";
   const personal = completion(stages);
   $("#w-side-note").textContent = checks.total
-    ? (personal.previous
-      ? `${fmt.format(personal.previous)} previously completed · ${fmt.format(checks.passed)} checks passing here`
+    ? (personal.done
+      ? `${fmt.format(personal.done)} stages completed · ${fmt.format(checks.passed)} checks passing in the repo`
       : `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks passing`)
     : "The engine is the CLI — this page only reads it.";
 
@@ -671,14 +689,14 @@ function renderStageBar(logo, title, checks, stages, current, course) {
   for (const s of stages) {
     const li = document.createElement("li");
     if (current && s.id === current.id) li.classList.add("is-current");
-    const sym = { PASS: "✓", PERSONAL: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
-    const color = s.status === "PASS" || s.status === "PERSONAL"
+    const sym = { PASS: "✓", PERSONAL: "✓", BROWSER: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
+    const color = ["PASS", "PERSONAL", "BROWSER"].includes(s.status)
       ? "#54d1a4" : s.status === "TODO" ? "#6B747C" : "#d05a5a";
     li.innerHTML = `
       <span class="s-sym" style="color:${color}">${sym}</span>
       <span class="s-copy">
         <span class="s-name">${String(s.id).padStart(2, "0")} · ${s.title}</span>
-        <span class="s-meta">${s.file}${s.status === "PERSONAL" ? " · completed before" : ""}</span>
+        <span class="s-meta">${s.file}${s.status === "PERSONAL" ? " · completed before" : s.status === "BROWSER" ? " · passed in browser" : ""}</span>
       </span>`;
     if (course && s.status !== "PERSONAL") {
       const run = document.createElement("button");
@@ -706,10 +724,10 @@ function renderTestList(stages, checks, course) {
     : "";
   for (const s of stages) {
     const li = document.createElement("li");
-    const ok = s.status === "PASS" || s.status === "PERSONAL";
+    const ok = ["PASS", "PERSONAL", "BROWSER"].includes(s.status);
     li.innerHTML = `
       <span class="t-sym" data-s="${s.status}">${ok ? "✓" : "○"}</span>
-      <span class="t-name">${s.title}<br><span class="t-file">${s.file}${s.status === "PERSONAL" ? " · completed before" : ""}</span></span>`;
+      <span class="t-name">${s.title}<br><span class="t-file">${s.file}${s.status === "PERSONAL" ? " · completed before" : s.status === "BROWSER" ? " · passed in browser" : ""}</span></span>`;
     if (course && s.status !== "PERSONAL") {
       const run = document.createElement("button");
       run.type = "button";
@@ -1427,7 +1445,7 @@ function renderCourse() {
 
   for (const node of nodes) {
     const stage = node.stage;
-    const done = stage.status === "PASS" || stage.status === "PERSONAL";
+    const done = ["PASS", "PERSONAL", "BROWSER"].includes(stage.status);
     const failed = stage.status === "FAIL" || stage.status === "ERROR";
     const color = done ? C.complete : failed ? C.blocked : C.ready;
     const el = document.createElement("button");
@@ -1439,6 +1457,7 @@ function renderCourse() {
     el.style.setProperty("--ac", node.group.color);
     el.title = `Stage ${stage.id} · ${stage.title}\n${stage.action || ""}`;
     const progressLabel = stage.status === "PERSONAL" ? "Completed before"
+      : stage.status === "BROWSER" ? "Passed in browser"
       : stage.status === "PASS" ? "Passing" : "Not passing";
     el.setAttribute("aria-label",
       `Stage ${stage.id}: ${stage.title}. ${progressLabel}. Open stage.`);

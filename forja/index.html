@@ -120,6 +120,41 @@
               </div>
               <p class="w-stage-predict" id="w-stage-predict"></p>
               <a class="w-stage-source" id="w-stage-source" target="_blank" rel="noopener"></a>
+              <button type="button" class="browser-open" id="w-open-editor" hidden>Code in browser ↗</button>
+            </section>
+
+            <section class="browser-editor" id="browser-editor" hidden aria-label="Browser code editor">
+              <div class="browser-editor-head">
+                <div><span class="kicker">Browser workspace</span><h2 id="editor-stage-title">Stage</h2></div>
+                <button type="button" id="editor-close" aria-label="Close editor">×</button>
+              </div>
+              <div class="browser-editor-grid">
+                <div class="browser-code">
+                  <div class="browser-code-head">
+                    <label for="editor-file">File</label>
+                    <select id="editor-file"></select>
+                    <button type="button" id="editor-jump">Jump to task</button>
+                    <span id="editor-save-state" role="status">Saved in this browser</span>
+                  </div>
+                  <div class="browser-code-area">
+                    <pre id="editor-lines" aria-hidden="true">1</pre>
+                    <textarea id="editor-code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Python code"></textarea>
+                  </div>
+                </div>
+                <aside class="browser-helper" aria-label="Stage helper">
+                  <h3>Helper</h3>
+                  <p id="editor-goal"></p>
+                  <p id="editor-target"></p>
+                  <button type="button" id="editor-hint">Give me a hint</button>
+                  <p id="editor-hint-text" aria-live="polite"></p>
+                  <div class="editor-result" id="editor-result" hidden role="status" aria-live="polite"></div>
+                </aside>
+              </div>
+              <div class="browser-editor-foot">
+                <span>Ctrl/⌘ + Enter runs this stage</span>
+                <button type="button" id="editor-download">Download file</button>
+                <button type="button" class="primary-btn" id="editor-run">Run stage</button>
+              </div>
             </section>
 
             <section class="w-section" id="w-reqs-sec">
@@ -313,6 +348,7 @@
     </div>
   </div>
 
+  <script src="editor.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
