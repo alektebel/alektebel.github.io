@@ -644,29 +644,9 @@ function renderWork() {
   const cmd = course && stage ? `forja test ${course} --stage ${stage.id}`
     : (item?.command || track?.command || `forja test ${course}`);
   $("#w-cmd").textContent = cmd;
-  $("#w-side-cmd").textContent = cmd;
   $("#w-cmd-hint").textContent = track?.smoke ? `smoke test: ${track.smoke}` : "";
-  const personal = completion(stages);
-  $("#w-side-note").textContent = checks.total
-    ? (personal.done
-      ? `${fmt.format(personal.done)} stages completed · ${fmt.format(checks.passed)} checks passing in the repo`
-      : `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks passing`)
-    : "The engine is the CLI — this page only reads it.";
 
   renderStageBar(logo, title, checks, stages, stage, course);
-  renderTestList(stages, checks, course);
-
-  /* repo markers block */
-  const repo = item?.repo || track?.repo;
-  const revSec = $("#w-review-sec");
-  if (repo?.baseline) {
-    revSec.hidden = false;
-    $("#w-repo").textContent =
-      `${fmt.format(repo.written)} of ${fmt.format(repo.baseline)} template markers written`;
-    $("#w-repo-bar").style.transform = `scaleX(${(repo.fraction || 0).toFixed(4)})`;
-  } else {
-    revSec.hidden = true;
-  }
 
   renderAllDeps(course, graph);
 }
@@ -801,19 +781,21 @@ function renderStageBar(logo, title, checks, stages, current, course) {
   for (const s of stages) {
     const li = document.createElement("li");
     if (current && s.id === current.id) li.classList.add("is-current");
-    if (course) {
-      li.classList.add("is-clickable");
-      li.onclick = () => openStage(course, s.id);
-    }
     const sym = { PASS: "✓", PERSONAL: "✓", BROWSER: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
     const color = ["PASS", "PERSONAL", "BROWSER"].includes(s.status)
       ? "#54d1a4" : s.status === "TODO" ? "#6B747C" : "#d05a5a";
-    li.innerHTML = `
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "stage-open";
+    open.innerHTML = `
       <span class="s-sym" style="color:${color}">${sym}</span>
       <span class="s-copy">
         <span class="s-name">${String(s.id).padStart(2, "0")} · ${s.title}</span>
         <span class="s-meta">${s.file}${s.status === "PERSONAL" ? " · completed before" : s.status === "BROWSER" ? " · passed in browser" : ""}</span>
       </span>`;
+    open.setAttribute("aria-label", `Open stage ${s.id}: ${s.title}`);
+    open.onclick = () => openStage(course, s.id);
+    li.appendChild(open);
     if (course && s.status !== "PERSONAL") {
       const run = document.createElement("button");
       run.type = "button";
@@ -830,32 +812,6 @@ function renderStageBar(logo, title, checks, stages, current, course) {
     ol.appendChild(li);
   }
   bar.appendChild(ol);
-}
-
-function renderTestList(stages, checks, course) {
-  const ul = $("#w-stages");
-  ul.innerHTML = "";
-  $("#w-checks").textContent = checks?.total
-    ? `${fmt.format(completion(stages).done)} / ${fmt.format(checks.total)} done`
-    : "";
-  for (const s of stages) {
-    const li = document.createElement("li");
-    const ok = ["PASS", "PERSONAL", "BROWSER"].includes(s.status);
-    li.innerHTML = `
-      <span class="t-sym" data-s="${s.status}">${ok ? "✓" : "○"}</span>
-      <span class="t-name">${s.title}<br><span class="t-file">${s.file}${s.status === "PERSONAL" ? " · completed before" : s.status === "BROWSER" ? " · passed in browser" : ""}</span></span>`;
-    if (course && s.status !== "PERSONAL") {
-      const run = document.createElement("button");
-      run.type = "button";
-      run.className = "stage-run";
-      run.textContent = "Run";
-      run.title = `Run the grader for stage ${s.id}: forja test ${course} --stage ${s.id}`;
-      run.setAttribute("aria-label", `Run the grader for stage ${s.id}`);
-      run.onclick = () => runStage(course, s.id, run);
-      li.appendChild(run);
-    }
-    ul.appendChild(li);
-  }
 }
 
 /* map --------------------------------------------------------------- */
