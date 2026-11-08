@@ -512,7 +512,17 @@ function renderWork() {
   reqs.innerHTML = "";
   for (const s of stages) {
     const li = document.createElement("li");
-    li.innerHTML = `<code>${s.file}</code> — ${s.title}`;
+    li.innerHTML = `<span class="req-copy"><code>${s.file}</code> — ${s.title}</span>`;
+    if (course) {
+      const run = document.createElement("button");
+      run.type = "button";
+      run.className = "req-run";
+      run.textContent = "Run";
+      run.title = `Run the grader for stage ${s.id}: forja test ${course} --stage ${s.id}`;
+      run.setAttribute("aria-label", `Run the grader for stage ${s.id}`);
+      run.onclick = () => runStage(course, s.id, run);
+      li.appendChild(run);
+    }
     reqs.appendChild(li);
   }
 
@@ -553,8 +563,8 @@ function renderWork() {
     ? `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks passing`
     : "The engine is the CLI — this page only reads it.";
 
-  renderStageBar(logo, title, checks, stages, stage);
-  renderTestList(stages, checks);
+  renderStageBar(logo, title, checks, stages, stage, course);
+  renderTestList(stages, checks, course);
 
   /* repo markers block */
   const repo = item?.repo || track?.repo;
@@ -571,7 +581,7 @@ function renderWork() {
   renderAllDeps(course, graph);
 }
 
-function renderStageBar(logo, title, checks, stages, current) {
+function renderStageBar(logo, title, checks, stages, current, course) {
   const bar = $("#stagebar");
   bar.innerHTML = "";
   const head = document.createElement("div");
@@ -601,12 +611,25 @@ function renderStageBar(logo, title, checks, stages, current) {
         <span class="s-name">${String(s.id).padStart(2, "0")} · ${s.title}</span>
         <span class="s-meta">${s.file}</span>
       </span>`;
+    if (course) {
+      const run = document.createElement("button");
+      run.type = "button";
+      run.className = "stage-run";
+      run.textContent = "Run";
+      run.title = `Run the grader for stage ${s.id}: forja test ${course} --stage ${s.id}`;
+      run.setAttribute("aria-label", `Run the grader for stage ${s.id}`);
+      run.onclick = (event) => {
+        event.stopPropagation();
+        runStage(course, s.id, run);
+      };
+      li.appendChild(run);
+    }
     ol.appendChild(li);
   }
   bar.appendChild(ol);
 }
 
-function renderTestList(stages, checks) {
+function renderTestList(stages, checks, course) {
   const ul = $("#w-stages");
   ul.innerHTML = "";
   $("#w-checks").textContent = checks?.total
@@ -618,6 +641,16 @@ function renderTestList(stages, checks) {
     li.innerHTML = `
       <span class="t-sym" data-s="${s.status}">${ok ? "✓" : "○"}</span>
       <span class="t-name">${s.title}<br><span class="t-file">${s.file}</span></span>`;
+    if (course) {
+      const run = document.createElement("button");
+      run.type = "button";
+      run.className = "stage-run";
+      run.textContent = "Run";
+      run.title = `Run the grader for stage ${s.id}: forja test ${course} --stage ${s.id}`;
+      run.setAttribute("aria-label", `Run the grader for stage ${s.id}`);
+      run.onclick = () => runStage(course, s.id, run);
+      li.appendChild(run);
+    }
     ul.appendChild(li);
   }
 }
@@ -1361,6 +1394,106 @@ function renderCourse() {
   });
 }
 
+/* ------------------------------------------------------------- run stage */
+function runToast(title, detail, color = "#54d1a4") {
+  const el = document.createElement("div");
+  el.className = "live-toast";
+  el.setAttribute("role", "status");
+  const sym = document.createElement("span");
+  sym.className = "lt-sym";
+  sym.style.color = color;
+  sym.textContent = "●";
+  const head = document.createElement("b");
+  head.textContent = title;
+  const body = document.createElement("span");
+  body.className = "lt-score";
+  body.textContent = String(detail || "").slice(0, 220);
+  el.append(sym, head, body);
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add("show"), 10);
+  setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => el.remove(), 400);
+  }, 5200);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await Promise.race([
+        navigator.clipboard.writeText(text),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("clipboard timeout")), 900)),
+      ]);
+      return true;
+    } catch {
+      /* fall through to the execCommand shim */
+    }
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch { ok = false; }
+  ta.remove();
+  return ok;
+}
+
+async function runStage(course, stage, button) {
+  const command = `forja test ${course} --stage ${stage}`;
+  const original = button ? button.textContent : "Run";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "…";
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    /* Try the local runner first; a static mirror answers 404/405 and falls
+       back to copying the command. Do not gate this on LIVE: a stale state
+       fallback should not hide a working local runner. */
+    const res = await fetch("/api/run-stage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ course, stage }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const copied = await copyText(command);
+      runToast(copied ? "Run locally — command copied" : "Run locally", command, "#ffb340");
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const row = (data.result?.stages || []).find((s) => s.id === stage)
+      || (data.result?.stages || [])[0] || {};
+    const status = row.status || "DONE";
+    const color = status === "PASS" ? "#54d1a4"
+      : status === "TODO" ? "#9AA3AB" : "#d05a5a";
+    runToast(`Stage ${stage} · ${status}`, row.detail || command, color);
+    /* The stage result is the freshest fact here, and authored courses do not
+       expose it through /api/state. Keep it on the in-memory item instead of
+       re-running every checker just to repaint one line. */
+    const item = findNodeByCourse(course);
+    const observed = item?.stages?.find((s) => s.id === stage);
+    if (observed) {
+      observed.status = status;
+      render();
+    }
+  } catch (err) {
+    const copied = await copyText(command);
+    runToast("Could not run here", `${err.message || err}; ${copied ? "command copied" : "run it locally"}`, "#d05a5a");
+  } finally {
+    clearTimeout(timer);
+    if (button?.isConnected) {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+}
+
 /* ---------------------------------------------------------------- copy */
 document.addEventListener("click", async (event) => {
   const btn = event.target.closest(".copy");
@@ -1912,8 +2045,9 @@ function pollEvents() {
           await refreshState();
         }
       } catch {
-        await new Promise((r) => setTimeout(r, 5000));
+        /* static mirror or transient failure */
       }
+      await new Promise((r) => setTimeout(r, 2500));
     }
   };
   loop();
