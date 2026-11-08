@@ -153,16 +153,32 @@
               <div class="browser-editor-foot">
                 <span>Ctrl/⌘ + Enter runs this stage</span>
                 <button type="button" id="editor-download">Download file</button>
+                <button type="button" class="code-review-btn" id="editor-review">
+                  <span class="play" aria-hidden="true">▶</span> Review code
+                </button>
                 <button type="button" class="primary-btn" id="editor-run">Run stage</button>
               </div>
+              <section class="editor-review" id="editor-review-wrap" hidden aria-label="Code review">
+                <div class="editor-review-head">
+                  <h3>Code review</h3>
+                  <span id="editor-review-summary" role="status" aria-live="polite"></span>
+                </div>
+                <ol class="editor-review-list" id="editor-review-list"></ol>
+              </section>
             </section>
 
             <section class="w-section" id="w-source-wrap" hidden>
               <div class="sec-row">
                 <h2 class="kicker">Stage source</h2>
-                <span class="mono dim" id="w-source-meta"></span>
+                <div class="source-tools">
+                  <span class="mono dim" id="w-source-meta"></span>
+                  <button type="button" class="code-review-btn" id="w-review-source">
+                    <span class="play" aria-hidden="true">▶</span> Review code
+                  </button>
+                </div>
               </div>
               <p class="source-note" id="w-source-note"></p>
+              <p class="review-summary" id="w-source-review" role="status" aria-live="polite" hidden></p>
               <ol class="source-lines" id="w-source-lines"></ol>
             </section>
 
@@ -336,6 +352,7 @@
     </div>
   </div>
 
+  <script src="review.js"></script>
   <script src="editor.js"></script>
   <script src="app.js"></script>
 </body>

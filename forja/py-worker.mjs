@@ -32,14 +32,18 @@ try:
     stage_checks.CHECKS[forja_stage - 1]()
     outcome = {"status": "PASS", "detail": "Stage passed."}
 except NotImplementedError as exc:
-    outcome = {"status": "TODO", "detail": str(exc) or "Finish the indicated function, then run again."}
+    frames = traceback.extract_tb(exc.__traceback__)
+    learner = next((f for f in reversed(frames) if f.filename.startswith(forja_root) and not f.filename.endswith("stage_checks.py")), None)
+    outcome = {"status": "TODO", "detail": str(exc) or "Finish the indicated function, then run again.",
+               "file": os.path.basename(learner.filename) if learner else "", "line": learner.lineno if learner else 0}
 except AssertionError as exc:
     outcome = {"status": "FAIL", "detail": str(exc) or "The stage assertion failed."}
 except Exception as exc:
     frames = traceback.extract_tb(exc.__traceback__)
     learner = next((f for f in reversed(frames) if f.filename.startswith(forja_root) and not f.filename.endswith("stage_checks.py")), None)
     where = f"{os.path.basename(learner.filename)}:{learner.lineno}: " if learner else ""
-    outcome = {"status": "ERROR", "detail": where + type(exc).__name__ + ": " + str(exc)}
+    outcome = {"status": "ERROR", "detail": where + type(exc).__name__ + ": " + str(exc),
+               "file": os.path.basename(learner.filename) if learner else "", "line": learner.lineno if learner else 0}
 json.dumps(outcome)
 `);
     self.postMessage({ id, ...JSON.parse(result) });

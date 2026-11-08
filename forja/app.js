@@ -144,6 +144,7 @@ let LAST_SEQ = 0;
 let LIVE_POLLING = false;
 const SOURCE_CACHE = new Map(); // "course\0stage" → analyzer payload
 const SOURCE_MISS = new Set();  // stages with no source target (authored courses)
+const SOURCE_REVIEW = new Map(); // "course\0stage" → per-line review result
 let SOURCE_TOKEN = 0;           // drops a late source response after a stage switch
 const PERSONAL_KEY = "forja.personal.completed.v1";
 let PERSONAL_DONE = {};
@@ -677,7 +678,7 @@ function renderSource(course, stage) {
   const key = sourceKey(course, stage.id);
   const cached = SOURCE_CACHE.get(key);
   if (cached) {
-    paintSource(cached);
+    paintSource(cached, key, stage);
     return;
   }
   if (SOURCE_MISS.has(key)) {
@@ -691,7 +692,7 @@ function renderSource(course, stage) {
   fetchStageSource(course, stage.id)
     .then((source) => {
       if (token !== SOURCE_TOKEN) return;
-      paintSource(source);
+      paintSource(source, key, stage);
     })
     .catch(() => {
       if (token !== SOURCE_TOKEN) return;
@@ -700,12 +701,43 @@ function renderSource(course, stage) {
     });
 }
 
-function paintSource(source) {
+function reviewSource(source, key, stage) {
+  if (!window.forjaCodeReview) return;
+  const result = window.forjaCodeReview.review(source.lines.join("\n"), {
+    ranges: source.ranges,
+    target: source.target,
+    stage: stage?.id,
+    task: stage?.action,
+    failureLine: source.failure_line,
+    failureDetail: source.detail,
+  });
+  SOURCE_REVIEW.set(key, result);
+  paintSource(source, key, stage);
+}
+
+function paintSource(source, key, stage) {
   const wrap = $("#w-source-wrap");
   const list = $("#w-source-lines");
   wrap.hidden = false;
   list.replaceChildren();
   const ranges = source.ranges || [];
+  const review = SOURCE_REVIEW.get(key);
+  const byLine = new Map((review?.lines || []).map((row) => [row.line, row.comments]));
+  const summary = $("#w-source-review");
+  if (review) {
+    summary.hidden = false;
+    summary.textContent = `${review.total} note${review.total === 1 ? "" : "s"} · ` +
+      `${review.errors} error${review.errors === 1 ? "" : "s"} · ` +
+      `${review.guidelines} guideline${review.guidelines === 1 ? "" : "s"}`;
+  } else {
+    summary.hidden = true;
+    summary.textContent = "";
+  }
+  const reviewButton = $("#w-review-source");
+  if (reviewButton) {
+    reviewButton.onclick = () => reviewSource(source, key, stage);
+    reviewButton.disabled = false;
+  }
   const inTarget = (n) => ranges.some(([start, end]) => n >= start && n <= end);
   const frag = document.createDocumentFragment();
   for (let i = 0; i < (source.lines || []).length; i += 1) {
@@ -729,6 +761,21 @@ function paintSource(source) {
     const code = document.createElement("code");
     code.textContent = source.lines[i] || " ";
     li.append(number, code);
+    const comments = byLine.get(n) || [];
+    if (comments.length) {
+      const block = document.createElement("div");
+      block.className = "source-comments";
+      for (const comment of comments) {
+        const note = document.createElement("p");
+        note.className = `source-comment${comment.kind === "error" ? " is-error" : ""}`;
+        const label = document.createElement("b");
+        label.textContent = `${comment.kind} · ${comment.rule}`;
+        note.append(label, document.createTextNode(comment.message));
+        block.appendChild(note);
+      }
+      li.appendChild(block);
+      li.classList.add("has-comments");
+    }
     frag.appendChild(li);
   }
   list.appendChild(frag);
@@ -1637,9 +1684,11 @@ async function runStage(course, stage, button) {
       : status === "TODO" ? "#9AA3AB" : "#d05a5a";
     runToast(`Stage ${stage} · ${status}`, row.detail || command, color);
     if (data.source) {
+      const key = sourceKey(course, stage);
       data.source.status = status;
       data.source.detail = row.detail || "";
-      SOURCE_CACHE.set(sourceKey(course, stage), data.source);
+      SOURCE_CACHE.set(key, data.source);
+      SOURCE_REVIEW.delete(key);
     }
     /* The stage result is the freshest fact here, and authored courses do not
        expose it through /api/state. Keep it on the in-memory item instead of
