@@ -493,6 +493,7 @@ code, .mono {
 }
 .testlist .t-sym { font-family: var(--mono); }
 .testlist .t-sym[data-s="PASS"] { color: var(--green); }
+.testlist .t-sym[data-s="PERSONAL"] { color: var(--green); }
 .testlist .t-sym[data-s="TODO"] { color: var(--faint); }
 .testlist .t-name { color: var(--text-dim); min-width: 0; }
 .testlist .t-file { font-family: var(--mono); font-size: 11px; color: var(--faint); }

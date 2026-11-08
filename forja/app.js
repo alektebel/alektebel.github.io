@@ -142,6 +142,61 @@ let FILTER = "All";
 let LIVE = false;
 let LAST_SEQ = 0;
 let LIVE_POLLING = false;
+const PERSONAL_KEY = "forja.personal.completed.v1";
+let PERSONAL_DONE = {};
+
+function loadPersonalDone() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PERSONAL_KEY) || "{}");
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch { return {}; }
+}
+
+function importPersonalCompletion() {
+  PERSONAL_DONE = loadPersonalDone();
+  const url = new URL(location.href);
+  if (url.searchParams.get("complete") !== "aws-iam") return;
+  const previous = Array.isArray(PERSONAL_DONE["aws-from-scratch"])
+    ? PERSONAL_DONE["aws-from-scratch"] : [];
+  PERSONAL_DONE["aws-from-scratch"] = [...new Set([...previous, ...Array.from({ length: 8 }, (_, i) => i + 1)])];
+  try { localStorage.setItem(PERSONAL_KEY, JSON.stringify(PERSONAL_DONE)); } catch { /* private mode */ }
+  url.searchParams.delete("complete");
+  history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function completion(stages) {
+  const done = stages.filter((s) => s.status === "PASS" || s.status === "PERSONAL").length;
+  const previous = stages.filter((s) => s.status === "PERSONAL").length;
+  return { done, previous, total: stages.length };
+}
+
+function applyPersonalDone() {
+  for (const item of allItems()) {
+    if (!item.course || !item.stages?.length) continue;
+    const completed = new Set(Array.isArray(PERSONAL_DONE[item.course]) ? PERSONAL_DONE[item.course] : []);
+    for (const stage of item.stages) {
+      if (completed.has(stage.id) && stage.status !== "PASS") stage.status = "PERSONAL";
+    }
+    const progress = completion(item.stages);
+    if (!progress.previous) continue;
+    item.personal_done = progress.previous;
+    item.next_step = item.stages.find((s) => s.status !== "PASS" && s.status !== "PERSONAL")?.id || null;
+    if (item.state === "ready") item.state = "doing";
+    const track = trackRows().find((row) => row.slug === item.course);
+    if (track) {
+      track.stages_detail = item.stages;
+      track.personal_done = progress.previous;
+      track.next_step = item.next_step;
+      if (track.state === "ready") track.state = "doing";
+    }
+    if (STATE.next?.course === item.course && item.next_step) {
+      const stage = item.stages.find((s) => s.id === item.next_step);
+      STATE.next.stage = stage.id;
+      STATE.next.action = stage.action || stage.title;
+      STATE.next.command = `forja test ${item.course} --stage ${stage.id}`;
+    }
+  }
+}
 
 /* ---------------------------------------------------------------- utils */
 function basePath() {
@@ -331,15 +386,21 @@ function renderNext(next) {
   $("#next-logo").alt = next.title || "";
   $("#next-h").textContent = next.headline || next.title || next.course;
   const checks = next.checks || item?.checks;
+  const progress = completion(item?.stages || []);
   $("#next-count").textContent = checks?.total
-    ? `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks`
+    ? (progress.previous ? `${fmt.format(progress.done)} / ${fmt.format(checks.total)} stages done`
+      : `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks`)
     : "";
-  $("#next-bar").style.transform = `scaleX(${(checks?.fraction ?? 0).toFixed(4)})`;
+  $("#next-bar").style.transform = `scaleX(${(checks?.total ? progress.done / checks.total : checks?.fraction ?? 0).toFixed(4)})`;
   $("#next-what").textContent = next.action
     ? `Next: Stage ${String(next.stage).padStart(2, "0")} · ${next.action}`
     : `Next: ${next.title || next.course}`;
   $("#next-cmd").textContent = next.command || "";
-  $("#next-go").onclick = () => selectChallenge(next.course);
+  $("#next-go").onclick = () => {
+    const current = findNodeByCourse(next.course);
+    if (current?.next_step && current.personal_done) openStage(next.course, current.next_step);
+    else selectChallenge(next.course);
+  };
 }
 
 function renderAlso() {
@@ -354,12 +415,13 @@ function renderAlso() {
     btn.type = "button";
     btn.className = "also-card";
     const checks = row.checks || {};
+    const progress = completion(row.stages_detail || []);
     btn.innerHTML = `
       <img src="${asset(row.logo_url)}" alt="" width="44" height="44">
       <span class="also-copy">
         <span class="also-row"><b>${row.headline}</b>
-          <span class="mono">${fmt.format(checks.passed || 0)} / ${fmt.format(checks.total || row.stages)}</span></span>
-        <span class="bar"><span class="bar-fill" style="transform:scaleX(${(checks.fraction || 0).toFixed(4)})"></span></span>
+          <span class="mono">${fmt.format(progress.done)} / ${fmt.format(checks.total || row.stages)}</span></span>
+        <span class="bar"><span class="bar-fill" style="transform:scaleX(${((checks.total || row.stages) ? progress.done / (checks.total || row.stages) : 0).toFixed(4)})"></span></span>
       </span>`;
     btn.onclick = () => selectChallenge(row.slug);
     grid.appendChild(btn);
@@ -394,8 +456,9 @@ function renderCatalog() {
     btn.type = "button";
     btn.className = "cat-card";
     const checks = item.checks || {};
+    const progress = completion(item.stages || []);
     const label = checks.total
-      ? `${fmt.format(checks.passed)}/${fmt.format(checks.total)}`
+      ? `${fmt.format(progress.done)}/${fmt.format(checks.total)}`
       : stateLabel(s);
     btn.innerHTML = `
       <img src="${asset(item.logo_url)}" alt="" width="40" height="40" style="opacity:${s === "blocked" ? .45 : 1}">
@@ -433,7 +496,8 @@ function renderWork() {
   const why = track?.description || track?.blurb || item?.why || "";
 
   /* header: use the selected stage, or the next one to do */
-  const nextStep = item?.next_step || (checks.total ? Math.min((checks.passed || 0) + 1, stages.length) : 1);
+  const nextStep = item?.next_step || track?.next_step
+    || (checks.total ? Math.min((checks.passed || 0) + 1, stages.length) : 1);
   const stage = (Number.isInteger(STAGE) && stages.find((s) => s.id === STAGE))
     || stages.find((s) => s.id === nextStep) || stages[0];
   $("#w-crumb").textContent = stage
@@ -513,7 +577,7 @@ function renderWork() {
   for (const s of stages) {
     const li = document.createElement("li");
     li.innerHTML = `<span class="req-copy"><code>${s.file}</code> — ${s.title}</span>`;
-    if (course) {
+    if (course && s.status !== "PERSONAL") {
       const run = document.createElement("button");
       run.type = "button";
       run.className = "req-run";
@@ -530,7 +594,8 @@ function renderWork() {
   const hintsSec = $("#w-hints-sec");
   const hintsRoot = $("#w-hints");
   hintsRoot.innerHTML = "";
-  const upcoming = stages.filter((s) => s.id !== stage?.id && s.status !== "PASS" && s.action);
+  const upcoming = stages.filter((s) => s.id !== stage?.id && s.status !== "PASS"
+    && s.status !== "PERSONAL" && s.action);
   if (!upcoming.length) {
     hintsSec.hidden = true;
   } else {
@@ -559,8 +624,11 @@ function renderWork() {
   $("#w-cmd").textContent = cmd;
   $("#w-side-cmd").textContent = cmd;
   $("#w-cmd-hint").textContent = track?.smoke ? `smoke test: ${track.smoke}` : "";
+  const personal = completion(stages);
   $("#w-side-note").textContent = checks.total
-    ? `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks passing`
+    ? (personal.previous
+      ? `${fmt.format(personal.previous)} previously completed · ${fmt.format(checks.passed)} checks passing here`
+      : `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks passing`)
     : "The engine is the CLI — this page only reads it.";
 
   renderStageBar(logo, title, checks, stages, stage, course);
@@ -590,12 +658,12 @@ function renderStageBar(logo, title, checks, stages, current, course) {
     <img src="${asset(logo)}" width="36" height="36" alt="">
     <span class="stagebar-titlerow">
       <span class="stagebar-title">${title}</span>
-      <span class="stagebar-count">${checks?.total ? `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks` : ""}</span>
+      <span class="stagebar-count">${checks?.total ? `${fmt.format(completion(stages).done)} / ${fmt.format(checks.total)} stages done` : ""}</span>
     </span>`;
   bar.appendChild(head);
   const progress = document.createElement("div");
   progress.className = "bar";
-  progress.innerHTML = `<div class="bar-fill" style="transform:scaleX(${(checks?.fraction || 0).toFixed(4)})"></div>`;
+  progress.innerHTML = `<div class="bar-fill" style="transform:scaleX(${(checks?.total ? completion(stages).done / checks.total : 0).toFixed(4)})"></div>`;
   bar.appendChild(progress);
 
   const ol = document.createElement("ol");
@@ -603,15 +671,16 @@ function renderStageBar(logo, title, checks, stages, current, course) {
   for (const s of stages) {
     const li = document.createElement("li");
     if (current && s.id === current.id) li.classList.add("is-current");
-    const sym = { PASS: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
-    const color = s.status === "PASS" ? "#54d1a4" : s.status === "TODO" ? "#6B747C" : "#d05a5a";
+    const sym = { PASS: "✓", PERSONAL: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
+    const color = s.status === "PASS" || s.status === "PERSONAL"
+      ? "#54d1a4" : s.status === "TODO" ? "#6B747C" : "#d05a5a";
     li.innerHTML = `
       <span class="s-sym" style="color:${color}">${sym}</span>
       <span class="s-copy">
         <span class="s-name">${String(s.id).padStart(2, "0")} · ${s.title}</span>
-        <span class="s-meta">${s.file}</span>
+        <span class="s-meta">${s.file}${s.status === "PERSONAL" ? " · completed before" : ""}</span>
       </span>`;
-    if (course) {
+    if (course && s.status !== "PERSONAL") {
       const run = document.createElement("button");
       run.type = "button";
       run.className = "stage-run";
@@ -633,15 +702,15 @@ function renderTestList(stages, checks, course) {
   const ul = $("#w-stages");
   ul.innerHTML = "";
   $("#w-checks").textContent = checks?.total
-    ? `${fmt.format(checks.passed)} / ${fmt.format(checks.total)}`
+    ? `${fmt.format(completion(stages).done)} / ${fmt.format(checks.total)} done`
     : "";
   for (const s of stages) {
     const li = document.createElement("li");
-    const ok = s.status === "PASS";
+    const ok = s.status === "PASS" || s.status === "PERSONAL";
     li.innerHTML = `
       <span class="t-sym" data-s="${s.status}">${ok ? "✓" : "○"}</span>
-      <span class="t-name">${s.title}<br><span class="t-file">${s.file}</span></span>`;
-    if (course) {
+      <span class="t-name">${s.title}<br><span class="t-file">${s.file}${s.status === "PERSONAL" ? " · completed before" : ""}</span></span>`;
+    if (course && s.status !== "PERSONAL") {
       const run = document.createElement("button");
       run.type = "button";
       run.className = "stage-run";
@@ -667,7 +736,7 @@ function nodeLabel(item) {
   const st = nodeStatus(item);
   const checks = item.checks || {};
   if (st === "done") return "complete";
-  if (st === "doing") return `${fmt.format(checks.passed || 0)}/${fmt.format(checks.total || 0)}`;
+  if (st === "doing") return `${fmt.format(completion(item.stages || []).done)}/${fmt.format(checks.total || 0)}`;
   return stateLabel(itemState(item));
 }
 
@@ -1261,12 +1330,12 @@ function renderCourse() {
   const { cfg, item, stages, groups, nodes } = tree;
   const checks = item.checks || {};
   const total = checks.total || stages.length;
-  const passed = checks.passed || 0;
+  const passed = completion(stages).done;
 
   $("#course-title").textContent = item.title;
   $("#course-sub").textContent =
     `${stages.length} stages · ${cfg.summary}`;
-  $("#course-count").textContent = `${fmt.format(passed)} / ${fmt.format(total)}`;
+  $("#course-count").textContent = `${fmt.format(passed)} / ${fmt.format(total)} done`;
   $("#course-bar").style.transform = `scaleX(${total ? (passed / total).toFixed(4) : 0})`;
   $("#course-back").onclick = () => selectNode(item.id, "map");
   $("#course-work").onclick = () => selectNode(item.id, "work");
@@ -1358,7 +1427,7 @@ function renderCourse() {
 
   for (const node of nodes) {
     const stage = node.stage;
-    const done = stage.status === "PASS";
+    const done = stage.status === "PASS" || stage.status === "PERSONAL";
     const failed = stage.status === "FAIL" || stage.status === "ERROR";
     const color = done ? C.complete : failed ? C.blocked : C.ready;
     const el = document.createElement("button");
@@ -1369,8 +1438,10 @@ function renderCourse() {
     el.style.top = `${node.y - COURSE_TREE_LAYOUT.nodeH / 2}px`;
     el.style.setProperty("--ac", node.group.color);
     el.title = `Stage ${stage.id} · ${stage.title}\n${stage.action || ""}`;
+    const progressLabel = stage.status === "PERSONAL" ? "Completed before"
+      : stage.status === "PASS" ? "Passing" : "Not passing";
     el.setAttribute("aria-label",
-      `Stage ${stage.id}: ${stage.title}. ${done ? "Passing" : "Not passing"}. Open stage.`);
+      `Stage ${stage.id}: ${stage.title}. ${progressLabel}. Open stage.`);
     el.innerHTML = `
       <span class="cs-icon"><img src="${asset(node.icon)}" width="22" height="22" alt=""></span>
       <span class="cs-body">
@@ -2027,6 +2098,7 @@ function liveBadge(event) {
 
 async function refreshState() {
   STATE = await loadState();
+  applyPersonalDone();
   render();
 }
 
@@ -2055,7 +2127,9 @@ function pollEvents() {
 
 async function init() {
   ghLoad(); renderGh();      // cached pill immediately; commits need STATE below
+  importPersonalCompletion();
   STATE = await loadState();
+  applyPersonalDone();
   ghRestore();               // re-check the fork, then read its commits
   applyRoute(false);
   render();
