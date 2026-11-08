@@ -405,6 +405,15 @@ code, .mono {
 .work-head h1 { font-size: 32px; line-height: 1.15; }
 .work-why { color: var(--muted); text-wrap: pretty; }
 .uses { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+#w-interface-sec {
+  padding: 20px 22px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface);
+}
+#w-stage-title { font-size: 22px; line-height: 1.25; }
+.w-stage-context { color: var(--muted); }
+.w-stage-task { color: var(--ink); font-size: 16px; line-height: 1.55; }
+.w-stage-predict { color: var(--muted); font-size: 14px; }
+.w-stage-source { font-size: 13px; color: var(--green); width: fit-content; }
 
 .w-section { display: flex; flex-direction: column; gap: 10px; }
 .reqs {

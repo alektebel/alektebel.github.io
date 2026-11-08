@@ -484,21 +484,30 @@ function renderWork() {
     }
   }
 
-  /* interface block: the stage action + why + prediction read like a spec */
+  /* Put the current stage's task ahead of the course outline. */
   const iface = $("#w-interface-sec");
   if (stage?.action) {
     iface.hidden = false;
-    $("#w-interface").textContent =
-      `${stage.file} · stage ${stage.id}\n\n` +
-      `action:  ${stage.action}\n` +
-      (stage.why ? `why:     ${stage.why}\n` : "") +
-      (stage.predict ? `predict: ${stage.predict}\n` : "") +
-      (stage.tags?.length ? `tags:    ${stage.tags.join(", ")}\n` : "");
+    $("#w-stage-title").textContent = `${String(stage.id).padStart(2, "0")} · ${stage.title}`;
+    $("#w-stage-context").textContent = stage.why || "";
+    $("#w-stage-context").hidden = !stage.why;
+    $("#w-stage-task").textContent = stage.action;
+    $("#w-stage-example").textContent = stage.example || "";
+    $("#w-stage-example-wrap").hidden = !stage.example;
+    $("#w-stage-predict").textContent = stage.predict ? `Before testing: ${stage.predict}` : "";
+    $("#w-stage-predict").hidden = !stage.predict;
+    const source = $("#w-stage-source");
+    source.hidden = !course || !stage.file;
+    if (!source.hidden) {
+      source.href = `https://github.com/${STATE?.repo || "alektebel/forja"}/blob/${STATE?.ref || "main"}/${course}/${stage.file}`;
+      source.textContent = `Open ${stage.file} in the source repo ↗`;
+    }
   } else {
     iface.hidden = true;
   }
 
   /* requirements: per-stage titles */
+  $("#w-reqs-sec").hidden = Boolean(stage?.action);
   const reqs = $("#w-reqs");
   reqs.innerHTML = "";
   for (const s of stages) {
@@ -511,7 +520,7 @@ function renderWork() {
   const hintsSec = $("#w-hints-sec");
   const hintsRoot = $("#w-hints");
   hintsRoot.innerHTML = "";
-  const upcoming = stages.filter((s) => s.status !== "PASS" && s.action);
+  const upcoming = stages.filter((s) => s.id !== stage?.id && s.status !== "PASS" && s.action);
   if (!upcoming.length) {
     hintsSec.hidden = true;
   } else {
@@ -535,7 +544,8 @@ function renderWork() {
   }
 
   /* commands */
-  const cmd = item?.command || track?.command || `forja test ${course}`;
+  const cmd = course && stage ? `forja test ${course} --stage ${stage.id}`
+    : (item?.command || track?.command || `forja test ${course}`);
   $("#w-cmd").textContent = cmd;
   $("#w-side-cmd").textContent = cmd;
   $("#w-cmd-hint").textContent = track?.smoke ? `smoke test: ${track.smoke}` : "";
