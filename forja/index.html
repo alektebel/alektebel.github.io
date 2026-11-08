@@ -106,6 +106,7 @@
               <p class="work-why" id="w-why"></p>
               <div class="uses" id="w-uses"></div>
               <button type="button" class="deps-jump" id="w-deps-jump">Dependencies across all projects ↓</button>
+              <button type="button" class="deps-jump" id="w-tree" hidden>Stage tree ↑</button>
             </div>
 
             <section class="w-section" id="w-interface-sec">
@@ -222,6 +223,43 @@
         </main>
 
         <aside class="map-side" id="map-side" aria-live="polite"></aside>
+      </div>
+    </div>
+
+    <!-- ================================================== course stage tree -->
+    <div class="view" id="view-course" hidden>
+      <div class="course-wrap">
+        <header class="course-head">
+          <div class="course-copy">
+            <button type="button" class="course-back" id="course-back">← All projects</button>
+            <span class="mono course-crumb">Stage dependency tree</span>
+            <h1 id="course-title">AWS From Scratch</h1>
+            <p class="course-sub" id="course-sub"></p>
+          </div>
+          <div class="course-actions">
+            <div class="course-progress">
+              <span class="mono" id="course-count"></span>
+              <div class="bar"><div class="bar-fill" id="course-bar"></div></div>
+            </div>
+            <button type="button" class="cta cta-green" id="course-work">Open workspace</button>
+          </div>
+        </header>
+
+        <div class="course-legend" id="course-legend" role="list" aria-label="AWS service groups"></div>
+
+        <div class="course-viewport" id="course-viewport" tabindex="0"
+             role="region" aria-label="AWS stage dependency tree; scroll to explore">
+          <div class="course-canvas" id="course-canvas">
+            <svg class="course-svg" id="course-svg" aria-hidden="true"></svg>
+            <div class="course-roots" id="course-roots"></div>
+            <div class="course-nodes" id="course-nodes"></div>
+          </div>
+        </div>
+
+        <p class="course-hint">
+          Official AWS service icons. Arrows run from a prerequisite stage to the stage it unlocks.
+          Click a stage to open it in the workspace.
+        </p>
       </div>
     </div>
   </main>

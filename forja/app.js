@@ -42,6 +42,57 @@ const GROW_SOFT = "rgba(110,231,168,.7)";
 const DEP_GROUP_ORDER = Object.keys(BR);
 const DEP_GAP_X = 142, DEP_NODE_W = 118, DEP_NODE_H = 28, DEP_ROW = 34, DEP_LEFT = 146;
 
+/* ------------------------------------------------------- AWS stage tree */
+/* Official AWS Architecture Icons (svgs) live in logos/aws-*.svg. The stage
+   prerequisites below are curated from the course itself: stages build in
+   order inside one mechanism; IAM gates every service; the condition rules are reused by SNS filters and KMS context; the
+   integration ladder wires the last behavior of each service. Keep the ids
+   in sync with aws-from-scratch/lessons.json. */
+const COURSE_TREES = {
+  "aws-from-scratch": {
+    summary: "eight mechanisms · five integration stages",
+    groups: [
+      { id: "iam", label: "IAM", icon: "logos/aws-iam.svg", color: "#e0565b", files: ["iam.py"] },
+      { id: "s3", label: "S3", icon: "logos/aws-s3.svg", color: "#7aa2f7", files: ["s3.py"] },
+      { id: "sqs", label: "SQS", icon: "logos/aws-sqs.svg", color: "#b48ead", files: ["sqs.py"] },
+      { id: "dynamodb", label: "DynamoDB", icon: "logos/aws-dynamodb.svg", color: "#6ee7a8", files: ["dynamodb.py"] },
+      { id: "lambda", label: "Lambda", icon: "logos/aws-lambda.svg", color: "#f2b84b", files: ["lambda_svc.py"] },
+      { id: "sns", label: "SNS", icon: "logos/aws-sns.svg", color: "#e0b44e", files: ["sns.py"] },
+      { id: "kms", label: "KMS", icon: "logos/aws-kms.svg", color: "#54d1a4", files: ["kms.py"] },
+      { id: "vpc", label: "VPC", icon: "logos/aws-vpc.svg", color: "#6aa5f0", files: ["vpc.py"] },
+      { id: "capstone", label: "Integration", icon: "logos/aws-cfn.svg", color: "#ff9900", files: ["capstone.py"] },
+    ],
+    stageIcons: { 46: "logos/aws-eventbridge.svg", 47: "logos/aws-eventbridge.svg" },
+    deps: [
+      /* one behavior at a time inside each mechanism */
+      [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8],
+      [9, 10], [10, 11], [11, 12], [12, 13], [13, 14], [14, 15], [15, 16], [16, 17],
+      [18, 19], [19, 20], [20, 21], [21, 22], [22, 23], [23, 24], [24, 25], [25, 26],
+      [27, 28], [28, 29], [29, 30], [30, 31], [31, 32], [32, 33],
+      [34, 35], [35, 36], [36, 37], [37, 38], [38, 39], [39, 40], [40, 41], [41, 42],
+      [43, 44], [44, 45], [45, 46], [46, 47],
+      [48, 49], [49, 50], [50, 51],
+      [52, 53], [53, 54], [54, 55], [55, 56], [56, 57], [57, 58],
+      [59, 60], [60, 61], [61, 62], [62, 63],
+      /* IAM gates every service; the condition rule returns in filters and KMS */
+      [8, 9], [8, 18], [8, 27], [8, 34], [8, 43], [8, 48], [8, 52], [8, 59],
+      [5, 44], [5, 45], [5, 50],
+      [23, 42],
+      /* the integration ladder wires the last behavior of each service */
+      [9, 59], [43, 59], [18, 60], [34, 61], [27, 61], [8, 62], [9, 62],
+      [31, 63], [42, 63],
+    ],
+  },
+};
+/* Nine service lanes, one stage per row. Wide enough for nine stages
+   (IAM, S3, SQS and Lambda all have nine) without overlaps. */
+const COURSE_TREE_LAYOUT = {
+  laneW: 126, gap: 14, left: 16, top: 14, headerH: 58,
+  rowH: 40, nodeW: 126, nodeH: 36, bottom: 18,
+  get width() { return this.left * 2 + 9 * this.laneW + 8 * this.gap; },
+  get height() { return this.top + this.headerH + 9 * this.rowH + this.bottom; },
+};
+
 /* which branch a project belongs to */
 const CATEGORY = {
   "llm-from-scratch": "AI", "autograd-from-scratch": "AI",
@@ -82,8 +133,9 @@ const CATEGORY = {
 };
 
 let STATE = null;
-let VIEW = "home";          // home | work | map
-let SELECTED = null;        // { kind: "challenge"|"node", id }
+let VIEW = "home";          // home | work | map | course
+let SELECTED = null;        // { kind: "challenge"|"node"|"course", id }
+let STAGE = null;           // stage number inside the work detail
 let MAP_PREVIEW = null;     // course hovered/focused in the map side panel
 let DEP_HIDDEN = new Set(); // groups folded away in the project dependency graph
 let FILTER = "All";
@@ -166,41 +218,75 @@ function applyRoute(push = false) {
     const params = new URLSearchParams(location.search);
     const challenge = params.get("challenge");
     const node = params.get("node");
+    const course = params.get("course");
+    const stage = Number(params.get("stage"));
     const view = params.get("view");
     if (challenge && findChallenge(challenge)) {
       VIEW = "work";
       SELECTED = { kind: "challenge", id: challenge };
+      STAGE = null;
+    } else if (view === "course" && course && COURSE_TREES[course]) {
+      VIEW = "course";
+      SELECTED = { kind: "course", id: course };
+      STAGE = null;
     } else if (node && findItem(node)) {
       VIEW = view === "work" ? "work" : "map";
       SELECTED = { kind: "node", id: node };
+      STAGE = VIEW === "work" && Number.isInteger(stage) && stage > 0 ? stage : null;
     } else if (view === "work" || view === "map" || view === "home") {
       VIEW = view;
       SELECTED = null;
+      STAGE = null;
     } else {
       VIEW = "home";
       SELECTED = null;
+      STAGE = null;
     }
   }
   if (push) {
     const q = new URLSearchParams();
     q.set("view", VIEW);
-    if (SELECTED) q.set(SELECTED.kind === "challenge" ? "challenge" : "node", SELECTED.id);
+    if (VIEW === "course" && SELECTED?.kind === "course") {
+      q.set("course", SELECTED.id);
+    } else if (SELECTED) {
+      q.set(SELECTED.kind === "challenge" ? "challenge" : "node", SELECTED.id);
+    }
+    if (VIEW === "work" && STAGE) q.set("stage", STAGE);
     history.pushState({}, "", `${location.pathname}?${q}`);
   }
   render();
 }
 
-function go(view) { MAP_PREVIEW = null; VIEW = view; applyRoute(true); }
+function go(view) { MAP_PREVIEW = null; STAGE = null; VIEW = view; applyRoute(true); }
 function selectChallenge(slug) {
   MAP_PREVIEW = null;
+  STAGE = null;
   VIEW = "work";
   SELECTED = findChallenge(slug) ? { kind: "challenge", id: slug } : null;
   applyRoute(true);
 }
 function selectNode(id, view = "map") {
   MAP_PREVIEW = null;
+  STAGE = null;
   VIEW = view;
   SELECTED = findItem(id) ? { kind: "node", id } : null;
+  applyRoute(true);
+}
+function selectCourse(course) {
+  if (!COURSE_TREES[course]) return;
+  MAP_PREVIEW = null;
+  STAGE = null;
+  VIEW = "course";
+  SELECTED = { kind: "course", id: course };
+  applyRoute(true);
+}
+function openStage(course, stage) {
+  const item = findNodeByCourse(course);
+  if (!item) return;
+  MAP_PREVIEW = null;
+  STAGE = stage;
+  VIEW = "work";
+  SELECTED = { kind: "node", id: item.id };
   applyRoute(true);
 }
 
@@ -209,11 +295,13 @@ let LAST_VIEW = null;
 function render() {
   if (!STATE) return; // init loads state before first paint
   $$(".topnav button").forEach((b) => {
-    b.classList.toggle("is-active", b.dataset.view === VIEW);
+    b.classList.toggle("is-active",
+      b.dataset.view === VIEW || (VIEW === "course" && b.dataset.view === "map"));
   });
   $("#view-home").hidden = VIEW !== "home";
   $("#view-work").hidden = VIEW !== "work";
   $("#view-map").hidden = VIEW !== "map";
+  $("#view-course").hidden = VIEW !== "course";
   if (VIEW === "home") renderHome();
   if (VIEW === "work") renderWork();
   if (VIEW === "map") {
@@ -221,6 +309,7 @@ function render() {
     if (VIEW !== LAST_VIEW) fitTree(true);
     renderMap();
   }
+  if (VIEW === "course") renderCourse();
   LAST_VIEW = VIEW;
 }
 
@@ -343,9 +432,10 @@ function renderWork() {
   const title = track?.headline || item?.title || course;
   const why = track?.description || track?.blurb || item?.why || "";
 
-  /* header: use the stage's action as the crumb line */
+  /* header: use the selected stage, or the next one to do */
   const nextStep = item?.next_step || (checks.total ? Math.min((checks.passed || 0) + 1, stages.length) : 1);
-  const stage = stages.find((s) => s.id === nextStep) || stages[0];
+  const stage = (Number.isInteger(STAGE) && stages.find((s) => s.id === STAGE))
+    || stages.find((s) => s.id === nextStep) || stages[0];
   $("#w-crumb").textContent = stage
     ? `Stage ${String(stage.id).padStart(2, "0")} · ${stage.file}`
     : (item?.id || track?.id || "");
@@ -384,6 +474,15 @@ function renderWork() {
     const sec = $("#w-deps");
     if (sec && !sec.hidden) sec.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const stageTree = $("#w-tree");
+  if (stageTree) {
+    const hasTree = !!(course && COURSE_TREES[course]);
+    stageTree.hidden = !hasTree;
+    if (hasTree) {
+      stageTree.textContent = "Stage tree ↑";
+      stageTree.onclick = () => selectCourse(course);
+    }
+  }
 
   /* interface block: the stage action + why + prediction read like a spec */
   const iface = $("#w-interface-sec");
@@ -734,8 +833,11 @@ function renderMap() {
     el.className = "tree-node";
     if (SELECTED?.kind === "node" && SELECTED.id === item.id) el.classList.add("is-selected");
     if (preview && preview.item.id === item.id) el.classList.add("is-preview");
-    el.title = `Open ${item.title}`;
-    el.setAttribute("aria-label", `Open ${item.title} project detail`);
+    const hasTree = !!COURSE_TREES[item.course];
+    el.title = hasTree ? `Open ${item.title} stage tree` : `Open ${item.title}`;
+    el.setAttribute("aria-label", hasTree
+      ? `Open ${item.title} stage dependency tree`
+      : `Open ${item.title} project detail`);
     el.style.left = `${node.x - NODE_W / 2}px`;
     el.style.top = `${node.y - 26}px`;
     const frac = checks.total ? (checks.passed / checks.total) : 0;
@@ -751,7 +853,7 @@ function renderMap() {
       </span>
       <span class="tn-title">${item.title}</span>
       <span class="tn-label" style="color:${stateColor(itemState(item))}">${nodeLabel(item)}</span>`;
-    el.onclick = () => selectNode(item.id, "work");
+    el.onclick = () => hasTree ? selectCourse(item.course) : selectNode(item.id, "work");
     el.onmouseenter = () => { MAP_PREVIEW = node.course; renderMapSide(nodes, byId); };
     el.onfocus = () => { MAP_PREVIEW = node.course; renderMapSide(nodes, byId); };
     nodesRoot.appendChild(el);
@@ -814,8 +916,11 @@ function renderMapSide(nodes, byId) {
   cta.type = "button";
   cta.className = "cta cta-green";
   cta.style.marginTop = "auto";
-  cta.textContent = st === "blocked" ? "Blocked" : st === "doing" ? "Continue" : "Start";
-  if (st !== "blocked") cta.onclick = () => selectNode(item.id, "work");
+  const hasTree = !!COURSE_TREES[item.course];
+  cta.textContent = hasTree ? "Open stage tree"
+    : st === "blocked" ? "Blocked" : st === "doing" ? "Continue" : "Start";
+  if (hasTree) cta.onclick = () => selectCourse(item.course);
+  else if (st !== "blocked") cta.onclick = () => selectNode(item.id, "work");
   else cta.disabled = true;
   side.appendChild(cta);
 }
@@ -997,7 +1102,9 @@ function renderDepNodes(layout, g, sel) {
     b.title = `${n.item.title} — ${nodeLabel(n.item)}; requires ${reqs}, unlocks ${unlocks}`;
     b.setAttribute("aria-label", `${n.item.title}: ${nodeLabel(n.item)}. Requires ${reqs} projects, unlocks ${unlocks}.`);
     b.innerHTML = `<i class="dep-dot" style="background:${stateColor(itemState(n.item))}"></i><span>${n.item.title}</span>`;
-    b.onclick = () => selectNode(n.item.id, "work");
+    b.onclick = () => COURSE_TREES[n.item.course]
+      ? selectCourse(n.item.course)
+      : selectNode(n.item.id, "work");
     root.appendChild(b);
   }
 }
@@ -1036,6 +1143,211 @@ function renderAllDeps(selectedCourse, g = null) {
     if (scroll && node) {
       scroll.scrollLeft = Math.max(0, node.x - Math.max(0, (scroll.clientWidth - DEP_NODE_W) / 2));
     }
+  });
+}
+
+/* ------------------------------------------------------- course stage tree */
+function htmlEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function courseStageGraph(course) {
+  const cfg = COURSE_TREES[course];
+  if (!cfg || !STATE) return null;
+  const item = findNodeByCourse(course);
+  if (!item?.stages?.length) return null;
+
+  const groups = cfg.groups.map((g, index) => ({
+    ...g, stages: [], laneX: COURSE_TREE_LAYOUT.left + index * (COURSE_TREE_LAYOUT.laneW + COURSE_TREE_LAYOUT.gap),
+  }));
+  const groupById = new Map(groups.map((g) => [g.id, g]));
+  const byFile = new Map();
+  for (const g of groups) for (const file of g.files) byFile.set(file, g.id);
+
+  const byStage = new Map();
+  const nodes = [];
+  const L = COURSE_TREE_LAYOUT;
+  const stages = [...item.stages].sort((a, b) => a.id - b.id);
+  for (const stage of stages) {
+    const gid = byFile.get(stage.file) || "capstone";
+    const group = groupById.get(gid);
+    if (!group) continue;
+    const index = group.stages.length;
+    const node = {
+      stage, group,
+      icon: cfg.stageIcons?.[stage.id] || group.icon,
+      x: group.laneX + L.laneW / 2,
+      y: L.top + L.headerH + index * L.rowH + L.nodeH / 2,
+    };
+    group.stages.push(stage);
+    nodes.push(node);
+    byStage.set(stage.id, node);
+  }
+
+  const edges = [];
+  for (const [from, to] of cfg.deps || []) {
+    const a = byStage.get(from);
+    const b = byStage.get(to);
+    if (!a || !b) continue;
+    edges.push({
+      from: a, to: b,
+      cross: a.group.id !== b.group.id,
+      capstone: b.group.id === "capstone",
+    });
+  }
+  return { course, cfg, item, stages, groups, nodes, byStage, edges };
+}
+
+function courseEdgePoint(a, b) {
+  const L = COURSE_TREE_LAYOUT;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const tx = dx ? (L.nodeW / 2) / Math.abs(dx) : Infinity;
+  const ty = dy ? (L.nodeH / 2) / Math.abs(dy) : Infinity;
+  const t = Math.min(tx, ty);
+  return { x: a.x + dx * t, y: a.y + dy * t };
+}
+
+function renderCourse() {
+  const course = SELECTED?.kind === "course" ? SELECTED.id : null;
+  const tree = courseStageGraph(course);
+  if (!tree) { VIEW = "map"; SELECTED = null; render(); return; }
+
+  const { cfg, item, stages, groups, nodes } = tree;
+  const checks = item.checks || {};
+  const total = checks.total || stages.length;
+  const passed = checks.passed || 0;
+
+  $("#course-title").textContent = item.title;
+  $("#course-sub").textContent =
+    `${stages.length} stages · ${cfg.summary}`;
+  $("#course-count").textContent = `${fmt.format(passed)} / ${fmt.format(total)}`;
+  $("#course-bar").style.transform = `scaleX(${total ? (passed / total).toFixed(4) : 0})`;
+  $("#course-back").onclick = () => selectNode(item.id, "map");
+  $("#course-work").onclick = () => selectNode(item.id, "work");
+
+  const legend = $("#course-legend");
+  legend.innerHTML = groups.map((g) => `
+    <span class="course-key" style="--ac:${g.color}">
+      <img src="${asset(g.icon)}" width="18" height="18" alt="">
+      <span>${htmlEscape(g.label)}</span><b>${g.stages.length}</b>
+    </span>`).join("") + `
+    <span class="course-key course-key-note"><i class="ck-arrow"></i>arrow = prerequisite</span>
+    <span class="course-key course-key-note">click a stage to open it</span>`;
+
+  const L = COURSE_TREE_LAYOUT;
+  const canvas = $("#course-canvas");
+  canvas.style.width = `${L.width}px`;
+  canvas.style.height = `${L.height}px`;
+
+  const roots = $("#course-roots");
+  roots.innerHTML = "";
+  for (const group of groups) {
+    const root = document.createElement("div");
+    root.className = "course-root";
+    root.style.left = `${group.laneX}px`;
+    root.style.top = `${L.top}px`;
+    root.style.width = `${L.laneW}px`;
+    root.style.setProperty("--ac", group.color);
+    root.title = `${group.label}: ${group.stages.length} stage${group.stages.length === 1 ? "" : "s"}`;
+    root.innerHTML = `
+      <span class="cr-icon"><img src="${asset(group.icon)}" width="28" height="28" alt=""></span>
+      <span class="cr-copy">
+        <span class="cr-label">${htmlEscape(group.label)}</span>
+        <span class="cr-count">${group.stages.length} stages</span>
+      </span>`;
+    roots.appendChild(root);
+  }
+
+  const svg = $("#course-svg");
+  svg.setAttribute("width", String(L.width));
+  svg.setAttribute("height", String(L.height));
+  svg.setAttribute("viewBox", `0 0 ${L.width} ${L.height}`);
+
+  const defs = `
+    <marker id="cs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9AA3AB"></path>
+    </marker>
+    <marker id="cs-arrow-cross" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6aa5f0"></path>
+    </marker>
+    <marker id="cs-arrow-cap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ffb340"></path>
+    </marker>`;
+
+  const spokes = groups.map((group) => {
+    const last = [...nodes].reverse().find((n) => n.group === group);
+    if (!last) return "";
+    const x = group.laneX + L.laneW / 2;
+    return `<path class="cs-spoke" d="M${x} ${L.top + L.headerH - 4} L${x} ${last.y + L.nodeH / 2}" stroke="${group.color}"></path>`;
+  }).join("");
+
+  const paths = tree.edges.map((edge) => {
+    const start = courseEdgePoint(edge.from, edge.to);
+    const end = courseEdgePoint(edge.to, edge.from);
+    let d = `M${start.x} ${start.y} L${end.x} ${end.y}`;
+    if (edge.cross) {
+      const mid = (start.x + end.x) / 2;
+      d = `M${start.x} ${start.y} C${mid} ${start.y} ${mid} ${end.y} ${end.x} ${end.y}`;
+    }
+    const marker = edge.capstone ? "cs-arrow-cap" : edge.cross ? "cs-arrow-cross" : "cs-arrow";
+    const color = edge.capstone ? "#ffb340" : edge.cross ? "#6aa5f0" : "rgba(232,234,235,.34)";
+    return `<path class="cs-edge" data-from="${edge.from.stage.id}" data-to="${edge.to.stage.id}"
+      d="${d}" fill="none" stroke="${color}" stroke-width="1.25"
+      marker-end="url(#${marker})"></path>`;
+  }).join("");
+
+  svg.innerHTML = `<defs>${defs}</defs>${spokes}${paths}`;
+
+  const root = $("#course-nodes");
+  root.innerHTML = "";
+  const edges = () => [...svg.querySelectorAll(".cs-edge")];
+  const setHot = (stageId) => {
+    for (const path of edges()) {
+      const hot = stageId !== null
+        && (path.dataset.from === String(stageId) || path.dataset.to === String(stageId));
+      path.classList.toggle("is-hot", hot);
+      path.classList.toggle("is-dim", stageId !== null && !hot);
+    }
+  };
+
+  for (const node of nodes) {
+    const stage = node.stage;
+    const done = stage.status === "PASS";
+    const failed = stage.status === "FAIL" || stage.status === "ERROR";
+    const color = done ? C.complete : failed ? C.blocked : C.ready;
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "course-stage";
+    el.dataset.stage = String(stage.id);
+    el.style.left = `${node.x - COURSE_TREE_LAYOUT.nodeW / 2}px`;
+    el.style.top = `${node.y - COURSE_TREE_LAYOUT.nodeH / 2}px`;
+    el.style.setProperty("--ac", node.group.color);
+    el.title = `Stage ${stage.id} · ${stage.title}\n${stage.action || ""}`;
+    el.setAttribute("aria-label",
+      `Stage ${stage.id}: ${stage.title}. ${done ? "Passing" : "Not passing"}. Open stage.`);
+    el.innerHTML = `
+      <span class="cs-icon"><img src="${asset(node.icon)}" width="22" height="22" alt=""></span>
+      <span class="cs-body">
+        <span class="cs-num">${String(stage.id).padStart(2, "0")}</span>
+        <span class="cs-title">${htmlEscape(stage.title)}</span>
+      </span>
+      <i class="cs-dot" style="background:${color}"></i>`;
+    el.onclick = () => openStage(tree.course, stage.id);
+    el.onmouseenter = () => setHot(stage.id);
+    el.onfocus = () => setHot(stage.id);
+    el.onmouseleave = () => setHot(null);
+    el.onblur = () => setHot(null);
+    root.appendChild(el);
+  }
+
+  requestAnimationFrame(() => {
+    const viewport = $("#course-viewport");
+    if (!viewport) return;
+    viewport.scrollLeft = 0;
+    viewport.scrollTop = 0;
   });
 }
 
