@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-07T15:43:14",
+ "generated_at": "2026-11-08T13:29:22",
  "order": "Anyformat prep track: AWS → infra → LLM → evals → agents; then RAG, MCP, harness, the machine stack",
  "brand": {
   "name": "forja",
@@ -17787,6 +17787,21 @@
    "next_step": null
   },
   {
+   "name": "memcached-from-scratch",
+   "title": "Memcached From Scratch",
+   "dir": "/home/runner/work/forja/forja/memcached-from-scratch",
+   "mode": "course",
+   "order": 41,
+   "repo": {
+    "baseline": 86,
+    "remaining": 86,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "checks": null,
+   "next_step": null
+  },
+  {
    "name": "llm-security-from-scratch",
    "title": "LLM Security From Scratch",
    "dir": "/home/runner/work/forja/forja/llm-security-from-scratch",
@@ -17804,5 +17819,5 @@
  ],
  "repo": "alektebel/forja",
  "ref": "main",
- "generated": "2026-11-07T15:43:14"
+ "generated": "2026-11-08T13:29:22"
 }
