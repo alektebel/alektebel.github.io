@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-08T13:29:22",
+ "generated_at": "2026-11-08T14:46:24",
  "order": "Anyformat prep track: AWS → infra → LLM → evals → agents; then RAG, MCP, harness, the machine stack",
  "brand": {
   "name": "forja",
@@ -13,9 +13,9 @@
   "ready": 73,
   "missing": 8,
   "checks_passed": 0,
-  "checks_total": 165,
-  "repo_remaining": 2418,
-  "repo_baseline": 2418,
+  "checks_total": 192,
+  "repo_remaining": 2392,
+  "repo_baseline": 2392,
   "repo_fraction": 0.0
  },
  "next": {
@@ -29,10 +29,10 @@
   "showcase": true,
   "stage": 1,
   "file": "iam.py",
-  "stage_title": "explicit deny > allow > implicit deny",
-  "action": "IAM: an explicit Deny wins; otherwise any matching Allow applies; otherwise implicit Deny.",
-  "why": "This rule is what makes a policy SET composable: order never matters, so appending a guard policy can never break existing grants. Evaluate it like a firewall (first or last match wins) and the same policies behave differently depending on document order — no property you can reason about at scale.",
-  "predict": "the result when Allow and Deny both match.",
+  "stage_title": "Implicit deny",
+  "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
+  "why": "An IAM request starts denied until a policy grants it.",
+  "predict": "What is allowed for a request with no policies?",
   "command": "forja test aws-from-scratch --stage 1"
  },
  "showcase": {
@@ -47,456 +47,644 @@
     "why": "Eight mechanism families in pure Python, 18 checks. The best first course: no dependencies, every stage is a real failure mode.",
     "logo": "aws",
     "logo_url": "logos/aws.svg",
-    "stages": 36,
+    "stages": 63,
     "ready": true,
     "state": "ready",
     "checks": {
      "passed": 0,
-     "total": 36,
+     "total": 63,
      "fraction": 0.0
     },
     "stages_detail": [
      {
       "id": 1,
       "file": "iam.py",
-      "title": "explicit deny > allow > implicit deny",
-      "tags": [
-       "authorization"
-      ],
+      "title": "Implicit deny",
+      "tags": [],
       "status": "TODO",
-      "action": "IAM: an explicit Deny wins; otherwise any matching Allow applies; otherwise implicit Deny.",
-      "why": "This rule is what makes a policy SET composable: order never matters, so appending a guard policy can never break existing grants. Evaluate it like a firewall (first or last match wins) and the same policies behave differently depending on document order — no property you can reason about at scale.",
-      "predict": "the result when Allow and Deny both match."
+      "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
+      "why": "An IAM request starts denied until a policy grants it.",
+      "predict": "What is allowed for a request with no policies?"
      },
      {
       "id": 2,
       "file": "iam.py",
-      "title": "conditions: AND keys, OR values, fail closed",
-      "tags": [
-       "authorization"
-      ],
+      "title": "Match an action and a resource before applying a statement",
+      "tags": [],
       "status": "TODO",
-      "action": "Policy conditions: AND across keys, OR within one key's values, and a MISSING context key never matches.",
-      "why": "Fail-closed is not a style choice — it is the difference between a bug and a vulnerability. Treat an absent aws:SourceIp as 'any IP' and a request with no context at all bypasses every IP restriction. The AND/OR shape also returns in SNS filters (stage 16): learn it once here.",
-      "predict": "a request with NO context keys against a policy requiring two conditions."
+      "action": "Match an action and a resource before applying a statement.",
+      "why": "A policy statement applies only to its named action and resource.",
+      "predict": "Does GetObject on bucket A pass? What about PutObject or bucket B?"
      },
      {
       "id": 3,
       "file": "iam.py",
-      "title": "permissions boundaries subtract, never grant",
-      "tags": [
-       "authorization"
-      ],
+      "title": "Give a matching explicit Deny precedence over Allow",
+      "tags": [],
       "status": "TODO",
-      "action": "Permissions boundaries: a boundary only SUBTRACTS from what identity policies grant, it can never grant.",
-      "why": "If a boundary could grant, handing someone a boundary would be a privilege escalation, and delegation would be unsafe. Subtract-only is what makes 'you may be an admin of this project, never of IAM' expressible at all.",
-      "predict": "Allow outside the boundary."
+      "action": "Give a matching explicit Deny precedence over Allow.",
+      "why": "Several policy statements may apply to the same request.",
+      "predict": "If Allow and Deny both match, does reversing policy order change the result?"
      },
      {
       "id": 4,
       "file": "iam.py",
-      "title": "assume-role: caller policy AND role trust",
-      "tags": [
-       "authorization"
-      ],
+      "title": "Reject a condition when its context key is missing",
+      "tags": [],
       "status": "TODO",
-      "action": "Assume-role needs BOTH directions: the caller's own policy must allow sts:AssumeRole, AND the role's trust policy must allow that principal.",
-      "why": "Two policies for two different attackers. Your own policy protects you from yourself (an intern's role-escape); the trust policy protects you from OTHER accounts — without it, anyone whose own policy says 'I may assume anything' walks into your roles.",
-      "predict": "identity policy Allows but trust policy does not."
+      "action": "Reject a condition when its context key is missing.",
+      "why": "A condition cannot be checked when its input is absent.",
+      "predict": "What happens when a required source IP is absent?"
      },
      {
       "id": 5,
-      "file": "s3.py",
-      "title": "put/get objects and the NoSuchKey error",
-      "tags": [
-       "storage"
-      ],
+      "file": "iam.py",
+      "title": "Combine condition keys with AND and alternatives for one key with OR",
+      "tags": [],
       "status": "TODO",
-      "action": "S3 objects: put/get with an ETag (the body's MD5), and a missing key raises NoSuchKey.",
-      "why": "The ETag is the content hash because S3 is a flat KV store with no directories to hide consistency behind — the tag is your only cheap integrity check, and the NoSuchKey error (not a null) is how you distinguish 'absent' from 'present but empty'.",
-      "predict": "what GET returns for a key that was never written."
+      "action": "Combine condition keys with AND and alternatives for one key with OR.",
+      "why": "A condition can list alternatives for one key and require another key.",
+      "predict": "Does staging/data pass? Does prod/web pass?"
      },
      {
       "id": 6,
-      "file": "s3.py",
-      "title": "multipart ETags end in -<part count>",
-      "tags": [
-       "storage"
-      ],
+      "file": "iam.py",
+      "title": "Intersect identity permissions with a permissions boundary",
+      "tags": [],
       "status": "TODO",
-      "action": "Multipart ETags end in '-<part count>' and are NOT the object's MD5: parts assemble in order at complete().",
-      "why": "A multipart ETag is the MD5 of the concatenated PART MD5s — hence the suffix. The practical consequence: you cannot verify a multipart upload by md5-ing your local file, and people burn hours on exactly that.",
-      "predict": "the ETag of a two-part multipart upload."
+      "action": "Intersect identity permissions with a permissions boundary.",
+      "why": "A boundary caps an identity policy without becoming a grant itself.",
+      "predict": "Can a boundary grant GetObject to an identity with no Allow?"
      },
      {
       "id": 7,
-      "file": "s3.py",
-      "title": "delimiter invents folders at list time",
-      "tags": [
-       "storage"
-      ],
+      "file": "iam.py",
+      "title": "Check a role's trust policy when assuming it",
+      "tags": [],
       "status": "TODO",
-      "action": "Listing: without a delimiter every key returns flat; with delimiter='/', shared prefixes collapse into common_prefixes.",
-      "why": "Folders do not exist in S3 — reports/2024/q1.csv is one opaque key. The delimiter INVENTS folders at list time, which is why an empty folder cannot exist and why 'renaming a folder' is O(every object under it).",
-      "predict": "what list_objects returns for a/1.txt, a/2.txt, top.txt with delimiter='/'."
+      "action": "Check a role's trust policy when assuming it.",
+      "why": "A role controls who may assume it through a trust policy.",
+      "predict": "Can a caller assume a role when their policy allows it but the role trust rejects them?"
      },
      {
       "id": 8,
-      "file": "s3.py",
-      "title": "delete marker hides versions, frees nothing",
-      "tags": [
-       "storage",
-       "lifecycle"
-      ],
+      "file": "iam.py",
+      "title": "Give an assumed session the role's permissions",
+      "tags": [],
       "status": "TODO",
-      "action": "In a versioned bucket, DELETE pushes a delete marker: plain GET then 404s, but every version is still stored — only deleting a version_id frees bytes.",
-      "why": "Versioning makes buckets immutable-by-default, and DELETE must be undoable, so it appends instead of mutating. Consequence: 'I emptied the bucket' and 'the bill went down' are different claims — the bytes sit there, billable, under the marker.",
-      "predict": "what GET returns after a delete marker is added."
+      "action": "Give an assumed session the role's permissions.",
+      "why": "An assumed role uses the role's permissions during the session.",
+      "predict": "Which permissions does a successful assumed session carry?"
      },
      {
       "id": 9,
-      "file": "sqs.py",
-      "title": "receive is a lease; expiry redelivers",
-      "tags": [
-       "messaging",
-       "lifecycle"
-      ],
+      "file": "s3.py",
+      "title": "Store and retrieve one object by its full key",
+      "tags": [],
       "status": "TODO",
-      "action": "receive() is a LEASE, not a read: the visibility timeout hides a message; if it is not deleted in time it is redelivered.",
-      "why": "Consumers crash mid-message, and the queue cannot know. A read must either lose the message or block the queue; a lease does neither. Redelivery is the queue CHOOSING duplication over loss — so your handler is idempotent or it is wrong.",
-      "predict": "whether the same message is received twice."
+      "action": "Use the supplied bucket setup. Implement put_object and get_object so one opaque key round trips. A placeholder ETag is enough until stage 11.",
+      "why": "An S3 key is an opaque name, even when it contains a slash.",
+      "predict": "What bytes come back after putting b/hello under key a/b.txt?"
      },
      {
       "id": 10,
-      "file": "sqs.py",
-      "title": "stale receipt handles must fail to delete",
-      "tags": [
-       "messaging",
-       "lifecycle"
-      ],
+      "file": "s3.py",
+      "title": "Raise `NoSuchKey` for an absent object",
+      "tags": [],
       "status": "TODO",
-      "action": "Each receive gets its OWN receipt handle; after the lease expires, the FIRST consumer's delete must fail.",
-      "why": "If both consumers shared one Message object, the second receive would overwrite the first's handle and the stale delete would silently succeed — deleting work someone else is still doing. Distinct handles make every delete prove its lease is current.",
-      "predict": "whether consumer A's delete succeeds after B's redelivery."
+      "action": "Raise `NoSuchKey` for an absent object.",
+      "why": "An empty object and a missing key are different states.",
+      "predict": "How can GET distinguish an empty object from an absent key?"
      },
      {
       "id": 11,
-      "file": "sqs.py",
-      "title": "change_visibility extends the lease",
-      "tags": [
-       "messaging"
-      ],
+      "file": "s3.py",
+      "title": "Compute the toy's single-part MD5 ETag",
+      "tags": [],
       "status": "TODO",
-      "action": "change_visibility extends a lease: a consumer whose work outlasts the timeout renews instead of racing redelivery.",
-      "why": "Lease expiry exists for CRASHED consumers. A live slow consumer should never hit it — extending the deadline is the fix, and heartbeat loops in real systems are exactly this call on a timer.",
-      "predict": "whether the message returns at the original timeout after an extension."
+      "action": "Compute the toy's single-part MD5 ETag.",
+      "why": "This toy uses MD5 for an ordinary single-part ETag.",
+      "predict": "What digest is returned for the single-part body hello?"
      },
      {
       "id": 12,
-      "file": "sqs.py",
-      "title": "poison messages dead-letter after max_receives",
-      "tags": [
-       "messaging"
-      ],
+      "file": "s3.py",
+      "title": "Compute a multipart ETag from part digests",
+      "tags": [],
       "status": "TODO",
-      "action": "Dead-letter queue: after max_receives the message moves to the DLQ instead of being delivered again.",
-      "why": "Without a DLQ a poison message retries forever: it eats throughput AND hides every message behind it. Bounded retries plus a DLQ convert 'queue stuck' into 'queue moving, alarm on the DLQ depth'.",
-      "predict": "how many times a failing message is delivered."
+      "action": "Compute a multipart ETag from part digests.",
+      "why": "Multipart ETags describe parts rather than a full-body digest.",
+      "predict": "Will the ETag for two parts equal the MD5 of their combined body?"
      },
      {
       "id": 13,
-      "file": "sqs.py",
-      "title": "oldest_age counts in-flight messages too",
-      "tags": [
-       "messaging",
-       "lifecycle"
-      ],
+      "file": "s3.py",
+      "title": "List object keys as a flat sequence",
+      "tags": [],
       "status": "TODO",
-      "action": "oldest_age counts IN-FLIGHT messages too: a message being retried forever is old, not young.",
-      "why": "The age alarm exists to catch the poison message — which spends most of its life in flight, invisible to a visible-only age. The metric must describe the queue's actual state, not the easy subset.",
-      "predict": "oldest_age of a message received once and never deleted."
+      "action": "List object keys as a flat sequence.",
+      "why": "S3 stores keys in a flat namespace.",
+      "predict": "How many keys appear when listing a/1, a/2, and top without a delimiter?"
      },
      {
       "id": 14,
-      "file": "sqs.py",
-      "title": "FIFO: one in-flight message per group",
-      "tags": [
-       "messaging"
-      ],
+      "file": "s3.py",
+      "title": "Collapse shared prefixes when a delimiter is requested",
+      "tags": [],
       "status": "TODO",
-      "action": "FIFO: only ONE in-flight message per message group; a different group is never blocked.",
-      "why": "Ordering within a group is the entire point of groups — and it is exactly what forbids parallelism inside one. The group id is your concurrency dial: coarse enough to keep order, fine enough to keep throughput.",
-      "predict": "how many of 3 same-group messages one receive returns."
+      "action": "Collapse shared prefixes when a delimiter is requested.",
+      "why": "A delimiter groups keys only during a listing.",
+      "predict": "What appears under common_prefixes when those keys are listed with / as delimiter?"
      },
      {
       "id": 15,
-      "file": "sqs.py",
-      "title": "FIFO dedup window drops duplicate ids",
-      "tags": [
-       "messaging"
-      ],
+      "file": "s3.py",
+      "title": "Retain prior values after writes to a versioned key",
+      "tags": [],
       "status": "TODO",
-      "action": "FIFO dedup: a duplicate dedup_id inside the 5-minute window is dropped; outside it is accepted again.",
-      "why": "Producers retry on network flakiness; without dedup every retry is a duplicate order. A time window instead of forever keeps the dedup table bounded — the cost of the guarantee, and its expiry surprise.",
-      "predict": "the second send with the same dedup_id at t=10 and at t=400."
+      "action": "Retain prior values after writes to a versioned key.",
+      "why": "Versioning preserves earlier object values.",
+      "predict": "Can the first version still be read after writing a second version?"
      },
      {
       "id": 16,
-      "file": "dynamodb.py",
-      "title": "composite key = partition + sort",
-      "tags": [
-       "storage"
-      ],
+      "file": "s3.py",
+      "title": "Append a delete marker for a plain delete in a versioned bucket",
+      "tags": [],
       "status": "TODO",
-      "action": "DynamoDB composite key = partition + sort: get_item is keyed by BOTH, and query reads only one partition.",
-      "why": "Keying by sort key alone would make alice/000 and bob/000 collide — silent data loss. And query's demand for the partition key is not a limitation, it is the CONTRACT that buys O(items returned) instead of O(table).",
-      "predict": "whether Query can span partitions."
+      "action": "Append a delete marker for a plain delete in a versioned bucket.",
+      "why": "A delete marker hides a versioned key without erasing history.",
+      "predict": "What does plain GET do after a delete marker is written?"
      },
      {
       "id": 17,
-      "file": "dynamodb.py",
-      "title": "query reads one partition; missing key raises",
-      "tags": [
-       "storage"
-      ],
+      "file": "s3.py",
+      "title": "Delete one specified version",
+      "tags": [],
       "status": "TODO",
-      "action": "Conditional writes: put with a condition raises ConditionalCheckFailed when it fails, and the failed write changes nothing.",
-      "why": "The check and the write happen atomically inside one partition, which is how you get idempotent creates and optimistic locking with no lock service at all. Failing cleanly is the feature: it means someone got there first, exactly what you asked to know.",
-      "predict": "the value after a failed conditional put."
+      "action": "Delete one specified version.",
+      "why": "Deleting by version ID removes only the chosen version.",
+      "predict": "Which versions remain after deleting the first version ID?"
      },
      {
       "id": 18,
-      "file": "dynamodb.py",
-      "title": "conditional writes fail atomically",
-      "tags": [
-       "capacity"
-      ],
+      "file": "sqs.py",
+      "title": "Hide a received message for its visibility interval",
+      "tags": [],
       "status": "TODO",
-      "action": "A strongly consistent read costs exactly TWICE an eventually consistent one.",
-      "why": "Consistency is paid per read, not configured once: strong reads hit enough replicas to confirm, eventual ones hit one. Pricing it 2x is what makes people ask 'do I need consistent here?' instead of defaulting to yes.",
-      "predict": "consistent cost for a 0.5-unit eventual read."
+      "action": "Queue.send is supplied. Implement receive so one message becomes invisible until its visibility timeout. Lease expiry arrives in stage 19.",
+      "why": "Receiving an SQS message temporarily hides it from other consumers.",
+      "predict": "Can a second consumer receive the message five seconds after the first?"
      },
      {
       "id": 19,
-      "file": "dynamodb.py",
-      "title": "consistent reads cost twice eventual ones",
-      "tags": [
-       "capacity"
-      ],
+      "file": "sqs.py",
+      "title": "Make an undeleted message visible after the interval",
+      "tags": [],
       "status": "TODO",
-      "action": "Table capacity divides ACROSS partitions: 40 WCU on 4 partitions is 10 per partition, so 30 writes to ONE key throttle after 10 — with the table 75% idle.",
-      "why": "Adding capacity does not help a hot key: the limit is per partition, and the key decides the partition. The fix is the data model (spread the key), not the bill — the most common DynamoDB surprise.",
-      "predict": "how many of 30 same-key writes succeed (40 WCU, 4 partitions)."
+      "action": "Make an undeleted message visible after the interval.",
+      "why": "A consumer may crash before deleting a message.",
+      "predict": "Can that message be received at t=11 if it was not deleted?"
      },
      {
       "id": 20,
-      "file": "dynamodb.py",
-      "title": "capacity divides across partitions; hot key throttles",
-      "tags": [
-       "capacity"
-      ],
+      "file": "sqs.py",
+      "title": "Give each receive a new receipt handle",
+      "tags": [],
       "status": "TODO",
-      "action": "Scan reads EVERY item and filters afterwards: a scan returning 3 of a million items costs a million reads.",
-      "why": "Scan has no key to route by, so it walks every partition — you pay for what you read, not what you keep. Query, given the partition key, reads only what can match. That asymmetry is the whole data model.",
-      "predict": "which costs more: query('alice') or scan(pk=='alice') on a 3-item table."
+      "action": "Give each receive a new receipt handle.",
+      "why": "A new receive issues a new handle for the same message.",
+      "predict": "Are the receipt handles from two receives equal?"
      },
      {
       "id": 21,
-      "file": "dynamodb.py",
-      "title": "scan reads everything, then filters",
-      "tags": [
-       "lifecycle"
-      ],
+      "file": "sqs.py",
+      "title": "Delete the message with its current handle",
+      "tags": [],
       "status": "TODO",
-      "action": "Lambda cold start: the first invocation pays the init cost; warm invocations reuse the environment AND its memory.",
-      "why": "The container outlives your invocation BY DESIGN — that is how init gets amortised. Consequence cut both ways: a connection pool is free, a cache you assumed empty is a correctness bug.",
-      "predict": "how many inits over six invocations."
+      "action": "Delete the message with its current handle.",
+      "why": "Acknowledging a message is separate from receiving it.",
+      "predict": "Will the message return after its current handle is deleted?"
      },
      {
       "id": 22,
-      "file": "lambda_svc.py",
-      "title": "cold start once; warm state survives",
-      "tags": [
-       "lifecycle"
-      ],
+      "file": "sqs.py",
+      "title": "Change visibility relative to the call time",
+      "tags": [],
       "status": "TODO",
-      "action": "An environment past its TTL is replaced (fresh state); a timeout is reported and billed in full.",
-      "why": "Warm state is an optimisation, never a guarantee — AWS reclaims environments whenever it wants. Code that works only because the cache was warm is a bug with a timer on it. Timeouts bill fully because the capacity was truly occupied.",
-      "predict": "the counter value after an invocation past the TTL."
+      "action": "Change visibility relative to the call time.",
+      "why": "Slow work can renew the visibility period.",
+      "predict": "At t=11, is a lease extended by 60 seconds at t=5 visible?"
      },
      {
       "id": 23,
-      "file": "lambda_svc.py",
-      "title": "environment TTL resets state; timeout bills full",
-      "tags": [
-       "availability"
-      ],
+      "file": "sqs.py",
+      "title": "Move a repeatedly received message to a dead-letter queue",
+      "tags": [],
       "status": "TODO",
-      "action": "Concurrency is a QUOTA, not a speed limit: 15 events against 10 shed 5. A reserved concurrency carves out capacity WHETHER USED OR NOT.",
-      "why": "Reserving 6 of 10 for one function leaves 4 for every other function — they were never touched. The silent reduction of an unrelated function is the point: quotas are account-wide carpentry, not per-function dials.",
-      "predict": "how many of 10 events the untouched function runs after the reservation."
+      "action": "Move a repeatedly received message to a dead-letter queue.",
+      "why": "A poison message needs a place to go after repeated attempts.",
+      "predict": "Where is a poison message after it passes the receive limit?"
      },
      {
       "id": 24,
-      "file": "lambda_svc.py",
-      "title": "concurrency is a quota; reservation steals a floor",
-      "tags": [
-       "availability"
-      ],
+      "file": "sqs.py",
+      "title": "Block another in-flight message from the same FIFO group",
+      "tags": [],
       "status": "TODO",
-      "action": "Async failures retry to 3 total attempts, then the event lands in the dead-letter queue; sync failures return to the caller instead.",
-      "why": "Same bug, different blast radius: sync surfaces the error to whoever can react; async retries blindly — so a non-idempotent handler runs THREE times: three charges, three emails.",
-      "predict": "attempts for a failing async handler."
+      "action": "Block another in-flight message from the same FIFO group.",
+      "why": "FIFO ordering serializes work within one group.",
+      "predict": "How many A-group messages can one FIFO batch receive at once?"
      },
      {
       "id": 25,
-      "file": "lambda_svc.py",
-      "title": "async failures retry to 3 attempts, then DLQ",
-      "tags": [
-       "messaging"
-      ],
+      "file": "sqs.py",
+      "title": "Let a different FIFO group progress",
+      "tags": [],
       "status": "TODO",
-      "action": "SNS fans out: one publish delivers to EVERY subscriber — queues and Lambda handlers alike — on the same clock it was given.",
-      "why": "Push means no consumer polls, so no buffering: SNS delivers and drops on failure, which is exactly why SNS → SQS → consumer is the standard shape rather than an accident. The clock threading is the bug that makes messages land 'in the future' in tests.",
-      "predict": "queue depths right after a publish to 3 subscribers."
+      "action": "Let a different FIFO group progress.",
+      "why": "Different FIFO groups can proceed independently.",
+      "predict": "Can group B progress while a group A message is in flight?"
      },
      {
       "id": 26,
-      "file": "sns.py",
-      "title": "one publish fans out to every subscriber",
-      "tags": [
-       "messaging"
-      ],
-      "status": "TODO",
-      "action": "Filter policies: AND across keys, OR within one, a MISSING attribute never matches, and no policy means deliver.",
-      "why": "The same fail-closed rule as IAM conditions (stage 2): treating absent as permissive would silently route events that were supposed to be scoped. The filter runs at the TOPIC — drops happen before fanout, not at the consumer.",
-      "predict": "which subscriptions a two-attribute message hits."
+      "file": "sqs.py",
+      "title": "Suppress a duplicate deduplication ID inside the toy window",
+      "tags": [],
+      "status": "FAIL",
+      "action": "Suppress a duplicate deduplication ID inside the toy window.",
+      "why": "A bounded deduplication window absorbs producer retries.",
+      "predict": "What happens to a repeated dedup ID at t=10 and t=400?"
      },
      {
       "id": 27,
-      "file": "sns.py",
-      "title": "filters: AND keys, OR values, missing never matches",
-      "tags": [
-       "messaging",
-       "boundary"
-      ],
+      "file": "dynamodb.py",
+      "title": "Use both partition and sort values as a composite key",
+      "tags": [],
       "status": "TODO",
-      "action": "EventBridge matches the SHAPE of the event: patterns nest into detail, a key absent from the event cannot match, and one event fires EVERY matching rule.",
-      "why": "Nothing deduplicates rule firing — two matching rules means double-processing, which is either free parallelism or a double-charge depending on whether you knew. Structural matching is what makes one bus carry every service's events.",
-      "predict": "how many rules fire when one event matches two."
+      "action": "The table already stores and reads items. Implement Table._keys to extract both parts of each item key.",
+      "why": "A composite DynamoDB key has partition and sort components.",
+      "predict": "Do alice/001 and bob/001 hold separate values?"
      },
      {
       "id": 28,
-      "file": "sns.py",
-      "title": "EventBridge matches nested shape, fires every rule",
-      "tags": [
-       "authorization",
-       "security"
-      ],
+      "file": "dynamodb.py",
+      "title": "Query only a named partition key",
+      "tags": [],
       "status": "TODO",
-      "action": "Envelope encryption: generate a data key (plaintext + wrapped copy), encrypt the data locally, store only the wrapped key alongside.",
-      "why": "KMS is a vault with a 4KB door: you do not push data through it. The data never leaves you — size is unchanged — and KMS only ever touches the small key. That is the whole reason the payload limit never constrains you.",
-      "predict": "what you must store alongside the ciphertext."
+      "action": "Query only a named partition key.",
+      "why": "A query is routed by its partition key.",
+      "predict": "Does query(alice) return any bob items?"
      },
      {
       "id": 29,
-      "file": "kms.py",
-      "title": "envelope: data key encrypts, CMK wraps the key",
-      "tags": [
-       "authorization",
-       "security"
-      ],
+      "file": "dynamodb.py",
+      "title": "Make a conditional put atomic",
+      "tags": [],
       "status": "TODO",
-      "action": "One KMS call per OBJECT, not per byte: encrypting 100KB uses one data key regardless of size.",
-      "why": "The envelope inverts the cost model: KMS calls are the expensive, rate-limited part, local crypto is free. Per-byte KMS calls would be an outage; per-object is the pattern every encrypted store uses.",
-      "predict": "data-key calls to encrypt 100KB."
+      "action": "Make a conditional put atomic.",
+      "why": "A conditional write protects a value from an unwanted overwrite.",
+      "predict": "After a conditional create fails, what value remains?"
      },
      {
       "id": 30,
-      "file": "kms.py",
-      "title": "one KMS call per object, not per byte",
-      "tags": [
-       "authorization",
-       "security"
-      ],
+      "file": "dynamodb.py",
+      "title": "Charge the toy's strong read twice its eventual read",
+      "tags": [],
       "status": "TODO",
-      "action": "The encryption context must MATCH on decrypt — wrong, empty or missing context all fail.",
-      "why": "The context is authenticated data: not secret, but bound into the unwrap. It is what lets an IAM condition scope a key to a tenant — decrypt refuses to run outside the context the key was created under.",
-      "predict": "decrypt with a mismatched context."
+      "action": "Charge the toy's strong read twice its eventual read.",
+      "why": "A strong read has a higher read-unit cost in this toy.",
+      "predict": "How many read units does a strong read use relative to an eventual read?"
      },
      {
       "id": 31,
-      "file": "kms.py",
-      "title": "encryption context must match on decrypt",
-      "tags": [
-       "security",
-       "lifecycle"
-      ],
+      "file": "dynamodb.py",
+      "title": "Apply the toy's write budget per partition",
+      "tags": [],
       "status": "TODO",
-      "action": "Rotation creates a new key VERSION: new encryptions use it, old versions are retained, and ALL old ciphertext still decrypts. Deleting a version makes its ciphertext unrecoverable.",
-      "why": "Re-encrypting all data on rotation would be an outage, so rotation re-encrypts KEYS, never DATA. The mandatory waiting period on deletion exists because 'unrecoverable' must be hard to do by accident.",
-      "predict": "whether last year's ciphertext decrypts after rotation."
+      "action": "Apply the toy's write budget per partition.",
+      "why": "This toy assigns a fixed write budget to each partition.",
+      "predict": "With a budget of 10, what happens on the 11th same-partition write?"
      },
      {
       "id": 32,
-      "file": "kms.py",
-      "title": "rotation re-encrypts keys, never data",
-      "tags": [
-       "networking"
-      ],
+      "file": "dynamodb.py",
+      "title": "Spread distinct partition keys across partitions",
+      "tags": [],
       "status": "TODO",
-      "action": "CIDR: containment and overlap of subnets, and AWS reserves 5 addresses per subnet — a /28 has 11 usable hosts, not 16.",
-      "why": "The reserved five (network, DNS x2, broadcast, future) are the number people get wrong when sizing subnets — and overlapping subnets are rejected because routing must have exactly one answer for any address.",
-      "predict": "usable hosts in a /28."
+      "action": "Replace the single-slot starting point in Table._partition with a stable hash of the partition key.",
+      "why": "A stable hash lets different keys use different partitions.",
+      "predict": "Can 20 distinct keys fit when each of four partitions allows 10 writes?"
      },
      {
       "id": 33,
-      "file": "vpc.py",
-      "title": "CIDR containment, overlap, 5 reserved IPs",
-      "tags": [
-       "networking"
-      ],
+      "file": "dynamodb.py",
+      "title": "Apply a scan filter after reading items",
+      "tags": [],
       "status": "TODO",
-      "action": "Route tables match the LONGEST PREFIX, not the first or the shortest entry.",
-      "why": "Most-specific wins is what lets a peering route (10.1.0.0/16) and a finer transit route (10.1.5.0/24) coexist with a default route — order in the table is irrelevant, exactly like IAM's deny-wins rule.",
-      "predict": "which route wins for 10.0.1.5."
+      "action": "Apply a scan filter after reading items.",
+      "why": "A scan reads items before applying its filter.",
+      "predict": "If a scan returns one of three rows, how many rows does it count as scanned?"
      },
      {
       "id": 34,
-      "file": "vpc.py",
-      "title": "routes pick the longest matching prefix",
-      "tags": [
-       "stateless-vs-stateful",
-       "networking"
-      ],
+      "file": "lambda_svc.py",
+      "title": "Initialize an execution environment on first use",
+      "tags": [],
       "status": "TODO",
-      "action": "Security groups are STATEFUL: allow the request in and the reply out is automatic. NACLs are STATELESS: same rules fail, because the reply goes to an EPHEMERAL port.",
-      "why": "The reply is a new packet to 49152-65535, and nobody remembers to allow that. This is the single most common VPC bug, and it is invisible unless you model the whole connection — evaluate only the request and SG vs NACL look identical.",
-      "predict": "why a NACL blocks the reply to an allowed request."
+      "action": "Function registration is supplied. Make the first LambdaService.invoke create an environment and include its init cost.",
+      "why": "An execution environment has an initialization cost.",
+      "predict": "Does the first invocation include environment initialization cost?"
      },
      {
       "id": 35,
-      "file": "vpc.py",
-      "title": "SG stateful vs NACL stateless, same rules",
-      "tags": [
-       "networking"
-      ],
+      "file": "lambda_svc.py",
+      "title": "Reuse an environment between invocations",
+      "tags": [],
       "status": "TODO",
-      "action": "NACL rules evaluate in NUMBER order, first match wins: a deny at 100 shadows an allow at 200. Security groups have no deny — absence of an allow IS the deny.",
-      "why": "Two more points on the same design axis: NACL buys explicit ordering (and pays with statelessness); SG buys simplicity (and cannot express deny). Neither is strictly better — they answer different questions.",
-      "predict": "SSH from 10.0.5.5 against deny-100/allow-200 rules."
+      "action": "Reuse an environment between invocations.",
+      "why": "A reused execution environment retains memory between calls.",
+      "predict": "What does a counter stored outside the handler return on the second call?"
      },
      {
       "id": 36,
-      "file": "capstone.py",
-      "title": "the pipeline, and failures surfacing a layer away",
-      "tags": [
-       "plumbing"
-      ],
+      "file": "lambda_svc.py",
+      "title": "Replace an expired toy environment",
+      "tags": [],
       "status": "TODO",
-      "action": "Capstone: wire S3 → SNS → SQS → Lambda → DynamoDB, KMS on the payload, IAM on every call — then watch a DynamoDB hot partition surface as a Lambda alarm.",
-      "why": "Failures compose too: the cause lives in the data model, the alarm fires on compute, and the audit trail must record DENIED calls or you debug from half the evidence. That mismatch between where a failure is VISIBLE and where it is CAUSED is most of what makes distributed debugging hard.",
-      "predict": "which service's failure stops the pipeline first."
+      "action": "Replace an expired toy environment.",
+      "why": "The toy's deterministic TTL lets us observe environment replacement.",
+      "predict": "What value does that counter return after the toy TTL expires?"
+     },
+     {
+      "id": 37,
+      "file": "lambda_svc.py",
+      "title": "Report and bill an invocation timeout",
+      "tags": [],
+      "status": "TODO",
+      "action": "Report and bill an invocation timeout.",
+      "why": "A timed-out invocation still occupied capacity.",
+      "predict": "What error and billed duration result from work exceeding a one-second timeout?"
+     },
+     {
+      "id": 38,
+      "file": "lambda_svc.py",
+      "title": "Enforce the account concurrency ceiling",
+      "tags": [],
+      "status": "TODO",
+      "action": "Enforce the account concurrency ceiling.",
+      "why": "Lambda concurrency limits simultaneous work.",
+      "predict": "At concurrency 10, how many of 15 simultaneous calls run?"
+     },
+     {
+      "id": 39,
+      "file": "lambda_svc.py",
+      "title": "Subtract reserved concurrency from the unreserved pool",
+      "tags": [],
+      "status": "TODO",
+      "action": "Subtract reserved concurrency from the unreserved pool.",
+      "why": "Reserved concurrency reduces the shared unreserved pool.",
+      "predict": "After reserving 6 of 10 slots, how many can an unrelated function use?"
+     },
+     {
+      "id": 40,
+      "file": "lambda_svc.py",
+      "title": "Return synchronous handler failure to its caller",
+      "tags": [],
+      "status": "TODO",
+      "action": "Return synchronous handler failure to its caller.",
+      "why": "Synchronous invocation reports a handler error to its caller.",
+      "predict": "How many times does a failing synchronous handler run?"
+     },
+     {
+      "id": 41,
+      "file": "lambda_svc.py",
+      "title": "Retry a failed asynchronous handler in the toy's three-attempt policy",
+      "tags": [],
+      "status": "TODO",
+      "action": "Retry a failed asynchronous handler in the toy's three-attempt policy.",
+      "why": "An asynchronous handler error can trigger another attempt.",
+      "predict": "How many attempts does one failing async event make by default in this toy?"
+     },
+     {
+      "id": 42,
+      "file": "lambda_svc.py",
+      "title": "Send an exhausted asynchronous event to the dead-letter queue",
+      "tags": [],
+      "status": "TODO",
+      "action": "Send an exhausted asynchronous event to the dead-letter queue.",
+      "why": "An exhausted asynchronous event can be preserved for inspection.",
+      "predict": "Where does an async event go after its last failed attempt?"
+     },
+     {
+      "id": 43,
+      "file": "sns.py",
+      "title": "Fan one publish out to all subscriptions",
+      "tags": [],
+      "status": "TODO",
+      "action": "Topic.subscribe is supplied. Implement publish and delivery so one message reaches every subscribed queue. Filtering arrives next.",
+      "why": "SNS sends a copy of one publication to each subscriber.",
+      "predict": "How many copies arrive when a topic has two queue subscribers?"
+     },
+     {
+      "id": 44,
+      "file": "sns.py",
+      "title": "Match any allowed value for one SNS filter key",
+      "tags": [],
+      "status": "TODO",
+      "action": "Match any allowed value for one SNS filter key.",
+      "why": "A filter key can admit several alternative values.",
+      "predict": "Does staging match a filter allowing prod or staging?"
+     },
+     {
+      "id": 45,
+      "file": "sns.py",
+      "title": "Require every ordinary SNS filter key",
+      "tags": [],
+      "status": "TODO",
+      "action": "Require every ordinary SNS filter key.",
+      "why": "Ordinary SNS filter keys must all be present and match.",
+      "predict": "Does a message missing environment match a filter requiring it?"
+     },
+     {
+      "id": 46,
+      "file": "sns.py",
+      "title": "Match a nested EventBridge pattern",
+      "tags": [],
+      "status": "TODO",
+      "action": "Match a nested EventBridge pattern.",
+      "why": "EventBridge patterns can describe nested event fields.",
+      "predict": "Does a nested pattern for terminated match a running event?"
+     },
+     {
+      "id": 47,
+      "file": "sns.py",
+      "title": "Fire every matching EventBridge rule",
+      "tags": [],
+      "status": "TODO",
+      "action": "Fire every matching EventBridge rule.",
+      "why": "More than one EventBridge rule may match one event.",
+      "predict": "How many rule handlers run when two rules match one event?"
+     },
+     {
+      "id": 48,
+      "file": "kms.py",
+      "title": "Return plaintext and wrapped copies of one data key",
+      "tags": [],
+      "status": "TODO",
+      "action": "Key creation and wrapping helpers are supplied. Implement generate_data_key and decrypt_data_key so the two forms of one key round trip.",
+      "why": "Envelope encryption begins with a plaintext and wrapped data key.",
+      "predict": "What two forms of the same data key does GenerateDataKey return?"
+     },
+     {
+      "id": 49,
+      "file": "kms.py",
+      "title": "Encrypt an object locally with its data key",
+      "tags": [],
+      "status": "TODO",
+      "action": "Encrypt an object locally with its data key.",
+      "why": "The data key encrypts the payload outside KMS.",
+      "predict": "What must be stored beside the payload ciphertext to decrypt it later?"
+     },
+     {
+      "id": 50,
+      "file": "kms.py",
+      "title": "Bind the wrapped key to an encryption context",
+      "tags": [],
+      "status": "TODO",
+      "action": "Bind the wrapped key to an encryption context.",
+      "why": "Encryption context binds a wrapped key to request metadata.",
+      "predict": "Can ciphertext encrypted under tenant A be decrypted under tenant B?"
+     },
+     {
+      "id": 51,
+      "file": "kms.py",
+      "title": "Keep old key material usable after rotation",
+      "tags": [],
+      "status": "TODO",
+      "action": "Keep old key material usable after rotation.",
+      "why": "Rotation keeps older key material available for decryption.",
+      "predict": "Can ciphertext from before rotation still be decrypted afterward?"
+     },
+     {
+      "id": 52,
+      "file": "vpc.py",
+      "title": "Decide whether one CIDR contains another",
+      "tags": [],
+      "status": "TODO",
+      "action": "Decide whether one CIDR contains another.",
+      "why": "CIDR containment describes an address range inside another.",
+      "predict": "Does 10.0.0.0/16 contain 10.0.1.0/24 or 10.1.0.0/24?"
+     },
+     {
+      "id": 53,
+      "file": "vpc.py",
+      "title": "Reject an overlapping subnet",
+      "tags": [],
+      "status": "TODO",
+      "action": "Reject an overlapping subnet.",
+      "why": "Overlapping subnets make address assignment ambiguous.",
+      "predict": "Can 10.0.1.128/25 be added after 10.0.1.0/24?"
+     },
+     {
+      "id": 54,
+      "file": "vpc.py",
+      "title": "Subtract AWS's five reserved subnet addresses",
+      "tags": [],
+      "status": "TODO",
+      "action": "Subtract AWS's five reserved subnet addresses.",
+      "why": "AWS reserves five addresses in each VPC subnet.",
+      "predict": "How many usable addresses remain in an AWS /28 subnet?"
+     },
+     {
+      "id": 55,
+      "file": "vpc.py",
+      "title": "Select the longest matching route prefix",
+      "tags": [],
+      "status": "TODO",
+      "action": "Select the longest matching route prefix.",
+      "why": "Routing chooses the most specific matching destination.",
+      "predict": "Which route wins for 10.1.5.7: /0, /16, or /24?"
+     },
+     {
+      "id": 56,
+      "file": "vpc.py",
+      "title": "Permit reply traffic for an allowed security-group connection",
+      "tags": [],
+      "status": "TODO",
+      "action": "Permit reply traffic for an allowed security-group connection.",
+      "why": "A security group tracks allowed connection state.",
+      "predict": "Does a reply need its own outbound security-group rule?"
+     },
+     {
+      "id": 57,
+      "file": "vpc.py",
+      "title": "Evaluate a NACL reply separately",
+      "tags": [],
+      "status": "TODO",
+      "action": "Evaluate a NACL reply separately.",
+      "why": "A NACL checks the reply packet separately.",
+      "predict": "Does a NACL allow the reply when only port 443 is open outbound?"
+     },
+     {
+      "id": 58,
+      "file": "vpc.py",
+      "title": "Evaluate NACL rules in number order",
+      "tags": [],
+      "status": "TODO",
+      "action": "Evaluate NACL rules in number order.",
+      "why": "NACL rules have numeric priority.",
+      "predict": "If allow 200 is added before deny 100, which rule wins for SSH?"
+     },
+     {
+      "id": 59,
+      "file": "capstone.py",
+      "title": "Publish one event after an upload",
+      "tags": [],
+      "status": "TODO",
+      "action": "The system setup is supplied. Implement upload so it stores one encrypted object and publishes one notification. The topic has no queue subscriber yet.",
+      "why": "An upload can publish a notification after storing an object.",
+      "predict": "After uploading one PDF, how many events has the topic published?"
+     },
+     {
+      "id": 60,
+      "file": "capstone.py",
+      "title": "Subscribe the work queue to the topic",
+      "tags": [],
+      "status": "TODO",
+      "action": "In build(), subscribe the processing queue to the uploads topic with the PDF filter policy.",
+      "why": "An SNS subscription can deliver that notification to SQS.",
+      "predict": "Is that event visible in SQS after the queue is subscribed?"
+     },
+     {
+      "id": 61,
+      "file": "capstone.py",
+      "title": "Connect SQS processing through Lambda to DynamoDB",
+      "tags": [],
+      "status": "TODO",
+      "action": "Connect SQS processing through Lambda to DynamoDB.",
+      "why": "A worker can consume one queued event and write one row.",
+      "predict": "How many DynamoDB rows result after draining one queued PDF?"
+     },
+     {
+      "id": 62,
+      "file": "capstone.py",
+      "title": "Authorize before the upload's first side effect",
+      "tags": [],
+      "status": "TODO",
+      "action": "Authorize before the upload's first side effect.",
+      "why": "Authorization must happen before an upload's first side effect.",
+      "predict": "What storage or queue side effects remain after a denied upload?"
+     },
+     {
+      "id": 63,
+      "file": "capstone.py",
+      "title": "Name the downstream failure origin",
+      "tags": [],
+      "status": "TODO",
+      "action": "Implement failure_origin: return \"dynamodb\" when the worker failed and a database partition reports throttling; otherwise return None.",
+      "why": "A downstream database limit can appear as a worker failure.",
+      "predict": "When the worker fails and a partition reports throttling, what should failure_origin return?"
      }
     ],
     "command": "forja test aws-from-scratch",
@@ -1551,10 +1739,10 @@
    "showcase": true,
    "stage": 1,
    "file": "iam.py",
-   "stage_title": "explicit deny > allow > implicit deny",
-   "action": "IAM: an explicit Deny wins; otherwise any matching Allow applies; otherwise implicit Deny.",
-   "why": "This rule is what makes a policy SET composable: order never matters, so appending a guard policy can never break existing grants. Evaluate it like a firewall (first or last match wins) and the same policies behave differently depending on document order — no property you can reason about at scale.",
-   "predict": "the result when Allow and Deny both match.",
+   "stage_title": "Implicit deny",
+   "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
+   "why": "An IAM request starts denied until a policy grants it.",
+   "predict": "What is allowed for a request with no policies?",
    "command": "forja test aws-from-scratch --stage 1"
   }
  },
@@ -1578,12 +1766,12 @@
      "showcase": true,
      "checks": {
       "passed": 0,
-      "total": 36,
+      "total": 63,
       "fraction": 0.0
      },
      "repo": {
-      "baseline": 95,
-      "remaining": 95,
+      "baseline": 69,
+      "remaining": 69,
       "written": 0,
       "fraction": 0.0
      },
@@ -1592,444 +1780,632 @@
       {
        "id": 1,
        "file": "iam.py",
-       "title": "explicit deny > allow > implicit deny",
-       "tags": [
-        "authorization"
-       ],
+       "title": "Implicit deny",
+       "tags": [],
        "status": "TODO",
-       "action": "IAM: an explicit Deny wins; otherwise any matching Allow applies; otherwise implicit Deny.",
-       "why": "This rule is what makes a policy SET composable: order never matters, so appending a guard policy can never break existing grants. Evaluate it like a firewall (first or last match wins) and the same policies behave differently depending on document order — no property you can reason about at scale.",
-       "predict": "the result when Allow and Deny both match."
+       "action": "In iam.py, replace the raise in evaluate() with an implicit-deny Decision when policies is empty. One return statement is enough.",
+       "why": "An IAM request starts denied until a policy grants it.",
+       "predict": "What is allowed for a request with no policies?"
       },
       {
        "id": 2,
        "file": "iam.py",
-       "title": "conditions: AND keys, OR values, fail closed",
-       "tags": [
-        "authorization"
-       ],
+       "title": "Match an action and a resource before applying a statement",
+       "tags": [],
        "status": "TODO",
-       "action": "Policy conditions: AND across keys, OR within one key's values, and a MISSING context key never matches.",
-       "why": "Fail-closed is not a style choice — it is the difference between a bug and a vulnerability. Treat an absent aws:SourceIp as 'any IP' and a request with no context at all bypasses every IP restriction. The AND/OR shape also returns in SNS filters (stage 16): learn it once here.",
-       "predict": "a request with NO context keys against a policy requiring two conditions."
+       "action": "Match an action and a resource before applying a statement.",
+       "why": "A policy statement applies only to its named action and resource.",
+       "predict": "Does GetObject on bucket A pass? What about PutObject or bucket B?"
       },
       {
        "id": 3,
        "file": "iam.py",
-       "title": "permissions boundaries subtract, never grant",
-       "tags": [
-        "authorization"
-       ],
+       "title": "Give a matching explicit Deny precedence over Allow",
+       "tags": [],
        "status": "TODO",
-       "action": "Permissions boundaries: a boundary only SUBTRACTS from what identity policies grant, it can never grant.",
-       "why": "If a boundary could grant, handing someone a boundary would be a privilege escalation, and delegation would be unsafe. Subtract-only is what makes 'you may be an admin of this project, never of IAM' expressible at all.",
-       "predict": "Allow outside the boundary."
+       "action": "Give a matching explicit Deny precedence over Allow.",
+       "why": "Several policy statements may apply to the same request.",
+       "predict": "If Allow and Deny both match, does reversing policy order change the result?"
       },
       {
        "id": 4,
        "file": "iam.py",
-       "title": "assume-role: caller policy AND role trust",
-       "tags": [
-        "authorization"
-       ],
+       "title": "Reject a condition when its context key is missing",
+       "tags": [],
        "status": "TODO",
-       "action": "Assume-role needs BOTH directions: the caller's own policy must allow sts:AssumeRole, AND the role's trust policy must allow that principal.",
-       "why": "Two policies for two different attackers. Your own policy protects you from yourself (an intern's role-escape); the trust policy protects you from OTHER accounts — without it, anyone whose own policy says 'I may assume anything' walks into your roles.",
-       "predict": "identity policy Allows but trust policy does not."
+       "action": "Reject a condition when its context key is missing.",
+       "why": "A condition cannot be checked when its input is absent.",
+       "predict": "What happens when a required source IP is absent?"
       },
       {
        "id": 5,
-       "file": "s3.py",
-       "title": "put/get objects and the NoSuchKey error",
-       "tags": [
-        "storage"
-       ],
+       "file": "iam.py",
+       "title": "Combine condition keys with AND and alternatives for one key with OR",
+       "tags": [],
        "status": "TODO",
-       "action": "S3 objects: put/get with an ETag (the body's MD5), and a missing key raises NoSuchKey.",
-       "why": "The ETag is the content hash because S3 is a flat KV store with no directories to hide consistency behind — the tag is your only cheap integrity check, and the NoSuchKey error (not a null) is how you distinguish 'absent' from 'present but empty'.",
-       "predict": "what GET returns for a key that was never written."
+       "action": "Combine condition keys with AND and alternatives for one key with OR.",
+       "why": "A condition can list alternatives for one key and require another key.",
+       "predict": "Does staging/data pass? Does prod/web pass?"
       },
       {
        "id": 6,
-       "file": "s3.py",
-       "title": "multipart ETags end in -<part count>",
-       "tags": [
-        "storage"
-       ],
+       "file": "iam.py",
+       "title": "Intersect identity permissions with a permissions boundary",
+       "tags": [],
        "status": "TODO",
-       "action": "Multipart ETags end in '-<part count>' and are NOT the object's MD5: parts assemble in order at complete().",
-       "why": "A multipart ETag is the MD5 of the concatenated PART MD5s — hence the suffix. The practical consequence: you cannot verify a multipart upload by md5-ing your local file, and people burn hours on exactly that.",
-       "predict": "the ETag of a two-part multipart upload."
+       "action": "Intersect identity permissions with a permissions boundary.",
+       "why": "A boundary caps an identity policy without becoming a grant itself.",
+       "predict": "Can a boundary grant GetObject to an identity with no Allow?"
       },
       {
        "id": 7,
-       "file": "s3.py",
-       "title": "delimiter invents folders at list time",
-       "tags": [
-        "storage"
-       ],
+       "file": "iam.py",
+       "title": "Check a role's trust policy when assuming it",
+       "tags": [],
        "status": "TODO",
-       "action": "Listing: without a delimiter every key returns flat; with delimiter='/', shared prefixes collapse into common_prefixes.",
-       "why": "Folders do not exist in S3 — reports/2024/q1.csv is one opaque key. The delimiter INVENTS folders at list time, which is why an empty folder cannot exist and why 'renaming a folder' is O(every object under it).",
-       "predict": "what list_objects returns for a/1.txt, a/2.txt, top.txt with delimiter='/'."
+       "action": "Check a role's trust policy when assuming it.",
+       "why": "A role controls who may assume it through a trust policy.",
+       "predict": "Can a caller assume a role when their policy allows it but the role trust rejects them?"
       },
       {
        "id": 8,
-       "file": "s3.py",
-       "title": "delete marker hides versions, frees nothing",
-       "tags": [
-        "storage",
-        "lifecycle"
-       ],
+       "file": "iam.py",
+       "title": "Give an assumed session the role's permissions",
+       "tags": [],
        "status": "TODO",
-       "action": "In a versioned bucket, DELETE pushes a delete marker: plain GET then 404s, but every version is still stored — only deleting a version_id frees bytes.",
-       "why": "Versioning makes buckets immutable-by-default, and DELETE must be undoable, so it appends instead of mutating. Consequence: 'I emptied the bucket' and 'the bill went down' are different claims — the bytes sit there, billable, under the marker.",
-       "predict": "what GET returns after a delete marker is added."
+       "action": "Give an assumed session the role's permissions.",
+       "why": "An assumed role uses the role's permissions during the session.",
+       "predict": "Which permissions does a successful assumed session carry?"
       },
       {
        "id": 9,
-       "file": "sqs.py",
-       "title": "receive is a lease; expiry redelivers",
-       "tags": [
-        "messaging",
-        "lifecycle"
-       ],
+       "file": "s3.py",
+       "title": "Store and retrieve one object by its full key",
+       "tags": [],
        "status": "TODO",
-       "action": "receive() is a LEASE, not a read: the visibility timeout hides a message; if it is not deleted in time it is redelivered.",
-       "why": "Consumers crash mid-message, and the queue cannot know. A read must either lose the message or block the queue; a lease does neither. Redelivery is the queue CHOOSING duplication over loss — so your handler is idempotent or it is wrong.",
-       "predict": "whether the same message is received twice."
+       "action": "Use the supplied bucket setup. Implement put_object and get_object so one opaque key round trips. A placeholder ETag is enough until stage 11.",
+       "why": "An S3 key is an opaque name, even when it contains a slash.",
+       "predict": "What bytes come back after putting b/hello under key a/b.txt?"
       },
       {
        "id": 10,
-       "file": "sqs.py",
-       "title": "stale receipt handles must fail to delete",
-       "tags": [
-        "messaging",
-        "lifecycle"
-       ],
+       "file": "s3.py",
+       "title": "Raise `NoSuchKey` for an absent object",
+       "tags": [],
        "status": "TODO",
-       "action": "Each receive gets its OWN receipt handle; after the lease expires, the FIRST consumer's delete must fail.",
-       "why": "If both consumers shared one Message object, the second receive would overwrite the first's handle and the stale delete would silently succeed — deleting work someone else is still doing. Distinct handles make every delete prove its lease is current.",
-       "predict": "whether consumer A's delete succeeds after B's redelivery."
+       "action": "Raise `NoSuchKey` for an absent object.",
+       "why": "An empty object and a missing key are different states.",
+       "predict": "How can GET distinguish an empty object from an absent key?"
       },
       {
        "id": 11,
-       "file": "sqs.py",
-       "title": "change_visibility extends the lease",
-       "tags": [
-        "messaging"
-       ],
+       "file": "s3.py",
+       "title": "Compute the toy's single-part MD5 ETag",
+       "tags": [],
        "status": "TODO",
-       "action": "change_visibility extends a lease: a consumer whose work outlasts the timeout renews instead of racing redelivery.",
-       "why": "Lease expiry exists for CRASHED consumers. A live slow consumer should never hit it — extending the deadline is the fix, and heartbeat loops in real systems are exactly this call on a timer.",
-       "predict": "whether the message returns at the original timeout after an extension."
+       "action": "Compute the toy's single-part MD5 ETag.",
+       "why": "This toy uses MD5 for an ordinary single-part ETag.",
+       "predict": "What digest is returned for the single-part body hello?"
       },
       {
        "id": 12,
-       "file": "sqs.py",
-       "title": "poison messages dead-letter after max_receives",
-       "tags": [
-        "messaging"
-       ],
+       "file": "s3.py",
+       "title": "Compute a multipart ETag from part digests",
+       "tags": [],
        "status": "TODO",
-       "action": "Dead-letter queue: after max_receives the message moves to the DLQ instead of being delivered again.",
-       "why": "Without a DLQ a poison message retries forever: it eats throughput AND hides every message behind it. Bounded retries plus a DLQ convert 'queue stuck' into 'queue moving, alarm on the DLQ depth'.",
-       "predict": "how many times a failing message is delivered."
+       "action": "Compute a multipart ETag from part digests.",
+       "why": "Multipart ETags describe parts rather than a full-body digest.",
+       "predict": "Will the ETag for two parts equal the MD5 of their combined body?"
       },
       {
        "id": 13,
-       "file": "sqs.py",
-       "title": "oldest_age counts in-flight messages too",
-       "tags": [
-        "messaging",
-        "lifecycle"
-       ],
+       "file": "s3.py",
+       "title": "List object keys as a flat sequence",
+       "tags": [],
        "status": "TODO",
-       "action": "oldest_age counts IN-FLIGHT messages too: a message being retried forever is old, not young.",
-       "why": "The age alarm exists to catch the poison message — which spends most of its life in flight, invisible to a visible-only age. The metric must describe the queue's actual state, not the easy subset.",
-       "predict": "oldest_age of a message received once and never deleted."
+       "action": "List object keys as a flat sequence.",
+       "why": "S3 stores keys in a flat namespace.",
+       "predict": "How many keys appear when listing a/1, a/2, and top without a delimiter?"
       },
       {
        "id": 14,
-       "file": "sqs.py",
-       "title": "FIFO: one in-flight message per group",
-       "tags": [
-        "messaging"
-       ],
+       "file": "s3.py",
+       "title": "Collapse shared prefixes when a delimiter is requested",
+       "tags": [],
        "status": "TODO",
-       "action": "FIFO: only ONE in-flight message per message group; a different group is never blocked.",
-       "why": "Ordering within a group is the entire point of groups — and it is exactly what forbids parallelism inside one. The group id is your concurrency dial: coarse enough to keep order, fine enough to keep throughput.",
-       "predict": "how many of 3 same-group messages one receive returns."
+       "action": "Collapse shared prefixes when a delimiter is requested.",
+       "why": "A delimiter groups keys only during a listing.",
+       "predict": "What appears under common_prefixes when those keys are listed with / as delimiter?"
       },
       {
        "id": 15,
-       "file": "sqs.py",
-       "title": "FIFO dedup window drops duplicate ids",
-       "tags": [
-        "messaging"
-       ],
+       "file": "s3.py",
+       "title": "Retain prior values after writes to a versioned key",
+       "tags": [],
        "status": "TODO",
-       "action": "FIFO dedup: a duplicate dedup_id inside the 5-minute window is dropped; outside it is accepted again.",
-       "why": "Producers retry on network flakiness; without dedup every retry is a duplicate order. A time window instead of forever keeps the dedup table bounded — the cost of the guarantee, and its expiry surprise.",
-       "predict": "the second send with the same dedup_id at t=10 and at t=400."
+       "action": "Retain prior values after writes to a versioned key.",
+       "why": "Versioning preserves earlier object values.",
+       "predict": "Can the first version still be read after writing a second version?"
       },
       {
        "id": 16,
-       "file": "dynamodb.py",
-       "title": "composite key = partition + sort",
-       "tags": [
-        "storage"
-       ],
+       "file": "s3.py",
+       "title": "Append a delete marker for a plain delete in a versioned bucket",
+       "tags": [],
        "status": "TODO",
-       "action": "DynamoDB composite key = partition + sort: get_item is keyed by BOTH, and query reads only one partition.",
-       "why": "Keying by sort key alone would make alice/000 and bob/000 collide — silent data loss. And query's demand for the partition key is not a limitation, it is the CONTRACT that buys O(items returned) instead of O(table).",
-       "predict": "whether Query can span partitions."
+       "action": "Append a delete marker for a plain delete in a versioned bucket.",
+       "why": "A delete marker hides a versioned key without erasing history.",
+       "predict": "What does plain GET do after a delete marker is written?"
       },
       {
        "id": 17,
-       "file": "dynamodb.py",
-       "title": "query reads one partition; missing key raises",
-       "tags": [
-        "storage"
-       ],
+       "file": "s3.py",
+       "title": "Delete one specified version",
+       "tags": [],
        "status": "TODO",
-       "action": "Conditional writes: put with a condition raises ConditionalCheckFailed when it fails, and the failed write changes nothing.",
-       "why": "The check and the write happen atomically inside one partition, which is how you get idempotent creates and optimistic locking with no lock service at all. Failing cleanly is the feature: it means someone got there first, exactly what you asked to know.",
-       "predict": "the value after a failed conditional put."
+       "action": "Delete one specified version.",
+       "why": "Deleting by version ID removes only the chosen version.",
+       "predict": "Which versions remain after deleting the first version ID?"
       },
       {
        "id": 18,
-       "file": "dynamodb.py",
-       "title": "conditional writes fail atomically",
-       "tags": [
-        "capacity"
-       ],
+       "file": "sqs.py",
+       "title": "Hide a received message for its visibility interval",
+       "tags": [],
        "status": "TODO",
-       "action": "A strongly consistent read costs exactly TWICE an eventually consistent one.",
-       "why": "Consistency is paid per read, not configured once: strong reads hit enough replicas to confirm, eventual ones hit one. Pricing it 2x is what makes people ask 'do I need consistent here?' instead of defaulting to yes.",
-       "predict": "consistent cost for a 0.5-unit eventual read."
+       "action": "Queue.send is supplied. Implement receive so one message becomes invisible until its visibility timeout. Lease expiry arrives in stage 19.",
+       "why": "Receiving an SQS message temporarily hides it from other consumers.",
+       "predict": "Can a second consumer receive the message five seconds after the first?"
       },
       {
        "id": 19,
-       "file": "dynamodb.py",
-       "title": "consistent reads cost twice eventual ones",
-       "tags": [
-        "capacity"
-       ],
+       "file": "sqs.py",
+       "title": "Make an undeleted message visible after the interval",
+       "tags": [],
        "status": "TODO",
-       "action": "Table capacity divides ACROSS partitions: 40 WCU on 4 partitions is 10 per partition, so 30 writes to ONE key throttle after 10 — with the table 75% idle.",
-       "why": "Adding capacity does not help a hot key: the limit is per partition, and the key decides the partition. The fix is the data model (spread the key), not the bill — the most common DynamoDB surprise.",
-       "predict": "how many of 30 same-key writes succeed (40 WCU, 4 partitions)."
+       "action": "Make an undeleted message visible after the interval.",
+       "why": "A consumer may crash before deleting a message.",
+       "predict": "Can that message be received at t=11 if it was not deleted?"
       },
       {
        "id": 20,
-       "file": "dynamodb.py",
-       "title": "capacity divides across partitions; hot key throttles",
-       "tags": [
-        "capacity"
-       ],
+       "file": "sqs.py",
+       "title": "Give each receive a new receipt handle",
+       "tags": [],
        "status": "TODO",
-       "action": "Scan reads EVERY item and filters afterwards: a scan returning 3 of a million items costs a million reads.",
-       "why": "Scan has no key to route by, so it walks every partition — you pay for what you read, not what you keep. Query, given the partition key, reads only what can match. That asymmetry is the whole data model.",
-       "predict": "which costs more: query('alice') or scan(pk=='alice') on a 3-item table."
+       "action": "Give each receive a new receipt handle.",
+       "why": "A new receive issues a new handle for the same message.",
+       "predict": "Are the receipt handles from two receives equal?"
       },
       {
        "id": 21,
-       "file": "dynamodb.py",
-       "title": "scan reads everything, then filters",
-       "tags": [
-        "lifecycle"
-       ],
+       "file": "sqs.py",
+       "title": "Delete the message with its current handle",
+       "tags": [],
        "status": "TODO",
-       "action": "Lambda cold start: the first invocation pays the init cost; warm invocations reuse the environment AND its memory.",
-       "why": "The container outlives your invocation BY DESIGN — that is how init gets amortised. Consequence cut both ways: a connection pool is free, a cache you assumed empty is a correctness bug.",
-       "predict": "how many inits over six invocations."
+       "action": "Delete the message with its current handle.",
+       "why": "Acknowledging a message is separate from receiving it.",
+       "predict": "Will the message return after its current handle is deleted?"
       },
       {
        "id": 22,
-       "file": "lambda_svc.py",
-       "title": "cold start once; warm state survives",
-       "tags": [
-        "lifecycle"
-       ],
+       "file": "sqs.py",
+       "title": "Change visibility relative to the call time",
+       "tags": [],
        "status": "TODO",
-       "action": "An environment past its TTL is replaced (fresh state); a timeout is reported and billed in full.",
-       "why": "Warm state is an optimisation, never a guarantee — AWS reclaims environments whenever it wants. Code that works only because the cache was warm is a bug with a timer on it. Timeouts bill fully because the capacity was truly occupied.",
-       "predict": "the counter value after an invocation past the TTL."
+       "action": "Change visibility relative to the call time.",
+       "why": "Slow work can renew the visibility period.",
+       "predict": "At t=11, is a lease extended by 60 seconds at t=5 visible?"
       },
       {
        "id": 23,
-       "file": "lambda_svc.py",
-       "title": "environment TTL resets state; timeout bills full",
-       "tags": [
-        "availability"
-       ],
+       "file": "sqs.py",
+       "title": "Move a repeatedly received message to a dead-letter queue",
+       "tags": [],
        "status": "TODO",
-       "action": "Concurrency is a QUOTA, not a speed limit: 15 events against 10 shed 5. A reserved concurrency carves out capacity WHETHER USED OR NOT.",
-       "why": "Reserving 6 of 10 for one function leaves 4 for every other function — they were never touched. The silent reduction of an unrelated function is the point: quotas are account-wide carpentry, not per-function dials.",
-       "predict": "how many of 10 events the untouched function runs after the reservation."
+       "action": "Move a repeatedly received message to a dead-letter queue.",
+       "why": "A poison message needs a place to go after repeated attempts.",
+       "predict": "Where is a poison message after it passes the receive limit?"
       },
       {
        "id": 24,
-       "file": "lambda_svc.py",
-       "title": "concurrency is a quota; reservation steals a floor",
-       "tags": [
-        "availability"
-       ],
+       "file": "sqs.py",
+       "title": "Block another in-flight message from the same FIFO group",
+       "tags": [],
        "status": "TODO",
-       "action": "Async failures retry to 3 total attempts, then the event lands in the dead-letter queue; sync failures return to the caller instead.",
-       "why": "Same bug, different blast radius: sync surfaces the error to whoever can react; async retries blindly — so a non-idempotent handler runs THREE times: three charges, three emails.",
-       "predict": "attempts for a failing async handler."
+       "action": "Block another in-flight message from the same FIFO group.",
+       "why": "FIFO ordering serializes work within one group.",
+       "predict": "How many A-group messages can one FIFO batch receive at once?"
       },
       {
        "id": 25,
-       "file": "lambda_svc.py",
-       "title": "async failures retry to 3 attempts, then DLQ",
-       "tags": [
-        "messaging"
-       ],
+       "file": "sqs.py",
+       "title": "Let a different FIFO group progress",
+       "tags": [],
        "status": "TODO",
-       "action": "SNS fans out: one publish delivers to EVERY subscriber — queues and Lambda handlers alike — on the same clock it was given.",
-       "why": "Push means no consumer polls, so no buffering: SNS delivers and drops on failure, which is exactly why SNS → SQS → consumer is the standard shape rather than an accident. The clock threading is the bug that makes messages land 'in the future' in tests.",
-       "predict": "queue depths right after a publish to 3 subscribers."
+       "action": "Let a different FIFO group progress.",
+       "why": "Different FIFO groups can proceed independently.",
+       "predict": "Can group B progress while a group A message is in flight?"
       },
       {
        "id": 26,
-       "file": "sns.py",
-       "title": "one publish fans out to every subscriber",
-       "tags": [
-        "messaging"
-       ],
-       "status": "TODO",
-       "action": "Filter policies: AND across keys, OR within one, a MISSING attribute never matches, and no policy means deliver.",
-       "why": "The same fail-closed rule as IAM conditions (stage 2): treating absent as permissive would silently route events that were supposed to be scoped. The filter runs at the TOPIC — drops happen before fanout, not at the consumer.",
-       "predict": "which subscriptions a two-attribute message hits."
+       "file": "sqs.py",
+       "title": "Suppress a duplicate deduplication ID inside the toy window",
+       "tags": [],
+       "status": "FAIL",
+       "action": "Suppress a duplicate deduplication ID inside the toy window.",
+       "why": "A bounded deduplication window absorbs producer retries.",
+       "predict": "What happens to a repeated dedup ID at t=10 and t=400?"
       },
       {
        "id": 27,
-       "file": "sns.py",
-       "title": "filters: AND keys, OR values, missing never matches",
-       "tags": [
-        "messaging",
-        "boundary"
-       ],
+       "file": "dynamodb.py",
+       "title": "Use both partition and sort values as a composite key",
+       "tags": [],
        "status": "TODO",
-       "action": "EventBridge matches the SHAPE of the event: patterns nest into detail, a key absent from the event cannot match, and one event fires EVERY matching rule.",
-       "why": "Nothing deduplicates rule firing — two matching rules means double-processing, which is either free parallelism or a double-charge depending on whether you knew. Structural matching is what makes one bus carry every service's events.",
-       "predict": "how many rules fire when one event matches two."
+       "action": "The table already stores and reads items. Implement Table._keys to extract both parts of each item key.",
+       "why": "A composite DynamoDB key has partition and sort components.",
+       "predict": "Do alice/001 and bob/001 hold separate values?"
       },
       {
        "id": 28,
-       "file": "sns.py",
-       "title": "EventBridge matches nested shape, fires every rule",
-       "tags": [
-        "authorization",
-        "security"
-       ],
+       "file": "dynamodb.py",
+       "title": "Query only a named partition key",
+       "tags": [],
        "status": "TODO",
-       "action": "Envelope encryption: generate a data key (plaintext + wrapped copy), encrypt the data locally, store only the wrapped key alongside.",
-       "why": "KMS is a vault with a 4KB door: you do not push data through it. The data never leaves you — size is unchanged — and KMS only ever touches the small key. That is the whole reason the payload limit never constrains you.",
-       "predict": "what you must store alongside the ciphertext."
+       "action": "Query only a named partition key.",
+       "why": "A query is routed by its partition key.",
+       "predict": "Does query(alice) return any bob items?"
       },
       {
        "id": 29,
-       "file": "kms.py",
-       "title": "envelope: data key encrypts, CMK wraps the key",
-       "tags": [
-        "authorization",
-        "security"
-       ],
+       "file": "dynamodb.py",
+       "title": "Make a conditional put atomic",
+       "tags": [],
        "status": "TODO",
-       "action": "One KMS call per OBJECT, not per byte: encrypting 100KB uses one data key regardless of size.",
-       "why": "The envelope inverts the cost model: KMS calls are the expensive, rate-limited part, local crypto is free. Per-byte KMS calls would be an outage; per-object is the pattern every encrypted store uses.",
-       "predict": "data-key calls to encrypt 100KB."
+       "action": "Make a conditional put atomic.",
+       "why": "A conditional write protects a value from an unwanted overwrite.",
+       "predict": "After a conditional create fails, what value remains?"
       },
       {
        "id": 30,
-       "file": "kms.py",
-       "title": "one KMS call per object, not per byte",
-       "tags": [
-        "authorization",
-        "security"
-       ],
+       "file": "dynamodb.py",
+       "title": "Charge the toy's strong read twice its eventual read",
+       "tags": [],
        "status": "TODO",
-       "action": "The encryption context must MATCH on decrypt — wrong, empty or missing context all fail.",
-       "why": "The context is authenticated data: not secret, but bound into the unwrap. It is what lets an IAM condition scope a key to a tenant — decrypt refuses to run outside the context the key was created under.",
-       "predict": "decrypt with a mismatched context."
+       "action": "Charge the toy's strong read twice its eventual read.",
+       "why": "A strong read has a higher read-unit cost in this toy.",
+       "predict": "How many read units does a strong read use relative to an eventual read?"
       },
       {
        "id": 31,
-       "file": "kms.py",
-       "title": "encryption context must match on decrypt",
-       "tags": [
-        "security",
-        "lifecycle"
-       ],
+       "file": "dynamodb.py",
+       "title": "Apply the toy's write budget per partition",
+       "tags": [],
        "status": "TODO",
-       "action": "Rotation creates a new key VERSION: new encryptions use it, old versions are retained, and ALL old ciphertext still decrypts. Deleting a version makes its ciphertext unrecoverable.",
-       "why": "Re-encrypting all data on rotation would be an outage, so rotation re-encrypts KEYS, never DATA. The mandatory waiting period on deletion exists because 'unrecoverable' must be hard to do by accident.",
-       "predict": "whether last year's ciphertext decrypts after rotation."
+       "action": "Apply the toy's write budget per partition.",
+       "why": "This toy assigns a fixed write budget to each partition.",
+       "predict": "With a budget of 10, what happens on the 11th same-partition write?"
       },
       {
        "id": 32,
-       "file": "kms.py",
-       "title": "rotation re-encrypts keys, never data",
-       "tags": [
-        "networking"
-       ],
+       "file": "dynamodb.py",
+       "title": "Spread distinct partition keys across partitions",
+       "tags": [],
        "status": "TODO",
-       "action": "CIDR: containment and overlap of subnets, and AWS reserves 5 addresses per subnet — a /28 has 11 usable hosts, not 16.",
-       "why": "The reserved five (network, DNS x2, broadcast, future) are the number people get wrong when sizing subnets — and overlapping subnets are rejected because routing must have exactly one answer for any address.",
-       "predict": "usable hosts in a /28."
+       "action": "Replace the single-slot starting point in Table._partition with a stable hash of the partition key.",
+       "why": "A stable hash lets different keys use different partitions.",
+       "predict": "Can 20 distinct keys fit when each of four partitions allows 10 writes?"
       },
       {
        "id": 33,
-       "file": "vpc.py",
-       "title": "CIDR containment, overlap, 5 reserved IPs",
-       "tags": [
-        "networking"
-       ],
+       "file": "dynamodb.py",
+       "title": "Apply a scan filter after reading items",
+       "tags": [],
        "status": "TODO",
-       "action": "Route tables match the LONGEST PREFIX, not the first or the shortest entry.",
-       "why": "Most-specific wins is what lets a peering route (10.1.0.0/16) and a finer transit route (10.1.5.0/24) coexist with a default route — order in the table is irrelevant, exactly like IAM's deny-wins rule.",
-       "predict": "which route wins for 10.0.1.5."
+       "action": "Apply a scan filter after reading items.",
+       "why": "A scan reads items before applying its filter.",
+       "predict": "If a scan returns one of three rows, how many rows does it count as scanned?"
       },
       {
        "id": 34,
-       "file": "vpc.py",
-       "title": "routes pick the longest matching prefix",
-       "tags": [
-        "stateless-vs-stateful",
-        "networking"
-       ],
+       "file": "lambda_svc.py",
+       "title": "Initialize an execution environment on first use",
+       "tags": [],
        "status": "TODO",
-       "action": "Security groups are STATEFUL: allow the request in and the reply out is automatic. NACLs are STATELESS: same rules fail, because the reply goes to an EPHEMERAL port.",
-       "why": "The reply is a new packet to 49152-65535, and nobody remembers to allow that. This is the single most common VPC bug, and it is invisible unless you model the whole connection — evaluate only the request and SG vs NACL look identical.",
-       "predict": "why a NACL blocks the reply to an allowed request."
+       "action": "Function registration is supplied. Make the first LambdaService.invoke create an environment and include its init cost.",
+       "why": "An execution environment has an initialization cost.",
+       "predict": "Does the first invocation include environment initialization cost?"
       },
       {
        "id": 35,
-       "file": "vpc.py",
-       "title": "SG stateful vs NACL stateless, same rules",
-       "tags": [
-        "networking"
-       ],
+       "file": "lambda_svc.py",
+       "title": "Reuse an environment between invocations",
+       "tags": [],
        "status": "TODO",
-       "action": "NACL rules evaluate in NUMBER order, first match wins: a deny at 100 shadows an allow at 200. Security groups have no deny — absence of an allow IS the deny.",
-       "why": "Two more points on the same design axis: NACL buys explicit ordering (and pays with statelessness); SG buys simplicity (and cannot express deny). Neither is strictly better — they answer different questions.",
-       "predict": "SSH from 10.0.5.5 against deny-100/allow-200 rules."
+       "action": "Reuse an environment between invocations.",
+       "why": "A reused execution environment retains memory between calls.",
+       "predict": "What does a counter stored outside the handler return on the second call?"
       },
       {
        "id": 36,
-       "file": "capstone.py",
-       "title": "the pipeline, and failures surfacing a layer away",
-       "tags": [
-        "plumbing"
-       ],
+       "file": "lambda_svc.py",
+       "title": "Replace an expired toy environment",
+       "tags": [],
        "status": "TODO",
-       "action": "Capstone: wire S3 → SNS → SQS → Lambda → DynamoDB, KMS on the payload, IAM on every call — then watch a DynamoDB hot partition surface as a Lambda alarm.",
-       "why": "Failures compose too: the cause lives in the data model, the alarm fires on compute, and the audit trail must record DENIED calls or you debug from half the evidence. That mismatch between where a failure is VISIBLE and where it is CAUSED is most of what makes distributed debugging hard.",
-       "predict": "which service's failure stops the pipeline first."
+       "action": "Replace an expired toy environment.",
+       "why": "The toy's deterministic TTL lets us observe environment replacement.",
+       "predict": "What value does that counter return after the toy TTL expires?"
+      },
+      {
+       "id": 37,
+       "file": "lambda_svc.py",
+       "title": "Report and bill an invocation timeout",
+       "tags": [],
+       "status": "TODO",
+       "action": "Report and bill an invocation timeout.",
+       "why": "A timed-out invocation still occupied capacity.",
+       "predict": "What error and billed duration result from work exceeding a one-second timeout?"
+      },
+      {
+       "id": 38,
+       "file": "lambda_svc.py",
+       "title": "Enforce the account concurrency ceiling",
+       "tags": [],
+       "status": "TODO",
+       "action": "Enforce the account concurrency ceiling.",
+       "why": "Lambda concurrency limits simultaneous work.",
+       "predict": "At concurrency 10, how many of 15 simultaneous calls run?"
+      },
+      {
+       "id": 39,
+       "file": "lambda_svc.py",
+       "title": "Subtract reserved concurrency from the unreserved pool",
+       "tags": [],
+       "status": "TODO",
+       "action": "Subtract reserved concurrency from the unreserved pool.",
+       "why": "Reserved concurrency reduces the shared unreserved pool.",
+       "predict": "After reserving 6 of 10 slots, how many can an unrelated function use?"
+      },
+      {
+       "id": 40,
+       "file": "lambda_svc.py",
+       "title": "Return synchronous handler failure to its caller",
+       "tags": [],
+       "status": "TODO",
+       "action": "Return synchronous handler failure to its caller.",
+       "why": "Synchronous invocation reports a handler error to its caller.",
+       "predict": "How many times does a failing synchronous handler run?"
+      },
+      {
+       "id": 41,
+       "file": "lambda_svc.py",
+       "title": "Retry a failed asynchronous handler in the toy's three-attempt policy",
+       "tags": [],
+       "status": "TODO",
+       "action": "Retry a failed asynchronous handler in the toy's three-attempt policy.",
+       "why": "An asynchronous handler error can trigger another attempt.",
+       "predict": "How many attempts does one failing async event make by default in this toy?"
+      },
+      {
+       "id": 42,
+       "file": "lambda_svc.py",
+       "title": "Send an exhausted asynchronous event to the dead-letter queue",
+       "tags": [],
+       "status": "TODO",
+       "action": "Send an exhausted asynchronous event to the dead-letter queue.",
+       "why": "An exhausted asynchronous event can be preserved for inspection.",
+       "predict": "Where does an async event go after its last failed attempt?"
+      },
+      {
+       "id": 43,
+       "file": "sns.py",
+       "title": "Fan one publish out to all subscriptions",
+       "tags": [],
+       "status": "TODO",
+       "action": "Topic.subscribe is supplied. Implement publish and delivery so one message reaches every subscribed queue. Filtering arrives next.",
+       "why": "SNS sends a copy of one publication to each subscriber.",
+       "predict": "How many copies arrive when a topic has two queue subscribers?"
+      },
+      {
+       "id": 44,
+       "file": "sns.py",
+       "title": "Match any allowed value for one SNS filter key",
+       "tags": [],
+       "status": "TODO",
+       "action": "Match any allowed value for one SNS filter key.",
+       "why": "A filter key can admit several alternative values.",
+       "predict": "Does staging match a filter allowing prod or staging?"
+      },
+      {
+       "id": 45,
+       "file": "sns.py",
+       "title": "Require every ordinary SNS filter key",
+       "tags": [],
+       "status": "TODO",
+       "action": "Require every ordinary SNS filter key.",
+       "why": "Ordinary SNS filter keys must all be present and match.",
+       "predict": "Does a message missing environment match a filter requiring it?"
+      },
+      {
+       "id": 46,
+       "file": "sns.py",
+       "title": "Match a nested EventBridge pattern",
+       "tags": [],
+       "status": "TODO",
+       "action": "Match a nested EventBridge pattern.",
+       "why": "EventBridge patterns can describe nested event fields.",
+       "predict": "Does a nested pattern for terminated match a running event?"
+      },
+      {
+       "id": 47,
+       "file": "sns.py",
+       "title": "Fire every matching EventBridge rule",
+       "tags": [],
+       "status": "TODO",
+       "action": "Fire every matching EventBridge rule.",
+       "why": "More than one EventBridge rule may match one event.",
+       "predict": "How many rule handlers run when two rules match one event?"
+      },
+      {
+       "id": 48,
+       "file": "kms.py",
+       "title": "Return plaintext and wrapped copies of one data key",
+       "tags": [],
+       "status": "TODO",
+       "action": "Key creation and wrapping helpers are supplied. Implement generate_data_key and decrypt_data_key so the two forms of one key round trip.",
+       "why": "Envelope encryption begins with a plaintext and wrapped data key.",
+       "predict": "What two forms of the same data key does GenerateDataKey return?"
+      },
+      {
+       "id": 49,
+       "file": "kms.py",
+       "title": "Encrypt an object locally with its data key",
+       "tags": [],
+       "status": "TODO",
+       "action": "Encrypt an object locally with its data key.",
+       "why": "The data key encrypts the payload outside KMS.",
+       "predict": "What must be stored beside the payload ciphertext to decrypt it later?"
+      },
+      {
+       "id": 50,
+       "file": "kms.py",
+       "title": "Bind the wrapped key to an encryption context",
+       "tags": [],
+       "status": "TODO",
+       "action": "Bind the wrapped key to an encryption context.",
+       "why": "Encryption context binds a wrapped key to request metadata.",
+       "predict": "Can ciphertext encrypted under tenant A be decrypted under tenant B?"
+      },
+      {
+       "id": 51,
+       "file": "kms.py",
+       "title": "Keep old key material usable after rotation",
+       "tags": [],
+       "status": "TODO",
+       "action": "Keep old key material usable after rotation.",
+       "why": "Rotation keeps older key material available for decryption.",
+       "predict": "Can ciphertext from before rotation still be decrypted afterward?"
+      },
+      {
+       "id": 52,
+       "file": "vpc.py",
+       "title": "Decide whether one CIDR contains another",
+       "tags": [],
+       "status": "TODO",
+       "action": "Decide whether one CIDR contains another.",
+       "why": "CIDR containment describes an address range inside another.",
+       "predict": "Does 10.0.0.0/16 contain 10.0.1.0/24 or 10.1.0.0/24?"
+      },
+      {
+       "id": 53,
+       "file": "vpc.py",
+       "title": "Reject an overlapping subnet",
+       "tags": [],
+       "status": "TODO",
+       "action": "Reject an overlapping subnet.",
+       "why": "Overlapping subnets make address assignment ambiguous.",
+       "predict": "Can 10.0.1.128/25 be added after 10.0.1.0/24?"
+      },
+      {
+       "id": 54,
+       "file": "vpc.py",
+       "title": "Subtract AWS's five reserved subnet addresses",
+       "tags": [],
+       "status": "TODO",
+       "action": "Subtract AWS's five reserved subnet addresses.",
+       "why": "AWS reserves five addresses in each VPC subnet.",
+       "predict": "How many usable addresses remain in an AWS /28 subnet?"
+      },
+      {
+       "id": 55,
+       "file": "vpc.py",
+       "title": "Select the longest matching route prefix",
+       "tags": [],
+       "status": "TODO",
+       "action": "Select the longest matching route prefix.",
+       "why": "Routing chooses the most specific matching destination.",
+       "predict": "Which route wins for 10.1.5.7: /0, /16, or /24?"
+      },
+      {
+       "id": 56,
+       "file": "vpc.py",
+       "title": "Permit reply traffic for an allowed security-group connection",
+       "tags": [],
+       "status": "TODO",
+       "action": "Permit reply traffic for an allowed security-group connection.",
+       "why": "A security group tracks allowed connection state.",
+       "predict": "Does a reply need its own outbound security-group rule?"
+      },
+      {
+       "id": 57,
+       "file": "vpc.py",
+       "title": "Evaluate a NACL reply separately",
+       "tags": [],
+       "status": "TODO",
+       "action": "Evaluate a NACL reply separately.",
+       "why": "A NACL checks the reply packet separately.",
+       "predict": "Does a NACL allow the reply when only port 443 is open outbound?"
+      },
+      {
+       "id": 58,
+       "file": "vpc.py",
+       "title": "Evaluate NACL rules in number order",
+       "tags": [],
+       "status": "TODO",
+       "action": "Evaluate NACL rules in number order.",
+       "why": "NACL rules have numeric priority.",
+       "predict": "If allow 200 is added before deny 100, which rule wins for SSH?"
+      },
+      {
+       "id": 59,
+       "file": "capstone.py",
+       "title": "Publish one event after an upload",
+       "tags": [],
+       "status": "TODO",
+       "action": "The system setup is supplied. Implement upload so it stores one encrypted object and publishes one notification. The topic has no queue subscriber yet.",
+       "why": "An upload can publish a notification after storing an object.",
+       "predict": "After uploading one PDF, how many events has the topic published?"
+      },
+      {
+       "id": 60,
+       "file": "capstone.py",
+       "title": "Subscribe the work queue to the topic",
+       "tags": [],
+       "status": "TODO",
+       "action": "In build(), subscribe the processing queue to the uploads topic with the PDF filter policy.",
+       "why": "An SNS subscription can deliver that notification to SQS.",
+       "predict": "Is that event visible in SQS after the queue is subscribed?"
+      },
+      {
+       "id": 61,
+       "file": "capstone.py",
+       "title": "Connect SQS processing through Lambda to DynamoDB",
+       "tags": [],
+       "status": "TODO",
+       "action": "Connect SQS processing through Lambda to DynamoDB.",
+       "why": "A worker can consume one queued event and write one row.",
+       "predict": "How many DynamoDB rows result after draining one queued PDF?"
+      },
+      {
+       "id": 62,
+       "file": "capstone.py",
+       "title": "Authorize before the upload's first side effect",
+       "tags": [],
+       "status": "TODO",
+       "action": "Authorize before the upload's first side effect.",
+       "why": "Authorization must happen before an upload's first side effect.",
+       "predict": "What storage or queue side effects remain after a denied upload?"
+      },
+      {
+       "id": 63,
+       "file": "capstone.py",
+       "title": "Name the downstream failure origin",
+       "tags": [],
+       "status": "TODO",
+       "action": "Implement failure_origin: return \"dynamodb\" when the worker failed and a database partition reports throttling; otherwise return None.",
+       "why": "A downstream database limit can appear as a worker failure.",
+       "predict": "When the worker fails and a partition reports throttling, what should failure_origin return?"
       }
      ]
     },
@@ -16809,197 +17185,332 @@
    "mode": "check",
    "order": 5,
    "repo": {
-    "baseline": 95,
-    "remaining": 95,
+    "baseline": 69,
+    "remaining": 69,
     "written": 0,
     "fraction": 0.0
    },
    "checks": {
-    "total": 36,
+    "total": 63,
     "passed": 0,
-    "failed": 0,
-    "todo": 36,
+    "failed": 1,
+    "todo": 62,
     "next_step": 1,
     "stages": {
      "1": {
       "status": "TODO",
       "file": "iam.py",
-      "title": "explicit deny > allow > implicit deny"
+      "title": "Implicit deny"
      },
      "2": {
       "status": "TODO",
       "file": "iam.py",
-      "title": "conditions: AND keys, OR values, fail closed"
+      "title": "Match an action and a resource before applying a statement"
      },
      "3": {
       "status": "TODO",
       "file": "iam.py",
-      "title": "permissions boundaries subtract, never grant"
+      "title": "Give a matching explicit Deny precedence over Allow"
      },
      "4": {
       "status": "TODO",
       "file": "iam.py",
-      "title": "assume-role: caller policy AND role trust"
+      "title": "Reject a condition when its context key is missing"
      },
      "5": {
       "status": "TODO",
-      "file": "s3.py",
-      "title": "put/get objects and the NoSuchKey error"
+      "file": "iam.py",
+      "title": "Combine condition keys with AND and alternatives for one key with OR"
      },
      "6": {
       "status": "TODO",
-      "file": "s3.py",
-      "title": "multipart ETags end in -<part count>"
+      "file": "iam.py",
+      "title": "Intersect identity permissions with a permissions boundary"
      },
      "7": {
       "status": "TODO",
-      "file": "s3.py",
-      "title": "delimiter invents folders at list time"
+      "file": "iam.py",
+      "title": "Check a role's trust policy when assuming it"
      },
      "8": {
       "status": "TODO",
-      "file": "s3.py",
-      "title": "delete marker hides versions, frees nothing"
+      "file": "iam.py",
+      "title": "Give an assumed session the role's permissions"
      },
      "9": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "receive is a lease; expiry redelivers"
+      "file": "s3.py",
+      "title": "Store and retrieve one object by its full key"
      },
      "10": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "stale receipt handles must fail to delete"
+      "file": "s3.py",
+      "title": "Raise `NoSuchKey` for an absent object"
      },
      "11": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "change_visibility extends the lease"
+      "file": "s3.py",
+      "title": "Compute the toy's single-part MD5 ETag"
      },
      "12": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "poison messages dead-letter after max_receives"
+      "file": "s3.py",
+      "title": "Compute a multipart ETag from part digests"
      },
      "13": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "oldest_age counts in-flight messages too"
+      "file": "s3.py",
+      "title": "List object keys as a flat sequence"
      },
      "14": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "FIFO: one in-flight message per group"
+      "file": "s3.py",
+      "title": "Collapse shared prefixes when a delimiter is requested"
      },
      "15": {
       "status": "TODO",
-      "file": "sqs.py",
-      "title": "FIFO dedup window drops duplicate ids"
+      "file": "s3.py",
+      "title": "Retain prior values after writes to a versioned key"
      },
      "16": {
       "status": "TODO",
-      "file": "dynamodb.py",
-      "title": "composite key = partition + sort"
+      "file": "s3.py",
+      "title": "Append a delete marker for a plain delete in a versioned bucket"
      },
      "17": {
       "status": "TODO",
-      "file": "dynamodb.py",
-      "title": "query reads one partition; missing key raises"
+      "file": "s3.py",
+      "title": "Delete one specified version"
      },
      "18": {
       "status": "TODO",
-      "file": "dynamodb.py",
-      "title": "conditional writes fail atomically"
+      "file": "sqs.py",
+      "title": "Hide a received message for its visibility interval"
      },
      "19": {
       "status": "TODO",
-      "file": "dynamodb.py",
-      "title": "consistent reads cost twice eventual ones"
+      "file": "sqs.py",
+      "title": "Make an undeleted message visible after the interval"
      },
      "20": {
       "status": "TODO",
-      "file": "dynamodb.py",
-      "title": "capacity divides across partitions; hot key throttles"
+      "file": "sqs.py",
+      "title": "Give each receive a new receipt handle"
      },
      "21": {
       "status": "TODO",
-      "file": "dynamodb.py",
-      "title": "scan reads everything, then filters"
+      "file": "sqs.py",
+      "title": "Delete the message with its current handle"
      },
      "22": {
       "status": "TODO",
-      "file": "lambda_svc.py",
-      "title": "cold start once; warm state survives"
+      "file": "sqs.py",
+      "title": "Change visibility relative to the call time"
      },
      "23": {
       "status": "TODO",
-      "file": "lambda_svc.py",
-      "title": "environment TTL resets state; timeout bills full"
+      "file": "sqs.py",
+      "title": "Move a repeatedly received message to a dead-letter queue"
      },
      "24": {
       "status": "TODO",
-      "file": "lambda_svc.py",
-      "title": "concurrency is a quota; reservation steals a floor"
+      "file": "sqs.py",
+      "title": "Block another in-flight message from the same FIFO group"
      },
      "25": {
       "status": "TODO",
-      "file": "lambda_svc.py",
-      "title": "async failures retry to 3 attempts, then DLQ"
+      "file": "sqs.py",
+      "title": "Let a different FIFO group progress"
      },
      "26": {
-      "status": "TODO",
-      "file": "sns.py",
-      "title": "one publish fans out to every subscriber"
+      "status": "FAIL",
+      "file": "sqs.py",
+      "title": "Suppress a duplicate deduplication ID inside the toy window"
      },
      "27": {
       "status": "TODO",
-      "file": "sns.py",
-      "title": "filters: AND keys, OR values, missing never matches"
+      "file": "dynamodb.py",
+      "title": "Use both partition and sort values as a composite key"
      },
      "28": {
       "status": "TODO",
-      "file": "sns.py",
-      "title": "EventBridge matches nested shape, fires every rule"
+      "file": "dynamodb.py",
+      "title": "Query only a named partition key"
      },
      "29": {
       "status": "TODO",
-      "file": "kms.py",
-      "title": "envelope: data key encrypts, CMK wraps the key"
+      "file": "dynamodb.py",
+      "title": "Make a conditional put atomic"
      },
      "30": {
       "status": "TODO",
-      "file": "kms.py",
-      "title": "one KMS call per object, not per byte"
+      "file": "dynamodb.py",
+      "title": "Charge the toy's strong read twice its eventual read"
      },
      "31": {
       "status": "TODO",
-      "file": "kms.py",
-      "title": "encryption context must match on decrypt"
+      "file": "dynamodb.py",
+      "title": "Apply the toy's write budget per partition"
      },
      "32": {
       "status": "TODO",
-      "file": "kms.py",
-      "title": "rotation re-encrypts keys, never data"
+      "file": "dynamodb.py",
+      "title": "Spread distinct partition keys across partitions"
      },
      "33": {
       "status": "TODO",
-      "file": "vpc.py",
-      "title": "CIDR containment, overlap, 5 reserved IPs"
+      "file": "dynamodb.py",
+      "title": "Apply a scan filter after reading items"
      },
      "34": {
       "status": "TODO",
-      "file": "vpc.py",
-      "title": "routes pick the longest matching prefix"
+      "file": "lambda_svc.py",
+      "title": "Initialize an execution environment on first use"
      },
      "35": {
       "status": "TODO",
-      "file": "vpc.py",
-      "title": "SG stateful vs NACL stateless, same rules"
+      "file": "lambda_svc.py",
+      "title": "Reuse an environment between invocations"
      },
      "36": {
       "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Replace an expired toy environment"
+     },
+     "37": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Report and bill an invocation timeout"
+     },
+     "38": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Enforce the account concurrency ceiling"
+     },
+     "39": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Subtract reserved concurrency from the unreserved pool"
+     },
+     "40": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Return synchronous handler failure to its caller"
+     },
+     "41": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Retry a failed asynchronous handler in the toy's three-attempt policy"
+     },
+     "42": {
+      "status": "TODO",
+      "file": "lambda_svc.py",
+      "title": "Send an exhausted asynchronous event to the dead-letter queue"
+     },
+     "43": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "Fan one publish out to all subscriptions"
+     },
+     "44": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "Match any allowed value for one SNS filter key"
+     },
+     "45": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "Require every ordinary SNS filter key"
+     },
+     "46": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "Match a nested EventBridge pattern"
+     },
+     "47": {
+      "status": "TODO",
+      "file": "sns.py",
+      "title": "Fire every matching EventBridge rule"
+     },
+     "48": {
+      "status": "TODO",
+      "file": "kms.py",
+      "title": "Return plaintext and wrapped copies of one data key"
+     },
+     "49": {
+      "status": "TODO",
+      "file": "kms.py",
+      "title": "Encrypt an object locally with its data key"
+     },
+     "50": {
+      "status": "TODO",
+      "file": "kms.py",
+      "title": "Bind the wrapped key to an encryption context"
+     },
+     "51": {
+      "status": "TODO",
+      "file": "kms.py",
+      "title": "Keep old key material usable after rotation"
+     },
+     "52": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Decide whether one CIDR contains another"
+     },
+     "53": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Reject an overlapping subnet"
+     },
+     "54": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Subtract AWS's five reserved subnet addresses"
+     },
+     "55": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Select the longest matching route prefix"
+     },
+     "56": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Permit reply traffic for an allowed security-group connection"
+     },
+     "57": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Evaluate a NACL reply separately"
+     },
+     "58": {
+      "status": "TODO",
+      "file": "vpc.py",
+      "title": "Evaluate NACL rules in number order"
+     },
+     "59": {
+      "status": "TODO",
       "file": "capstone.py",
-      "title": "the pipeline, and failures surfacing a layer away"
+      "title": "Publish one event after an upload"
+     },
+     "60": {
+      "status": "TODO",
+      "file": "capstone.py",
+      "title": "Subscribe the work queue to the topic"
+     },
+     "61": {
+      "status": "TODO",
+      "file": "capstone.py",
+      "title": "Connect SQS processing through Lambda to DynamoDB"
+     },
+     "62": {
+      "status": "TODO",
+      "file": "capstone.py",
+      "title": "Authorize before the upload's first side effect"
+     },
+     "63": {
+      "status": "TODO",
+      "file": "capstone.py",
+      "title": "Name the downstream failure origin"
      }
     }
    },
@@ -17819,5 +18330,5 @@
  ],
  "repo": "alektebel/forja",
  "ref": "main",
- "generated": "2026-11-08T13:29:22"
+ "generated": "2026-11-08T14:46:24"
 }
