@@ -145,9 +145,31 @@
                   <h3>Helper</h3>
                   <p id="editor-goal"></p>
                   <p id="editor-target"></p>
+                  <button type="button" id="editor-practice-jump" hidden></button>
                   <button type="button" id="editor-hint">Give me a hint</button>
                   <p id="editor-hint-text" aria-live="polite"></p>
                   <div class="editor-result" id="editor-result" hidden role="status" aria-live="polite"></div>
+                  <p id="editor-run-advice" hidden aria-live="polite"></p>
+                  <section class="editor-learning" id="editor-concept" hidden aria-label="Concept check">
+                    <h4>Check the idea</h4>
+                    <p class="editor-learning-note">This answer is separate from the code check.</p>
+                    <p id="editor-concept-prompt"></p>
+                    <div class="editor-choices" id="editor-concept-choices"></div>
+                    <label for="editor-concept-reason">Why did you choose it? <span class="dim">Optional</span></label>
+                    <textarea id="editor-concept-reason" rows="2"></textarea>
+                    <button type="button" id="editor-concept-submit">Check answer</button>
+                    <p class="editor-feedback" id="editor-concept-feedback" role="status" aria-live="polite"></p>
+                  </section>
+                  <button type="button" id="editor-concept-toggle" hidden>Check the idea</button>
+                  <section class="editor-learning" id="editor-practice" hidden aria-label="Recall question">
+                    <h4 id="editor-practice-title">Recall</h4>
+                    <p id="editor-practice-prompt"></p>
+                    <div class="editor-choices" id="editor-practice-choices"></div>
+                    <label for="editor-practice-reason">Why? <span class="dim">Optional</span></label>
+                    <textarea id="editor-practice-reason" rows="2"></textarea>
+                    <button type="button" id="editor-practice-submit">Check recall</button>
+                    <p class="editor-feedback" id="editor-practice-feedback" role="status" aria-live="polite"></p>
+                  </section>
                 </aside>
               </div>
               <div class="browser-editor-foot">
@@ -352,6 +374,7 @@
     </div>
   </div>
 
+  <script src="learning.js"></script>
   <script src="review.js"></script>
   <script src="editor.js"></script>
   <script src="app.js"></script>
