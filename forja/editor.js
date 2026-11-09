@@ -435,7 +435,7 @@
   }
   function workerRequest(payload) {
     return new Promise((resolve, reject) => {
-      const worker = new Worker(asset("py-worker.mjs") + "?v=20261109", { type: "module" });
+      const worker = new Worker(asset("py-worker.mjs") + "?v=20261109b", { type: "module" });
       const id = Date.now();
       const timeout = setTimeout(() => {
         worker.terminate();

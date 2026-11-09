@@ -914,6 +914,37 @@ function resetReviewPlayback() {
   paintReviewFrame();
   startReviewPlayback();
 }
+const REVIEW_LAST_PREFIX = "forja.review.last.v1:";
+function reviewSourceLines(text) {
+  const lines = String(text ?? "").split("\n");
+  if (lines[lines.length - 1] === "") lines.pop();
+  return lines;
+}
+function changedLineNumbers(before, after) {
+  const a = reviewSourceLines(before);
+  const b = reviewSourceLines(after);
+  if (a.length === b.length && a.every((line, index) => line === b[index])) return new Set();
+  if (a.length * b.length > 4000000) return new Set(b.map((_, index) => index + 1));
+  const table = Array.from({ length: a.length + 1 }, () => new Uint32Array(b.length + 1));
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      table[i][j] = a[i - 1] === b[j - 1]
+        ? table[i - 1][j - 1] + 1
+        : Math.max(table[i - 1][j], table[i][j - 1]);
+    }
+  }
+  const changed = new Set();
+  let i = a.length;
+  let j = b.length;
+  while (i > 0 && j > 0) {
+    if (a[i - 1] === b[j - 1]) { i -= 1; j -= 1; continue; }
+    if (table[i - 1][j] >= table[i][j - 1]) i -= 1;
+    else { changed.add(j); j -= 1; }
+  }
+  while (j > 0) { changed.add(j); j -= 1; }
+  if (!changed.size && before !== after) return new Set(b.map((_, index) => index + 1));
+  return changed;
+}
 function closeWorkReview() {
   stopReviewPlayback();
   reviewPlayback.paused = true;
@@ -930,10 +961,15 @@ function openWorkReview(snapshot) {
   codeBox.replaceChildren();
   commentBox.replaceChildren();
 
-  const lines = snapshot.source.split("\n");
-  if (lines[lines.length - 1] === "") lines.pop();
+  const lines = reviewSourceLines(snapshot.source);
+  const lastKey = REVIEW_LAST_PREFIX + `${WORK_COURSE}:${snapshot.stage.id}:${snapshot.file}`;
+  let previous = null;
+  try { previous = localStorage.getItem(lastKey); } catch { /* storage disabled */ }
+  const changed = previous === null ? null : changedLineNumbers(previous, snapshot.source);
+  const changedCount = changed ? changed.size : 0;
   const byLine = new Map();
   for (const row of snapshot.review.lines || []) {
+    if (changed && !changed.has(row.line)) continue;
     for (const comment of row.comments || []) {
       const list = byLine.get(row.line) || [];
       list.push(comment);
@@ -947,20 +983,31 @@ function openWorkReview(snapshot) {
   reviewPlayback.total = lines.length;
   reviewPlayback.speed = 1;
 
+  const scope = changed ? (changedCount ? ` · ${changedCount} changed line${changedCount === 1 ? "" : "s"}` : " · no changes") : "";
   $("#v2-review-title").textContent = `Code review · ${snapshot.file}`;
-  $("#v2-review-sub").textContent = `Stage ${String(snapshot.stage.id).padStart(2, "0")} · ${snapshot.stage.target || snapshot.stage.file}`;
-  $("#v2-review-bad").textContent = `✗ ${snapshot.review.total} issue${snapshot.review.total === 1 ? "" : "s"}`;
+  $("#v2-review-sub").textContent = `Stage ${String(snapshot.stage.id).padStart(2, "0")} · ${snapshot.stage.target || snapshot.stage.file}${scope}`;
+  const bad = [...byLine.values()].reduce((sum, list) => sum + list.length, 0);
+  $("#v2-review-bad").textContent = `✗ ${bad} issue${bad === 1 ? "" : "s"}`;
+  const scopeCount = changed ? changedCount : lines.length;
   const flagged = byLine.size;
-  $("#v2-review-good").textContent = `✓ ${Math.max(0, lines.length - flagged)} line${lines.length - flagged === 1 ? "" : "s"} clean`;
+  $("#v2-review-good").textContent = changed && !changedCount
+    ? "✓ no changes"
+    : `✓ ${Math.max(0, scopeCount - flagged)} line${scopeCount - flagged === 1 ? "" : "s"} clean`;
+  const noChanges = Boolean(changed && !changedCount);
   $("#v2-review-toggle").textContent = "Pause";
   $("#v2-review-speed").textContent = "1×";
   $("#v2-review-foot").hidden = true;
+  $("#v2-review-foot-text").textContent = noChanges
+    ? "No code changes since the last review."
+    : "Review complete. Fix the highlighted lines, then run again.";
+  $("#v2-review-replay").hidden = noChanges;
   $("#v2-review-progress").style.width = "0%";
 
   lines.forEach((text, index) => {
     const line = index + 1;
     const row = document.createElement("div");
-    row.className = `v2-rv-line ${byLine.has(line) ? "is-bad" : "is-good"}`;
+    const inScope = !changed || changed.has(line);
+    row.className = `v2-rv-line${byLine.has(line) ? " is-bad" : ""}${inScope && changed ? " is-changed" : ""}${changed && !inScope ? " is-unchanged" : ""}`;
     row.dataset.line = String(line);
     const number = document.createElement("span");
     number.className = "n";
@@ -972,6 +1019,8 @@ function openWorkReview(snapshot) {
     codeBox.appendChild(row);
     reviewPlayback.rows.push(row);
   });
+
+  try { localStorage.setItem(lastKey, snapshot.source); } catch { /* storage disabled */ }
 
   for (const [line, comments] of [...byLine.entries()].sort((a, b) => a[0] - b[0])) {
     const bubble = document.createElement("div");
@@ -994,7 +1043,8 @@ function openWorkReview(snapshot) {
   paintReviewFrame();
   requestAnimationFrame(() => {
     $("#v2-review-close")?.focus();
-    startReviewPlayback();
+    if (noChanges) finishReviewPlayback();
+    else startReviewPlayback();
   });
 }
 async function playWorkReview() {
