@@ -3,13 +3,84 @@
   const $ = (id) => document.getElementById(id);
   const PREFIX = "forja.code.aws-from-scratch.";
   const learning = window.forjaLearning;
+  const VIM_KEY = "forja.vim.enabled.v1";
+  const STAGE_SPECS = {
+    9: {
+      title: "S3 object round trip",
+      setup: 'from s3 import S3\nstore = S3()\nstore.create_bucket("b")',
+      note: "The slash is part of the key. It does not create a folder. ETag text is not checked until stage 11.",
+      signatures: [
+        "put_object(bucket, key, body, metadata=None) -> ETag str",
+        "get_object(bucket, key, version_id=None) -> Version",
+      ],
+      examples: [
+        {
+          call: 'store.put_object("b", "a/b.txt", b"hello")',
+          output: "an ETag string (any non-empty placeholder is enough here)",
+        },
+        {
+          call: 'store.get_object("b", "a/b.txt")',
+          output: 'a Version; its .body is b"hello"',
+        },
+        {
+          call: 'store.get_object("b", "a/b.txt").body',
+          output: 'b"hello"',
+        },
+        {
+          call: 'sorted(store.buckets["b"].objects)',
+          output: '["a/b.txt"]',
+        },
+      ],
+      cases: [
+        {
+          id: "etag",
+          label: "put_object returns an ETag",
+          input: 'store.put_object("b", "a/b.txt", b"hello")',
+          expected: "non-empty str",
+        },
+        {
+          id: "roundtrip",
+          label: "get_object returns the written bytes",
+          input: 'store.get_object("b", "a/b.txt").body',
+          expected: 'b"hello"',
+        },
+        {
+          id: "full_key",
+          label: "the slash stays in one key",
+          input: 'sorted(store.buckets["b"].objects)',
+          expected: '["a/b.txt"]',
+        },
+        {
+          id: "two_keys",
+          label: "different full keys do not collide",
+          input: 'put "a/b.txt" then "a/c.txt"; read both',
+          expected: 'b"hello" and b"world"',
+        },
+        {
+          id: "empty",
+          label: "an empty body round trips",
+          input: 'store.put_object("b", "empty", b"")',
+          expected: 'get_object(...).body == b""',
+        },
+      ],
+    },
+  };
+
   let bundle = null;
   let course = null;
   let stage = null;
   let file = null;
   let hintIndex = 0;
   let running = false;
+  let runningTests = false;
   let lastOutcome = null;
+  let cm = null;
+  let vimEnabled = true;
+  let vimMode = "normal";
+  let vimLog = [];
+  let burstStart = 0;
+  let lastKeyAt = 0;
+  let settingCode = false;
 
   function currentLearning() { return stage?.learning || bundle?.learning?.[stage?.id] || null; }
   function records() { return learning.read(localStorage); }
@@ -17,7 +88,6 @@
     try { return JSON.parse(localStorage.getItem("forja.browser.passed.v1") || "{}")[course] || []; }
     catch { return []; }
   }
-
   function question(kind, data) {
     const choices = $(`editor-${kind}-choices`);
     choices.replaceChildren();
@@ -39,28 +109,27 @@
       choices.appendChild(label);
     }
   }
-
   function showConcept() {
     const data = currentLearning()?.concept;
     if (!data) return;
+    showHelper("guide");
     question("concept", data);
     $("editor-concept").hidden = false;
     $("editor-concept-toggle").hidden = true;
     $("editor-concept").scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
-
   function showPractice() {
     const due = learning.duePractice(records(), passedStages(), bundle?.learning, stage.id, Date.now());
     const panel = $("editor-practice");
     panel.hidden = !due;
     $("editor-practice-jump").hidden = !due;
     if (!due) return;
+    showHelper("guide");
     panel.dataset.stage = String(due);
     $("editor-practice-jump").textContent = `Recall from stage ${due} · 1 question`;
     $("editor-practice-title").textContent = `Recall · Stage ${due}`;
     question("practice", bundle.learning[due].transfer);
   }
-
   function submitQuestion(kind) {
     const owner = kind === "concept" ? stage?.id : Number($("editor-practice").dataset.stage);
     const data = kind === "concept" ? currentLearning()?.concept : bundle?.learning?.[owner]?.transfer;
@@ -84,39 +153,54 @@
     try { return localStorage.getItem(PREFIX + name); } catch { return null; }
   }
   function save() {
-    if (!file || !bundle) return;
+    if (!file || !bundle || !cm || settingCode) return;
     try {
-      localStorage.setItem(PREFIX + file, $("editor-code").value);
+      localStorage.setItem(PREFIX + file, cm.getValue());
       $("editor-save-state").textContent = "Saved in this browser";
     } catch {
       $("editor-save-state").textContent = "Storage unavailable · download your file";
     }
   }
-  function lines() {
-    const count = $("editor-code").value.split("\n").length;
-    $("editor-lines").textContent = Array.from({ length: count }, (_, i) => i + 1).join("\n");
+  function code() {
+    return cm ? cm.getValue() : "";
+  }
+  function currentFiles() {
+    const files = { ...bundle.files };
+    for (const name of bundle.editable) {
+      files[name] = name === file ? code() : draft(name) ?? bundle.files[name];
+    }
+    return files;
   }
   function selectFile(name) {
     if (!bundle?.editable.includes(name)) return;
+    const saved = draft(name);
     file = name;
     $("editor-file").value = name;
-    $("editor-code").value = draft(name) ?? bundle.files[name];
-    $("editor-save-state").textContent = draft(name) === null ? "Starter code · edits save here" : "Saved in this browser";
+    settingCode = true;
+    cm.setValue(saved ?? bundle.files[name]);
+    settingCode = false;
+    cm.clearHistory();
+    cm.setCursor({ line: 0, ch: 0 });
+    $("editor-save-state").textContent = saved === null ? "Starter code · edits save here" : "Saved in this browser";
     if (lastOutcome?.file && lastOutcome.file !== name) lastOutcome = null;
-    lines();
+    cm.refresh();
+  }
+  function taskLine() {
+    const wanted = (stage?.target || "").split("/")[0].trim().split(".").pop().match(/^[A-Za-z_]\w*/)?.[0];
+    if (!wanted) return null;
+    const match = new RegExp(`^[ \\t]*(?:async[ \\t]+)?def[ \\t]+${wanted}[ \\t]*\\(`, "m").exec(code());
+    if (!match) return null;
+    const before = code().slice(0, match.index).split("\n");
+    return { line: before.length - 1, ch: before[before.length - 1].length };
   }
   function jumpToTask() {
-    if (!stage || file !== stage.file) selectFile(stage.file);
-    const code = $("editor-code");
-    const wanted = (stage.target || "").split("/")[0].trim().split(".").pop().match(/^[A-Za-z_]\w*/)?.[0];
-    if (!wanted) return;
-    const match = new RegExp(`^\\s*(?:async\\s+)?def\\s+${wanted}\\s*\\(`, "m").exec(code.value);
-    if (!match) return;
-    const line = code.value.slice(0, match.index).split("\n").length;
-    code.focus();
-    code.setSelectionRange(match.index, match.index);
-    code.scrollTop = Math.max(0, (line - 4) * 21);
-    $("editor-lines").scrollTop = code.scrollTop;
+    if (!stage) return;
+    if (file !== stage.file) selectFile(stage.file);
+    const at = taskLine();
+    if (!at) return;
+    cm.setCursor(at);
+    cm.scrollIntoView(at, 120);
+    cm.focus();
   }
   async function load() {
     if (bundle) return bundle;
@@ -146,6 +230,106 @@
     body.textContent = detail;
     box.append(title, body);
   }
+  function spec() {
+    return stage ? STAGE_SPECS[stage.id] : null;
+  }
+  function showHelper(name) {
+    for (const button of document.querySelectorAll("[data-helper-tab]")) {
+      const active = button.dataset.helperTab === name;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", String(active));
+    }
+    for (const panel of document.querySelectorAll(".helper-panel")) {
+      panel.hidden = panel.id !== `helper-panel-${name}`;
+    }
+  }
+  function renderExamples(stageSpec) {
+    const box = $("editor-examples");
+    box.replaceChildren();
+    const setup = document.createElement("div");
+    setup.className = "test-example-setup";
+    const setupCode = document.createElement("code");
+    setupCode.textContent = stageSpec.setup;
+    setup.append("Setup: ", setupCode);
+    box.appendChild(setup);
+    for (const signature of stageSpec.signatures || []) {
+      const line = document.createElement("div");
+      line.className = "test-signature";
+      line.textContent = signature;
+      box.appendChild(line);
+    }
+    for (const example of stageSpec.examples) {
+      const row = document.createElement("div");
+      row.className = "test-example";
+      const call = document.createElement("div");
+      call.className = "test-example-call";
+      call.textContent = example.call;
+      const output = document.createElement("div");
+      output.className = "test-example-output";
+      output.append("→ ");
+      const value = document.createElement("code");
+      value.textContent = example.output;
+      output.appendChild(value);
+      row.append(call, output);
+      box.appendChild(row);
+    }
+  }
+  function renderTests(stageSpec, results = new Map()) {
+    const list = $("editor-test-list");
+    list.replaceChildren();
+    let passed = 0;
+    let finished = 0;
+    for (const test of stageSpec.cases) {
+      const actual = results.get(test.id);
+      const status = actual?.status || "pending";
+      if (status === "passed") passed += 1;
+      if (status !== "pending") finished += 1;
+      const item = document.createElement("li");
+      item.className = "test-case";
+      item.dataset.status = status;
+      const head = document.createElement("div");
+      head.className = "test-case-head";
+      const mark = document.createElement("span");
+      mark.className = "test-status";
+      mark.textContent = { passed: "✓", failed: "✗", error: "!", pending: "○" }[status] || "○";
+      const label = document.createElement("span");
+      label.className = "test-label";
+      label.textContent = test.label;
+      head.append(mark, label);
+      const input = document.createElement("code");
+      input.textContent = test.input;
+      const expected = document.createElement("small");
+      expected.append("Expected: ");
+      const expectedValue = document.createElement("b");
+      expectedValue.textContent = test.expected;
+      expected.appendChild(expectedValue);
+      item.append(head, input, expected);
+      if (actual?.actual !== undefined && actual?.actual !== null) {
+        const actualLine = document.createElement("small");
+        actualLine.append("Actual: ");
+        const actualValue = document.createElement("b");
+        actualValue.textContent = String(actual.actual).slice(0, 220);
+        actualLine.appendChild(actualValue);
+        item.appendChild(actualLine);
+      }
+      if (actual?.error) {
+        const errorLine = document.createElement("small");
+        errorLine.append("Error: ");
+        const errorValue = document.createElement("b");
+        errorValue.textContent = String(actual.error).slice(0, 220);
+        errorLine.appendChild(errorValue);
+        item.appendChild(errorLine);
+      }
+      list.appendChild(item);
+    }
+    const summary = $("editor-tests-summary");
+    if (finished) {
+      summary.textContent = `${passed}/${stageSpec.cases.length} passing` +
+        (finished < stageSpec.cases.length ? ` · ${stageSpec.cases.length - finished} still pending` : "");
+    } else {
+      summary.textContent = "Not run yet. Tests run against the current browser draft.";
+    }
+  }
   function guide() {
     hintIndex = 0;
     lastOutcome = null;
@@ -163,6 +347,14 @@
     $("editor-concept-toggle").textContent = priorConcept
       ? (priorConcept.correct ? "Idea check answered · revisit" : "Revisit idea check")
       : "Check the idea";
+    const stageSpec = spec();
+    $("helper-tab-tests").hidden = !stageSpec;
+    if (stageSpec) {
+      renderExamples(stageSpec);
+      renderTests(stageSpec);
+      $("editor-tests-note").textContent = stageSpec.note;
+    }
+    showHelper(stageSpec ? "tests" : "guide");
     if (bundle?.editable.includes(stage.file)) selectFile(stage.file);
     if (bundle) showPractice();
   }
@@ -172,6 +364,7 @@
     stage = nextStage;
     $("browser-editor").hidden = false;
     $("editor-goal").textContent = "Loading starter files…";
+    requestAnimationFrame(() => cm.refresh());
     $("browser-editor").scrollIntoView({ behavior: "smooth", block: "start" });
     try {
       await load();
@@ -186,6 +379,28 @@
     guide();
     jumpToTask();
   }
+  function workerRequest(payload) {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(asset("py-worker.mjs"), { type: "module" });
+      const id = Date.now();
+      const timeout = setTimeout(() => {
+        worker.terminate();
+        reject(new Error("Python took too long to load. Check your connection and try again."));
+      }, 90000);
+      worker.onmessage = ({ data }) => {
+        if (data.id !== id) return;
+        clearTimeout(timeout);
+        worker.terminate();
+        resolve(data);
+      };
+      worker.onerror = () => {
+        clearTimeout(timeout);
+        worker.terminate();
+        reject(new Error("Python could not load. Check your connection and try again."));
+      };
+      worker.postMessage({ id, ...payload });
+    });
+  }
   async function run() {
     if (running || !bundle || !stage) return;
     save();
@@ -195,31 +410,15 @@
     $("editor-run").disabled = true;
     $("editor-run").textContent = "Running…";
     result("TODO", "Loading Python and checking this stage. The first run may take a moment.");
-    const files = { ...bundle.files };
-    for (const name of bundle.editable) files[name] = draft(name) ?? bundle.files[name];
+    const files = currentFiles();
     const source = files[checkedStage.file] || "";
     const prior = records().filter((e) => e.kind === "run" && e.course === checkedCourse && e.stage === checkedStage.id);
-    let worker;
     let outcome;
     try {
-      worker = new Worker(asset("py-worker.mjs"), { type: "module" });
-      const id = Date.now();
-      outcome = await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Python took too long to load. Check your connection and try again.")), 90000);
-        worker.onmessage = ({ data }) => {
-          if (data.id !== id) return;
-          clearTimeout(timeout);
-          resolve(data);
-        };
-        worker.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error("Python could not load. Check your connection and try again."));
-        };
-        worker.postMessage({ id, files, stage: checkedStage.id });
-      });
-    } catch (error) { outcome = { status: "ERROR", detail: error.message }; }
-    finally {
-      worker?.terminate();
+      outcome = await workerRequest({ files, stage: checkedStage.id });
+    } catch (error) {
+      outcome = { status: "ERROR", detail: error.message };
+    } finally {
       running = false;
       $("editor-run").disabled = false;
       $("editor-run").textContent = "Run stage";
@@ -247,51 +446,200 @@
     if (advice.probe && currentLearning()?.concept) showConcept();
     if (outcome.status === "PASS") showPractice();
   }
-
-  $("editor-file").addEventListener("change", (event) => selectFile(event.target.value));
-  $("editor-jump").addEventListener("click", jumpToTask);
-  $("editor-code").addEventListener("input", () => { save(); lines(); });
-  $("editor-code").addEventListener("scroll", () => { $("editor-lines").scrollTop = $("editor-code").scrollTop; });
-  $("editor-code").addEventListener("keydown", (event) => {
-    if (event.key === "Tab") {
-      event.preventDefault();
-      const field = event.target;
-      const at = field.selectionStart;
-      field.setRangeText("    ", at, field.selectionEnd, "end");
-      field.dispatchEvent(new Event("input"));
-    } else if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
-      event.preventDefault();
-      run();
+  async function runTests() {
+    const stageSpec = spec();
+    if (runningTests || !bundle || !stage || !stageSpec) return;
+    save();
+    runningTests = true;
+    $("editor-tests-run").disabled = true;
+    $("editor-tests-run").textContent = "Running…";
+    $("editor-tests-summary").textContent = `Running ${stageSpec.cases.length} test cases…`;
+    try {
+      const outcome = await workerRequest({ files: currentFiles(), stage: stage.id, mode: "tests" });
+      if (!Array.isArray(outcome.cases)) throw new Error(outcome.detail || "The test worker returned no cases.");
+      const results = new Map(outcome.cases.map((test) => [test.id, test]));
+      renderTests(stageSpec, results);
+    } catch (error) {
+      $("editor-tests-summary").textContent = `Could not run tests: ${error.message}`;
+    } finally {
+      runningTests = false;
+      $("editor-tests-run").disabled = false;
+      $("editor-tests-run").textContent = "Run tests";
     }
-  });
-  $("editor-hint").addEventListener("click", () => {
-    const available = stage?.hints?.length ? stage.hints : [
-      `Look at ${stage?.target || stage?.file || "the named function"}. Find the first unfinished part needed for this stage.`,
-      "Run the stage after a small edit. The check result will tell you what to inspect next."
-    ];
-    $("editor-hint-text").textContent = available[Math.min(hintIndex, available.length - 1)];
-    hintIndex++;
-    if (hintIndex >= available.length) $("editor-hint").disabled = true;
-  });
-  $("editor-concept-toggle").addEventListener("click", showConcept);
-  $("editor-concept-submit").addEventListener("click", () => submitQuestion("concept"));
-  $("editor-practice-submit").addEventListener("click", () => submitQuestion("practice"));
-  $("editor-practice-jump").addEventListener("click", () => {
-    $("editor-practice").scrollIntoView({ behavior: "smooth", block: "nearest" });
-  });
-  function jumpToLine(line) {
-    const code = $("editor-code");
-    const value = code.value;
-    const lines = value.split("\n");
-    let offset = 0;
-    for (let i = 0; i < Math.min(line - 1, lines.length); i += 1) offset += lines[i].length + 1;
-    const end = offset + (lines[line - 1]?.length || 0);
-    code.focus();
-    code.setSelectionRange(offset, end);
-    code.scrollTop = Math.max(0, (line - 4) * 21);
-    $("editor-lines").scrollTop = code.scrollTop;
   }
 
+  function normalizeKey(event) {
+    if (event.key === "ArrowUp") return "↑";
+    if (event.key === "ArrowDown") return "↓";
+    if (event.key === "ArrowLeft") return "←";
+    if (event.key === "ArrowRight") return "→";
+    if (event.key === "Escape") return "<Esc>";
+    if (event.key === "Backspace") return "<BS>";
+    if (event.key === "Delete") return "<Del>";
+    if (event.key === "Enter") return "<CR>";
+    if (event.key === "Tab") return "<Tab>";
+    if (event.key === " ") return "␠";
+    return event.key.length === 1 ? event.key : null;
+  }
+  function vimStatusMode() {
+    if (!vimEnabled) return "off";
+    if (cm?.state.vim?.insertMode) return "insert";
+    if (cm?.state.vim?.visualMode) return "visual";
+    return vimMode === "replace" ? "replace" : "normal";
+  }
+  function updateVimStatus() {
+    const mode = vimStatusMode();
+    const status = $("editor-vim-status");
+    status.dataset.mode = mode;
+    status.textContent = {
+      normal: "-- NORMAL --", insert: "-- INSERT --", visual: "-- VISUAL --",
+      replace: "-- REPLACE --", off: "-- VIM OFF --",
+    }[mode];
+    const toggle = $("editor-vim-toggle");
+    toggle.textContent = vimEnabled ? "Vim on" : "Vim off";
+    toggle.setAttribute("aria-pressed", String(vimEnabled));
+    $("editor-vim-keys").textContent = `${vimLog.length} keys`;
+  }
+  function recordKey(event) {
+    if (!vimEnabled || event.isComposing) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const key = normalizeKey(event);
+    if (!key) return;
+    const now = performance.now();
+    if (now - lastKeyAt > 1000) burstStart = vimLog.length;
+    lastKeyAt = now;
+    vimLog.push({ key, mode: vimStatusMode(), line: cm.getCursor().line + 1 });
+    if (vimLog.length > 2000) {
+      const drop = 500;
+      vimLog.splice(0, drop);
+      burstStart = Math.max(0, burstStart - drop);
+    }
+    updateVimStatus();
+  }
+  function setVim(next) {
+    vimEnabled = next;
+    cm.setOption("keyMap", vimEnabled ? "vim" : "default");
+    vimMode = "normal";
+    try { localStorage.setItem(VIM_KEY, vimEnabled ? "on" : "off"); } catch { /* session only */ }
+    updateVimStatus();
+  }
+  function addTip(tips, title, detail, savings) {
+    if (!tips.some((tip) => tip.title === title)) tips.push({ title, detail, savings });
+  }
+  function analyzeVim(log) {
+    const tips = [];
+    const normal = log.filter((key) => key.mode === "normal").length;
+    const insert = log.filter((key) => key.mode === "insert").length;
+    const arrows = log.filter((key) => ["↑", "↓", "←", "→"].includes(key.key)).length;
+    if (arrows) {
+      addTip(tips, "Leave the arrow keys alone",
+        `${arrows} arrow press${arrows === 1 ? "" : "es"}. Use h/j/k/l for single steps; use w, b, 0, $ or a count when the target is further away.`,
+        null);
+    }
+    for (const [key, direction] of [["h", "left"], ["l", "right"], ["j", "down"], ["k", "up"]]) {
+      let i = 0;
+      while (i < log.length) {
+        let j = i + 1;
+        while (j < log.length && log[j].key === key && log[j].mode === "normal") j += 1;
+        const count = j - i;
+        if (count >= 3 && log[i].mode === "normal") {
+          addTip(tips, `Count a ${direction} run`,
+            `${count} ${key} presses in a row. \`${count}${key}\` is ${count - 2} keys shorter; w/b or 0/$ may be shorter still.`,
+            count - 2);
+        }
+        i = j;
+      }
+    }
+    let i = 0;
+    while (i < log.length) {
+      let j = i + 1;
+      while (j < log.length && log[j].key === log[i].key && log[j].mode === log[i].mode) j += 1;
+      const count = j - i;
+      if (count >= 3 && log[i].mode === "normal" && log[i].key === "x") {
+        addTip(tips, "Delete a range, not one character at a time",
+          `${count} \`x\` presses. \`d${count}l\` deletes the same run in three keys; \`dw\` or \`diw\` may fit better.`,
+          Math.max(0, count - 3));
+      }
+      if (count >= 4 && log[i].mode === "insert" && ["<BS>", "<Del>"].includes(log[i].key)) {
+        addTip(tips, "Replace the word instead of erasing it",
+          `${count} ${log[i].key} presses. If you are replacing a word, \`ciw\` (3 keys) then Esc is shorter; \`cc\` replaces a whole line.`,
+          Math.max(0, count - 2));
+      }
+      i = j;
+    }
+    for (let n = 0; n < log.length - 1; n += 1) {
+      if (log[n].mode !== "normal" || log[n + 1].mode !== "normal") continue;
+      if (log[n].key === "0" && log[n + 1].key === "i") {
+        addTip(tips, "Use I at the start of a line", "`0` then `i` is the long way to `I`.", 1);
+      }
+      if (log[n].key === "$" && log[n + 1].key === "i") {
+        addTip(tips, "Use A at the end of a line", "`$` then `i` is the long way to `A`.", 1);
+      }
+    }
+    tips.sort((a, b) => (b.savings ?? -1) - (a.savings ?? -1));
+    return { normal, insert, arrows, tips };
+  }
+  function analyzeKeys() {
+    const summary = $("vim-coach-summary");
+    const burstBox = $("vim-coach-burst");
+    const list = $("vim-coach-list");
+    list.replaceChildren();
+    if (!vimLog.length) {
+      summary.textContent = "No Vim keys recorded yet. Put the cursor in the editor and make an edit.";
+      burstBox.textContent = "";
+      return;
+    }
+    const burst = vimLog.slice(burstStart);
+    const session = analyzeVim(vimLog);
+    const latest = burst.length >= 2 ? analyzeVim(burst) : null;
+    summary.textContent = `${vimLog.length} keys · ${session.normal} normal · ${session.insert} insert · ${session.arrows} arrow${session.arrows === 1 ? "" : "s"}`;
+    burstBox.replaceChildren();
+    burstBox.append(`Last burst: ${burst.length} keys `);
+    const sequence = document.createElement("code");
+    sequence.textContent = burst.slice(-40).map((key) => key.key).join(" ");
+    burstBox.appendChild(sequence);
+    const tips = [];
+    for (const tip of (latest?.tips || [])) {
+      if (!tips.some((item) => item.title === tip.title)) tips.push(tip);
+    }
+    for (const tip of session.tips) {
+      if (!tips.some((item) => item.title === tip.title)) tips.push(tip);
+    }
+    if (!tips.length) {
+      const empty = document.createElement("li");
+      empty.className = "vim-tip";
+      const title = document.createElement("b");
+      title.textContent = "No obvious wasted keys yet";
+      const detail = document.createElement("span");
+      detail.textContent = "Make a larger edit, then analyze again. Repeats, arrows and long backspace runs are the clearest signals.";
+      empty.append(title, detail);
+      list.appendChild(empty);
+      return;
+    }
+    for (const tip of tips.slice(0, 5)) {
+      const item = document.createElement("li");
+      item.className = "vim-tip";
+      const title = document.createElement("b");
+      title.textContent = tip.title;
+      const detail = document.createElement("span");
+      detail.textContent = tip.detail;
+      if (Number.isFinite(tip.savings) && tip.savings > 0) {
+        const save = document.createElement("em");
+        save.textContent = ` Save ~${tip.savings} key${tip.savings === 1 ? "" : "s"}.`;
+        detail.appendChild(save);
+      }
+      item.append(title, detail);
+      list.appendChild(item);
+    }
+  }
+
+  function jumpToLine(line) {
+    if (!cm) return;
+    const target = { line: Math.max(0, line - 1), ch: 0 };
+    cm.setCursor(target);
+    cm.scrollIntoView(target, 120);
+    cm.focus();
+  }
   function renderReview(review) {
     const wrap = $("editor-review-wrap");
     const list = $("editor-review-list");
@@ -333,10 +681,10 @@
         kind.textContent = `${comment.kind} · ${comment.rule}`;
         head.appendChild(kind);
       }
-      const code = document.createElement("code");
-      code.className = "review-code";
-      code.textContent = row.code || " ";
-      item.append(head, code);
+      const source = document.createElement("code");
+      source.className = "review-code";
+      source.textContent = row.code || " ";
+      item.append(head, source);
       for (const comment of row.comments) {
         const message = document.createElement("p");
         message.className = "review-message";
@@ -346,14 +694,13 @@
       list.appendChild(item);
     }
   }
-
   function reviewCode() {
-    if (!stage || !$("editor-code").value) return;
-    const code = $("editor-code").value;
-    const ranges = window.forjaCodeReview?.targetRanges(code.split("\n"), stage.target) || [];
+    if (!stage || !code()) return;
+    const source = code();
+    const ranges = window.forjaCodeReview?.targetRanges(source.split("\n"), stage.target) || [];
     const failureLine = lastOutcome?.file === file
-      && lastOutcome.sourceHash === learning.fingerprint(code) ? lastOutcome.line : null;
-    const result = window.forjaCodeReview?.review(code, {
+      && lastOutcome.sourceHash === learning.fingerprint(source) ? lastOutcome.line : null;
+    const review = window.forjaCodeReview?.review(source, {
       ranges,
       target: stage.target,
       stage: stage.id,
@@ -361,15 +708,68 @@
       failureLine,
       failureDetail: lastOutcome?.detail,
     });
-    if (result) renderReview(result);
+    if (review) renderReview(review);
   }
 
+  cm = CodeMirror.fromTextArea($("editor-code"), {
+    mode: "python",
+    lineNumbers: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: false,
+    keyMap: "vim",
+    viewportMargin: 20,
+    extraKeys: {
+      "Ctrl-Enter": () => run(),
+      "Cmd-Enter": () => run(),
+      Tab: (editor) => {
+        if (!vimEnabled || editor.state.vim?.insertMode) editor.replaceSelection("    ", "end");
+      },
+    },
+  });
+  try {
+    vimEnabled = localStorage.getItem(VIM_KEY) !== "off";
+  } catch { vimEnabled = true; }
+  if (!vimEnabled) cm.setOption("keyMap", "default");
+  cm.on("change", save);
+  cm.on("keydown", (editor, event) => recordKey(event));
+  cm.on("vim-mode-change", (change) => {
+    vimMode = change.mode;
+    updateVimStatus();
+  });
+  cm.on("cursorActivity", updateVimStatus);
+  updateVimStatus();
+
+  $("editor-file").addEventListener("change", (event) => selectFile(event.target.value));
+  $("editor-jump").addEventListener("click", jumpToTask);
+  $("editor-vim-toggle").addEventListener("click", () => setVim(!vimEnabled));
+  for (const button of document.querySelectorAll("[data-helper-tab]")) {
+    button.addEventListener("click", () => showHelper(button.dataset.helperTab));
+  }
+  $("editor-hint").addEventListener("click", () => {
+    const available = stage?.hints?.length ? stage.hints : [
+      `Look at ${stage?.target || stage?.file || "the named function"}. Find the first unfinished part needed for this stage.`,
+      "Run the stage after a small edit. The check result will tell you what to inspect next."
+    ];
+    $("editor-hint-text").textContent = available[Math.min(hintIndex, available.length - 1)];
+    hintIndex++;
+    if (hintIndex >= available.length) $("editor-hint").disabled = true;
+  });
+  $("editor-concept-toggle").addEventListener("click", showConcept);
+  $("editor-concept-submit").addEventListener("click", () => submitQuestion("concept"));
+  $("editor-practice-submit").addEventListener("click", () => submitQuestion("practice"));
+  $("editor-practice-jump").addEventListener("click", () => {
+    $("editor-practice").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+  $("editor-tests-run").addEventListener("click", runTests);
+  $("vim-analyze").addEventListener("click", analyzeKeys);
   $("editor-review").addEventListener("click", reviewCode);
   $("editor-run").addEventListener("click", run);
   $("editor-close").addEventListener("click", () => { $("browser-editor").hidden = true; });
   $("editor-download").addEventListener("click", () => {
     if (!file) return;
-    const url = URL.createObjectURL(new Blob([$("editor-code").value], { type: "text/x-python" }));
+    const url = URL.createObjectURL(new Blob([code()], { type: "text/x-python" }));
     const link = document.createElement("a");
     link.href = url;
     link.download = file;

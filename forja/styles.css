@@ -1011,3 +1011,183 @@ button.chip {
     transition-duration: .001ms !important;
   }
 }
+
+/* ------------------------------------------------- browser workspace: Gruvbox */
+/* The coding surface is deliberately its own room: Gruvbox dark, Vim status,
+   and a test bench. The catalog around it keeps the site's existing palette. */
+.browser-editor {
+  --gb-bg0-hard: #1d2021;
+  --gb-bg0: #282828;
+  --gb-bg1: #3c3836;
+  --gb-bg2: #504945;
+  --gb-fg0: #fbf1c7;
+  --gb-fg1: #ebdbb2;
+  --gb-gray: #928374;
+  --gb-red: #fb4934;
+  --gb-green: #b8bb26;
+  --gb-yellow: #fabd2f;
+  --gb-blue: #83a598;
+  --gb-purple: #d3869b;
+  --gb-aqua: #8ec07c;
+  --gb-orange: #fe8019;
+  background: var(--gb-bg0-hard);
+  border-color: var(--gb-bg2);
+  color: var(--gb-fg1);
+}
+.browser-editor-head, .browser-editor-foot { background: var(--gb-bg0); border-color: var(--gb-bg1); }
+.browser-editor-head .kicker { color: var(--gb-yellow); }
+.browser-editor-head h2 { color: var(--gb-fg0); }
+#editor-close { color: var(--gb-gray); }
+#editor-close:hover { color: var(--gb-red); }
+.browser-code { border-color: var(--gb-bg1); }
+.browser-code-head { background: var(--gb-bg0); border-color: var(--gb-bg1); color: var(--gb-gray); }
+#editor-file { color: var(--gb-fg1); background: var(--gb-bg1); border-color: var(--gb-bg2); }
+#editor-jump { color: var(--gb-yellow); }
+#editor-save-state { color: var(--gb-gray); }
+#editor-code-area { background: var(--gb-bg0); }
+#editor-code-area > .CodeMirror { flex: 1; width: 100%; height: 100%; }
+.CodeMirror { background: var(--gb-bg0); color: var(--gb-fg1); font: 14px/1.65 var(--mono); }
+.CodeMirror-scroll { min-height: 100%; }
+.CodeMirror-gutters { background: var(--gb-bg0-hard); border-right: 1px solid var(--gb-bg1); }
+.CodeMirror-linenumber { color: #7c6f64; }
+.CodeMirror-cursor { border-left: 2px solid var(--gb-orange); }
+.CodeMirror-selected { background: var(--gb-bg2) !important; }
+.CodeMirror-activeline-background { background: #32302f; }
+.CodeMirror-matchingbracket { color: var(--gb-green) !important; border-bottom: 1px solid var(--gb-green); }
+.CodeMirror-dialog { background: var(--gb-bg0-hard); color: var(--gb-fg1); border-color: var(--gb-bg2); font: 13px var(--mono); }
+.CodeMirror-dialog input { color: var(--gb-fg0); background: var(--gb-bg1); border-color: var(--gb-bg2); }
+.cm-s-default .cm-keyword { color: var(--gb-red); }
+.cm-s-default .cm-def { color: var(--gb-green); }
+.cm-s-default .cm-variable, .cm-s-default .cm-variable-2 { color: var(--gb-blue); }
+.cm-s-default .cm-variable-3, .cm-s-default .cm-type { color: var(--gb-purple); }
+.cm-s-default .cm-property { color: var(--gb-aqua); }
+.cm-s-default .cm-operator { color: var(--gb-orange); }
+.cm-s-default .cm-string, .cm-s-default .cm-string-2 { color: var(--gb-green); }
+.cm-s-default .cm-number { color: var(--gb-purple); }
+.cm-s-default .cm-comment { color: var(--gb-gray); font-style: italic; }
+.cm-s-default .cm-builtin { color: var(--gb-yellow); }
+.cm-s-default .cm-meta { color: var(--gb-yellow); }
+.cm-s-default .cm-atom { color: var(--gb-purple); }
+.vim-status {
+  font: 600 11px var(--mono); color: var(--gb-yellow);
+  letter-spacing: .03em; white-space: nowrap;
+}
+.vim-status[data-mode="insert"] { color: var(--gb-green); }
+.vim-status[data-mode="visual"] { color: var(--gb-purple); }
+.vim-status[data-mode="replace"] { color: var(--gb-red); }
+.vim-status[data-mode="off"] { color: var(--gb-gray); }
+.vim-toggle {
+  padding: 4px 8px; border: 1px solid var(--gb-bg2); border-radius: 4px;
+  background: var(--gb-bg1); color: var(--gb-yellow);
+  font: 600 11px var(--sans); cursor: pointer;
+}
+.vim-toggle[aria-pressed="false"] { color: var(--gb-gray); }
+.vim-toggle:hover { color: var(--gb-fg0); border-color: var(--gb-yellow); }
+.browser-helper { background: var(--gb-bg0); color: var(--gb-fg1); }
+.browser-helper h3, .browser-helper h4 { color: var(--gb-fg0); }
+.helper-tabs { display: flex; gap: 2px; margin-bottom: 14px; border-bottom: 1px solid var(--gb-bg2); }
+.helper-tab {
+  border: 0; border-bottom: 2px solid transparent; background: transparent;
+  color: var(--gb-gray); padding: 8px 9px; cursor: pointer;
+  font: 600 12px var(--sans);
+}
+.helper-tab:hover { color: var(--gb-fg1); }
+.helper-tab.is-active { color: var(--gb-yellow); border-bottom-color: var(--gb-yellow); }
+.helper-panel[hidden] { display: none; }
+#editor-goal { color: var(--gb-fg1); }
+#editor-target { color: var(--gb-aqua); }
+#editor-hint {
+  background: var(--gb-bg1); color: var(--gb-yellow);
+  border-color: var(--gb-bg2);
+}
+#editor-hint:hover { border-color: var(--gb-yellow); }
+#editor-hint:disabled { color: var(--gb-gray); }
+#editor-hint-text { color: var(--gb-gray); }
+.editor-result { background: var(--gb-bg0-hard); border-color: var(--gb-bg2); color: var(--gb-fg1); }
+.editor-result[data-status="PASS"] { border-color: var(--gb-green); color: var(--gb-green); background: #1f2a1d; }
+.editor-result[data-status="FAIL"], .editor-result[data-status="ERROR"] { border-color: var(--gb-red); color: #f3b0a8; background: #2a1e1c; }
+.editor-result[data-status="TODO"] { border-color: var(--gb-yellow); color: var(--gb-yellow); background: #2a271d; }
+.browser-editor .code-review-btn, .browser-editor-foot .code-review-btn {
+  background: var(--gb-bg1); color: var(--gb-yellow); border-color: var(--gb-bg2);
+}
+.browser-editor .code-review-btn:hover { background: var(--gb-bg2); color: var(--gb-fg0); }
+.browser-editor-foot { color: var(--gb-gray); }
+.browser-editor-foot button { background: var(--gb-bg1); color: var(--gb-fg1); border-color: var(--gb-bg2); }
+.browser-editor-foot .primary-btn { background: var(--gb-green); color: #1d2021; border-color: var(--gb-green); }
+.browser-editor-foot .primary-btn:hover { background: #d5c94a; }
+.editor-review { border-color: var(--gb-bg1); background: var(--gb-bg0-hard); }
+.editor-review-head h3 { color: var(--gb-fg0); }
+#editor-review-summary, .review-empty { color: var(--gb-gray); }
+.review-row { background: var(--gb-bg0); border-color: var(--gb-bg1); border-left-color: var(--gb-yellow); }
+.review-row.is-error { border-left-color: var(--gb-red); }
+.review-row:hover { background: var(--gb-bg1); }
+.review-row-head { color: var(--gb-gray); }
+.review-line { color: var(--gb-yellow); }
+.review-code { color: var(--gb-fg1); }
+.review-message { color: var(--gb-gray); }
+.editor-tests-note, .vim-coach-lede { color: var(--gb-gray); font-size: 12px; line-height: 1.5; }
+.editor-subhead { margin: 16px 0 8px; font-size: 13px; color: var(--gb-fg0); }
+.test-examples { margin: 0 0 14px; display: flex; flex-direction: column; gap: 7px; }
+.test-example { border-left: 2px solid var(--gb-blue); padding: 3px 0 3px 9px; }
+.test-example dt { color: var(--gb-blue); font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+.test-example dd { margin: 2px 0 0; color: var(--gb-gray); font-size: 12px; }
+.test-example dd code { color: var(--gb-green); background: var(--gb-bg1); padding: 1px 4px; border-radius: 3px; }
+.tests-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+#editor-tests-run, #vim-analyze {
+  border: 1px solid var(--gb-bg2); border-radius: 5px; padding: 6px 9px;
+  background: var(--gb-bg1); color: var(--gb-yellow);
+  font: 600 12px var(--sans); cursor: pointer; white-space: nowrap;
+}
+#editor-tests-run:hover, #vim-analyze:hover { border-color: var(--gb-yellow); color: var(--gb-fg0); }
+#editor-tests-run:disabled { opacity: .6; cursor: wait; }
+.test-summary, .vim-coach-summary { margin: 8px 0; color: var(--gb-gray); font-size: 12px; }
+.test-list, .vim-coach-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.test-case, .vim-tip {
+  border: 1px solid var(--gb-bg1); border-left: 3px solid var(--gb-bg2);
+  background: var(--gb-bg0-hard); border-radius: 5px; padding: 8px 10px;
+}
+.test-case[data-status="passed"] { border-left-color: var(--gb-green); }
+.test-case[data-status="failed"] { border-left-color: var(--gb-red); }
+.test-case[data-status="error"] { border-left-color: var(--gb-orange); }
+.test-case-head { display: flex; align-items: baseline; gap: 7px; }
+.test-status { font: 700 11px var(--mono); color: var(--gb-gray); }
+.test-case[data-status="passed"] .test-status { color: var(--gb-green); }
+.test-case[data-status="failed"] .test-status { color: var(--gb-red); }
+.test-case[data-status="error"] .test-status { color: var(--gb-orange); }
+.test-label { color: var(--gb-fg1); font-size: 12px; }
+.test-case code { display: block; margin-top: 4px; color: var(--gb-blue); font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+.test-case small { display: block; margin-top: 3px; color: var(--gb-gray); font-size: 11px; }
+.test-case small b { color: var(--gb-fg1); font-weight: 600; }
+.vim-coach-burst { color: var(--gb-gray); font-size: 11px; overflow-wrap: anywhere; }
+.vim-coach-burst code { color: var(--gb-yellow); font: 11px var(--mono); }
+.vim-tip { border-left-color: var(--gb-blue); }
+.vim-tip b { display: block; color: var(--gb-fg1); font-size: 12px; }
+.vim-tip span { display: block; margin-top: 3px; color: var(--gb-gray); font-size: 11px; line-height: 1.45; }
+.vim-tip em { color: var(--gb-green); font-style: normal; font: 11px var(--mono); }
+@media (max-width: 760px) {
+  .browser-code-head { flex-wrap: wrap; }
+  #editor-save-state { margin-left: 0; width: 100%; text-align: left; }
+  .CodeMirror { font-size: 13px; }
+}
+.vim-keys { color: var(--gb-gray); font: 10px var(--mono); white-space: nowrap; }
+.test-example-setup { color: var(--gb-gray); font-size: 11px; margin-bottom: 8px; }
+.test-example-setup code { color: var(--gb-aqua); font: 11px/1.5 var(--mono); white-space: pre-wrap; }
+.test-example-call { color: var(--gb-blue); font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+.test-example-output { margin-top: 2px; color: var(--gb-gray); font-size: 11px; }
+.test-example-output code { color: var(--gb-green); background: var(--gb-bg1); padding: 1px 4px; border-radius: 3px; }
+.test-signature { color: var(--gb-yellow); font: 11px/1.55 var(--mono); overflow-wrap: anywhere; }
+#editor-practice-jump { color: var(--gb-aqua); background: #1f2a1d; border-color: var(--gb-bg2); }
+#editor-practice-jump:hover { border-color: var(--gb-aqua); }
+#editor-run-advice { border-left-color: var(--gb-yellow); color: var(--gb-gray); }
+.editor-learning { border-color: var(--gb-bg2); }
+.editor-learning h4 { color: var(--gb-aqua); }
+.editor-learning .editor-learning-note { color: var(--gb-gray); }
+.editor-choices label { border-color: var(--gb-bg2); color: var(--gb-fg1); background: var(--gb-bg0-hard); }
+.editor-choices label:has(input:checked) { border-color: var(--gb-aqua); background: #1f2a1d; color: var(--gb-fg0); }
+.editor-choices input { accent-color: var(--gb-green); }
+.editor-learning > label { color: var(--gb-gray); }
+.editor-learning textarea { color: var(--gb-fg1); background: var(--gb-bg0-hard); border-color: var(--gb-bg2); }
+.editor-learning > button, #editor-concept-toggle { color: var(--gb-yellow); background: var(--gb-bg1); border-color: var(--gb-bg2); }
+.editor-feedback { color: var(--gb-gray); }
+.editor-feedback[data-correct="true"] { color: var(--gb-green); }
+.editor-feedback[data-correct="false"] { color: var(--gb-yellow); }

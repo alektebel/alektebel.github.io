@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/codemirror/codemirror.css">
+  <link rel="stylesheet" href="vendor/codemirror/dialog.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -134,42 +136,68 @@
                     <label for="editor-file">File</label>
                     <select id="editor-file"></select>
                     <button type="button" id="editor-jump">Jump to task</button>
+                    <span class="vim-status" id="editor-vim-status" aria-live="polite">-- NORMAL --</span>
+                    <button type="button" class="vim-toggle" id="editor-vim-toggle" aria-pressed="true">Vim on</button>
+                    <span class="vim-keys" id="editor-vim-keys">0 keys</span>
                     <span id="editor-save-state" role="status">Saved in this browser</span>
                   </div>
-                  <div class="browser-code-area">
-                    <pre id="editor-lines" aria-hidden="true">1</pre>
-                    <textarea id="editor-code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Python code"></textarea>
+                  <div class="browser-code-area" id="editor-code-area">
+                    <textarea id="editor-code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Python code in Vim mode"></textarea>
                   </div>
                 </div>
                 <aside class="browser-helper" aria-label="Stage helper">
-                  <h3>Helper</h3>
-                  <p id="editor-goal"></p>
-                  <p id="editor-target"></p>
-                  <button type="button" id="editor-practice-jump" hidden></button>
-                  <button type="button" id="editor-hint">Give me a hint</button>
-                  <p id="editor-hint-text" aria-live="polite"></p>
+                  <div class="helper-tabs" role="tablist" aria-label="Helper sections">
+                    <button type="button" class="helper-tab is-active" id="helper-tab-guide" role="tab" aria-selected="true" aria-controls="helper-panel-guide" data-helper-tab="guide">Guide</button>
+                    <button type="button" class="helper-tab" id="helper-tab-tests" role="tab" aria-selected="false" aria-controls="helper-panel-tests" data-helper-tab="tests">Tests</button>
+                    <button type="button" class="helper-tab" id="helper-tab-vim" role="tab" aria-selected="false" aria-controls="helper-panel-vim" data-helper-tab="vim">Vim coach</button>
+                  </div>
                   <div class="editor-result" id="editor-result" hidden role="status" aria-live="polite"></div>
-                  <p id="editor-run-advice" hidden aria-live="polite"></p>
-                  <section class="editor-learning" id="editor-concept" hidden aria-label="Concept check">
-                    <h4>Check the idea</h4>
-                    <p class="editor-learning-note">This answer is separate from the code check.</p>
-                    <p id="editor-concept-prompt"></p>
-                    <div class="editor-choices" id="editor-concept-choices"></div>
-                    <label for="editor-concept-reason">Why did you choose it? <span class="dim">Optional</span></label>
-                    <textarea id="editor-concept-reason" rows="2"></textarea>
-                    <button type="button" id="editor-concept-submit">Check answer</button>
-                    <p class="editor-feedback" id="editor-concept-feedback" role="status" aria-live="polite"></p>
-                  </section>
-                  <button type="button" id="editor-concept-toggle" hidden>Check the idea</button>
-                  <section class="editor-learning" id="editor-practice" hidden aria-label="Recall question">
-                    <h4 id="editor-practice-title">Recall</h4>
-                    <p id="editor-practice-prompt"></p>
-                    <div class="editor-choices" id="editor-practice-choices"></div>
-                    <label for="editor-practice-reason">Why? <span class="dim">Optional</span></label>
-                    <textarea id="editor-practice-reason" rows="2"></textarea>
-                    <button type="button" id="editor-practice-submit">Check recall</button>
-                    <p class="editor-feedback" id="editor-practice-feedback" role="status" aria-live="polite"></p>
-                  </section>
+                  <div class="helper-panel" id="helper-panel-guide" role="tabpanel" aria-labelledby="helper-tab-guide">
+                    <p id="editor-goal"></p>
+                    <p id="editor-target"></p>
+                    <button type="button" id="editor-practice-jump" hidden></button>
+                    <button type="button" id="editor-hint">Give me a hint</button>
+                    <p id="editor-hint-text" aria-live="polite"></p>
+                    <p id="editor-run-advice" hidden aria-live="polite"></p>
+                    <section class="editor-learning" id="editor-concept" hidden aria-label="Concept check">
+                      <h4>Check the idea</h4>
+                      <p class="editor-learning-note">This answer is separate from the code check.</p>
+                      <p id="editor-concept-prompt"></p>
+                      <div class="editor-choices" id="editor-concept-choices"></div>
+                      <label for="editor-concept-reason">Why did you choose it? <span class="dim">Optional</span></label>
+                      <textarea id="editor-concept-reason" rows="2"></textarea>
+                      <button type="button" id="editor-concept-submit">Check answer</button>
+                      <p class="editor-feedback" id="editor-concept-feedback" role="status" aria-live="polite"></p>
+                    </section>
+                    <button type="button" id="editor-concept-toggle" hidden>Check the idea</button>
+                    <section class="editor-learning" id="editor-practice" hidden aria-label="Recall question">
+                      <h4 id="editor-practice-title">Recall</h4>
+                      <p id="editor-practice-prompt"></p>
+                      <div class="editor-choices" id="editor-practice-choices"></div>
+                      <label for="editor-practice-reason">Why? <span class="dim">Optional</span></label>
+                      <textarea id="editor-practice-reason" rows="2"></textarea>
+                      <button type="button" id="editor-practice-submit">Check recall</button>
+                      <p class="editor-feedback" id="editor-practice-feedback" role="status" aria-live="polite"></p>
+                    </section>
+                  </div>
+                  <div class="helper-panel" id="helper-panel-tests" role="tabpanel" aria-labelledby="helper-tab-tests" hidden>
+                    <p class="editor-tests-note" id="editor-tests-note"></p>
+                    <h4 class="editor-subhead">Examples</h4>
+                    <div class="test-examples" id="editor-examples"></div>
+                    <div class="tests-head">
+                      <h4 class="editor-subhead">Test cases</h4>
+                      <button type="button" id="editor-tests-run">Run tests</button>
+                    </div>
+                    <p class="test-summary" id="editor-tests-summary" role="status" aria-live="polite"></p>
+                    <ol class="test-list" id="editor-test-list"></ol>
+                  </div>
+                  <div class="helper-panel" id="helper-panel-vim" role="tabpanel" aria-labelledby="helper-tab-vim" hidden>
+                    <p class="vim-coach-lede">Keys are logged in this browser. Analyze a session to see where Vim motions and operators could replace repeated work.</p>
+                    <button type="button" id="vim-analyze">Analyze keys</button>
+                    <p class="vim-coach-summary" id="vim-coach-summary" aria-live="polite"></p>
+                    <p class="vim-coach-burst" id="vim-coach-burst"></p>
+                    <ol class="vim-coach-list" id="vim-coach-list"></ol>
+                  </div>
                 </aside>
               </div>
               <div class="browser-editor-foot">
@@ -375,6 +403,12 @@
   </div>
 
   <script src="learning.js"></script>
+  <script src="vendor/codemirror/codemirror.js"></script>
+  <script src="vendor/codemirror/searchcursor.js"></script>
+  <script src="vendor/codemirror/dialog.js"></script>
+  <script src="vendor/codemirror/matchbrackets.js"></script>
+  <script src="vendor/codemirror/vim.js"></script>
+  <script src="vendor/codemirror/python.js"></script>
   <script src="review.js"></script>
   <script src="editor.js"></script>
   <script src="app.js"></script>
