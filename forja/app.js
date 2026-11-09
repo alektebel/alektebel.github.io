@@ -366,7 +366,7 @@ function openStage(course, stage) {
 let LAST_VIEW = null;
 function render() {
   if (!STATE) return; // init loads state before first paint
-  $$(".topnav button").forEach((b) => {
+  $$(".zj-nav-btn[data-view]").forEach((b) => {
     b.classList.toggle("is-active",
       b.dataset.view === VIEW || (VIEW === "course" && b.dataset.view === "map"));
   });
@@ -386,106 +386,306 @@ function render() {
 }
 
 /* home -------------------------------------------------------------- */
-function renderHome() {
-  renderNext(STATE.next);
-  renderAlso();
-  renderFilters();
-  renderCatalog();
-}
+const HOME_TRACK = [
+  { course: "aws-from-scratch", id: "A1", title: "Build your own AWS",
+    blurb: "Learn about IAM, S3, leased queues, DynamoDB and more", logo: "logos/aws.svg", cat: "Distributed" },
+  { course: "infrastructure-from-scratch", id: "A5", title: "Build your own Infrastructure",
+    blurb: "Learn about caching, rate limits, queues, capacity and more", logo: "logos/infra.svg", cat: "Distributed" },
+  { course: "llm-from-scratch", id: "A2", title: "Build your own LLM",
+    blurb: "Learn about tokenization, attention, sampling, KV cache and more", logo: "logos/llm.svg", cat: "AI" },
+  { course: "evals-from-scratch", id: "C1", title: "Build your own Evals",
+    blurb: "Learn about metrics, judges, significance, the gate and more", logo: "logos/evals.svg", cat: "AI" },
+  { course: "agents-from-scratch", id: "C2", title: "Build your own Agents",
+    blurb: "Learn about tool loops, retries, sandboxes, budgets and more", logo: "logos/agents.svg", cat: "AI" },
+];
+const HOME_MORE = [
+  ["autograd", "autograd-from-scratch", "Autograd", "AI", "Reverse-mode differentiation, one op at a time", "autograd"],
+  ["rag", "rag-from-scratch", "RAG", "AI", "Chunking, retrieval, reranking, grounding", "rag"],
+  ["vector-index", "vector-index-from-scratch", "Vector index", "AI", "HNSW graphs and nearest-neighbour search", "hnsw"],
+  ["mcp", "mcp-from-scratch", "MCP server", "AI", "Tools, resources and the protocol wire", "mcp"],
+  ["agent-harness", "agent-harness-from-scratch", "Agent harness", "AI", "Environments, rollouts and scoring", "harness"],
+  ["context-caching", "context-caching", "KV cache", "AI", "Prefix, paged and radix caches", "kvcache"],
+  ["cuda", "cuda-from-scratch", "CUDA kernels", "Systems", "Threads, blocks, shared memory", "cuda"],
+  ["cpu", "cpu-from-scratch", "CPU", "Systems", "An ISA, a decoder and a pipeline", "cpu"],
+  ["os", "os-from-scratch", "Operating system", "Systems", "Processes, paging, syscalls", "os"],
+  ["c-compiler", "c-compiler", "C compiler", "Systems", "Lexer, parser, codegen, optimizer", "compiler"],
+  ["shell", "shell-from-scratch", "Shell", "Systems", "Fork, exec, pipes and job control", "shell"],
+  ["git", "git-from-scratch", "Git", "Systems", "Objects, trees, commits and refs", "git"],
+  ["compression", "compression-from-scratch", "Compression", "Systems", "Huffman, LZ77, DEFLATE", "compress"],
+  ["query-engine", "query-engine-from-scratch", "Query engine", "Systems", "Scans, joins, a planner", "sql"],
+  ["consensus", "consensus-from-scratch", "Consensus", "Distributed", "Leader election and log replication", "consensus"],
+  ["dynamo", "dynamo-paper", "Dynamo", "Distributed", "Consistent hashing, quorums, hinted handoff", "dynamo"],
+  ["queue-and-workers", "queue-and-workers-from-scratch", "Queue & workers", "Distributed", "Leases, retries, dead letters", "queue"],
+  ["durable-execution", "durable-execution-from-scratch", "Durable execution", "Distributed", "Replayable workflows", "durable"],
+  ["distributed-training", "distributed-training-from-scratch", "Distributed training", "Distributed", "Data, tensor and pipeline parallel", "disttrain"],
+  ["tcp-ip", "tcp-ip-from-scratch", "TCP/IP", "Networking", "Handshakes, windows, retransmits", "tcp"],
+  ["websocket", "websocket-from-scratch", "WebSocket", "Networking", "Framing, masking, the upgrade", "websocket"],
+  ["mqtt-broker", "mqtt-broker-from-scratch", "MQTT broker", "Networking", "Topics, QoS and retained messages", "mqtt"],
+  ["concurrent-servers", "concurrent-servers-from-scratch", "Concurrent servers", "Networking", "Threads, event loops, backpressure", "servers"],
+  ["blockchain", "blockchain-from-scratch", "Blockchain", "Networking", "Keys, ledgers and a gossip net", "chain"],
+  ["credit-origination", "credit-origination-from-scratch", "Credit origination", "Finance", "Policy rules and decisioning", "credit"],
+  ["irb-capital", "irb-capital-from-scratch", "IRB capital", "Finance", "PD, LGD, EAD and RWA", "capital"],
+  ["lbo-model", "lbo-model-from-scratch", "LBO model", "Finance", "Debt schedules and returns", "lbo"],
+  ["distressed-debt", "distressed-debt-from-scratch", "Distressed debt", "Finance", "Waterfalls and recoveries", "debt"],
+];
+const HOME_FILTERS = ["All", "AI", "Systems", "Distributed", "Networking", "Finance"];
+const HOME_STATE = { complete: "#54d1a4", doing: "#e0b44e", ready: "#6B747C", blocked: "#6B747C" };
+let HOME_SEL = null;
 
-function renderNext(next) {
-  const card = $("#next-card");
-  if (!next) { card.hidden = true; return; }
-  card.hidden = false;
-  const item = next.course ? findNodeByCourse(next.course) : null;
-  const logo = item?.logo_url || `logos/${next.logo || "forge"}.svg`;
-  $("#next-logo").src = asset(logo);
-  $("#next-logo").alt = next.title || "";
-  $("#next-h").textContent = next.headline || next.title || next.course;
-  const checks = next.checks || item?.checks;
-  const progress = completion(item?.stages || []);
-  $("#next-count").textContent = checks?.total
-    ? (progress.previous ? `${fmt.format(progress.done)} / ${fmt.format(checks.total)} stages done`
-      : `${fmt.format(checks.passed)} / ${fmt.format(checks.total)} checks`)
-    : "";
-  $("#next-bar").style.transform = `scaleX(${(checks?.total ? progress.done / checks.total : checks?.fraction ?? 0).toFixed(4)})`;
-  $("#next-what").textContent = next.action
-    ? `Next: Stage ${String(next.stage).padStart(2, "0")} · ${next.action}`
-    : `Next: ${next.title || next.course}`;
-  $("#next-cmd").textContent = next.command || "";
-  $("#next-go").onclick = () => {
-    const current = findNodeByCourse(next.course);
-    if (current?.next_step && current.personal_done) openStage(next.course, current.next_step);
-    else selectChallenge(next.course);
+function homeEsc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+function homeProgress(stages, checks) {
+  const total = checks?.total || stages.length || 0;
+  const done = checks?.total ? Number(checks.passed || 0) : completion(stages).done;
+  return { done, total };
+}
+function homeState(done, total, raw) {
+  if (total > 0 && done >= total) return "complete";
+  if (done > 0 || raw === "doing") return "doing";
+  if (raw === "blocked" || raw === "missing") return "blocked";
+  return "ready";
+}
+function homeBaseStages(stages) {
+  return stages.map((s) => ({
+    file: s.file || `stage_${String(s.id).padStart(2, "0")}.py`,
+    status: s.status || "TODO",
+    title: s.title || "",
+    sym: (s.status === "PASS" || s.status === "PERSONAL" || s.status === "BROWSER") ? "✓"
+      : s.status === "FAIL" ? "✗" : "·",
+    color: (s.status === "PASS" || s.status === "PERSONAL" || s.status === "BROWSER") ? "#54d1a4"
+      : s.status === "FAIL" ? "#d05a5a" : "#6B747C",
+  }));
+}
+function homeRow(def, node, checks, stages, rawState) {
+  const { done, total } = homeProgress(stages, checks);
+  const state = homeState(done, total, rawState);
+  const next = node?.next_step && done < total ? node.next_step : null;
+  const baseCmd = `forja test ${def.course}`;
+  return {
+    slug: def.course || def.slug,
+    id: def.id,
+    title: def.title,
+    blurb: def.blurb,
+    logo: asset(def.logo),
+    cat: def.cat,
+    done, total, state,
+    stateLabel: stateLabel(state),
+    stateColor: HOME_STATE[state] || HOME_STATE.ready,
+    stageLabel: (state === "doing" || state === "complete") ? `${done}/${total} stages` : `${total} stages`,
+    pct: total ? `${Math.round((done / total) * 100)}%` : "0%",
+    cmd: next ? `${baseCmd} --stage ${next}` : baseCmd,
+    nextStage: next,
+    stages: homeBaseStages(stages),
   };
 }
+function homeRows() {
+  const tracks = HOME_TRACK.map((def) => {
+    const row = trackRows().find((r) => r.slug === def.course);
+    const node = findNodeByCourse(def.course);
+    const stages = node?.stages || row?.stages_detail || [];
+    const checks = row?.checks || node?.checks || null;
+    return homeRow(def, node, checks, stages, row?.state || node?.state);
+  });
+  const more = HOME_MORE.map(([slug, course, title, cat, blurb, logo]) => {
+    const item = allItems().find((i) => i.course === course) || null;
+    const stages = item?.stages || [];
+    const checks = item?.checks || null;
+    return homeRow({
+      slug, course, title: `Build your own ${title}`, cat, blurb,
+      logo: `logos/${logo}.svg`, id: cat[0] + "·",
+    }, item, checks, stages, item?.state);
+  });
+  return { tracks, more };
+}
+function homeFilterButton(label) {
+  const on = label === FILTER;
+  return `<button type="button" class="zj-filter${on ? " is-active" : ""}" data-home-filter="${homeEsc(label)}" style="border:1px solid ${on ? "#F4F4F5" : "rgba(255,255,255,.07)"};background:${on ? "#F4F4F5" : "transparent"};color:${on ? "#191B24" : "#9AA3AB"}">${homeEsc(label)}</button>`;
+}
+function homeTrackCard(row) {
+  return `<button type="button" class="zj-track-card" data-home-slug="${homeEsc(row.slug)}" style="border-color:${HOME_SEL === row.slug ? "#D6D8DC" : "rgba(255,255,255,.07)"}">
+    <span class="zj-track-id">${homeEsc(row.id)}</span>
+    <span class="zj-track-logo"><img src="${row.logo}" alt="" width="72" height="72"></span>
+    <span class="zj-track-title">${homeEsc(row.title)}</span>
+    <span class="zj-track-blurb">${homeEsc(row.blurb)}</span>
+    <span class="zj-track-foot">
+      <span class="zj-progress"><span style="width:${row.pct};background:${row.stateColor}"></span></span>
+      <span class="zj-track-meta"><span>${homeEsc(row.stageLabel)}</span><span style="color:${row.stateColor}">${homeEsc(row.stateLabel)}</span></span>
+    </span>
+  </button>`;
+}
+function homeMoreCard(row) {
+  return `<button type="button" class="zj-more-card" data-home-slug="${homeEsc(row.slug)}" style="border-color:${HOME_SEL === row.slug ? "#D6D8DC" : "rgba(255,255,255,.07)"}">
+    <span class="zj-more-top">
+      <span class="zj-more-logo"><img src="${row.logo}" alt="" width="48" height="48"></span>
+      <span class="zj-more-copy"><span class="zj-more-title">${homeEsc(row.title)}</span><span class="zj-more-cat">${homeEsc(row.cat)}</span></span>
+    </span>
+    <span class="zj-more-blurb">${homeEsc(row.blurb)}</span>
+    <span class="zj-more-foot"><span>${homeEsc(row.stageLabel)}</span><span style="color:${row.stateColor}">${row.state === "complete" ? "●" : row.state === "doing" ? "◐" : "○"}</span></span>
+  </button>`;
+}
+function homeDrawer(row) {
+  if (!row) return "";
+  return `<div class="zj-drawer-back" data-home-close></div>
+  <aside class="zj-drawer" role="dialog" aria-modal="true" aria-label="${homeEsc(row.title)}">
+    <div class="zj-drawer-head">
+      <span style="color:${row.stateColor}">${homeEsc(row.stateLabel)} · ${homeEsc(row.id)}</span>
+      <button type="button" class="zj-close" data-home-close aria-label="Close">×</button>
+    </div>
+    <div class="zj-drawer-title"><img src="${row.logo}" width="64" height="64" alt=""><h2>${homeEsc(row.title)}</h2></div>
+    <p class="zj-drawer-blurb">${homeEsc(row.blurb)}</p>
+    <div class="zj-drawer-cmd"><code>${homeEsc(row.cmd)}</code><button type="button" class="zj-copy" data-copy-text="${homeEsc(row.cmd)}">Copy</button><button type="button" class="zj-copy" data-home-open="${homeEsc(row.slug)}">Open workspace</button></div>
+    <h3>Progress</h3>
+    <div class="zj-progress zj-progress-lg"><span style="width:${row.pct};background:${row.stateColor}"></span></div>
+    <p class="zj-drawer-meta">${homeEsc(row.stageLabel)}</p>
+    <h3>Stages</h3>
+    <ul class="zj-stages">${row.stages.map((s) => `<li><span style="color:${s.color}">${s.sym}</span><span class="zj-stage-file">${homeEsc(s.file)}</span><span class="zj-stage-status">${homeEsc(s.status)}</span></li>`).join("")}</ul>
+  </aside>`;
+}
+function renderHome() {
+  const root = $("#home-root");
+  if (!root || !STATE) return;
+  const { tracks, more } = homeRows();
+  const all = [...tracks, ...more];
+  const next = STATE.next;
+  const nextRow = next ? (all.find((r) => r.slug === next.course) || null) : null;
+  const continueLogo = nextRow?.logo || asset(next ? `logos/${next.logo || "forge"}.svg` : "logos/forge.svg");
+  const continueTitle = next?.headline || next?.title || next?.course || "";
+  const continueCmd = next?.command || (nextRow ? `forja test ${nextRow.slug}` : "");
+  const continueStage = next?.stage ? `Stage ${String(next.stage).padStart(2, "0")} · ${next.file || ""}` : nextRow?.stageLabel || "";
+  const completed = tracks.filter((r) => r.state === "complete").length;
+  const doing = tracks.filter((r) => r.state === "doing").length;
+  const totalStages = all.reduce((sum, r) => sum + (r.total || 0), 0);
+  const showTrack = FILTER === "All";
+  const pool = showTrack ? more : all.filter((r) => r.cat === FILTER);
+  const moreHead = showTrack ? "More challenges" : FILTER;
+  const selected = HOME_SEL ? all.find((r) => r.slug === HOME_SEL) : null;
+  root.innerHTML = `
+  <section class="zj-hero">
+    <div>
+      <p class="zj-eyebrow">$ forja test --stage 1</p>
+      <h1>Forge the systems<br>you use every day.</h1>
+      <p class="zj-lede">Rebuild AWS, an LLM, a shell, Git — from scratch, in your own editor, graded locally stage by stage. <a href="#how">New here? See how it works.</a></p>
+      <dl class="zj-stats">
+        <div><dt>Challenges</dt><dd>${all.length}</dd></div>
+        <div><dt>Stages</dt><dd>${totalStages}</dd></div>
+        <div><dt>Complete</dt><dd class="zj-green">${completed}/${tracks.length}</dd></div>
+        <div><dt>In progress</dt><dd class="zj-amber">${doing}</dd></div>
+      </dl>
+    </div>
+    <div class="zj-hero-mark"><img src="logos/forja.svg" width="176" height="176" alt="forja"></div>
+  </section>
 
-function renderAlso() {
-  const doing = trackRows().filter((r) => r.state === "doing" && r.slug !== STATE.next?.course);
-  const sec = $("#also");
-  if (!doing.length) { sec.hidden = true; return; }
-  sec.hidden = false;
-  const grid = $("#also-grid");
-  grid.innerHTML = "";
-  for (const row of doing) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "also-card";
-    const checks = row.checks || {};
-    const progress = completion(row.stages_detail || []);
-    btn.innerHTML = `
-      <img src="${asset(row.logo_url)}" alt="" width="44" height="44">
-      <span class="also-copy">
-        <span class="also-row"><b>${row.headline}</b>
-          <span class="mono">${fmt.format(progress.done)} / ${fmt.format(checks.total || row.stages)}</span></span>
-        <span class="bar"><span class="bar-fill" style="transform:scaleX(${((checks.total || row.stages) ? progress.done / (checks.total || row.stages) : 0).toFixed(4)})"></span></span>
-      </span>`;
-    btn.onclick = () => selectChallenge(row.slug);
-    grid.appendChild(btn);
+  ${next ? `<section class="zj-continue">
+    <img src="${continueLogo}" width="56" height="56" alt="">
+    <div class="zj-continue-copy">
+      <p>Continue where you left off</p>
+      <h2>${homeEsc(continueTitle)}</h2>
+      <p class="zj-continue-meta">${homeEsc(continueStage)}</p>
+    </div>
+    <div class="zj-continue-actions">
+      <code>${homeEsc(continueCmd)}</code>
+      <button type="button" class="zj-copy" data-copy-text="${homeEsc(continueCmd)}">Copy</button>
+      ${next ? `<button type="button" class="zj-copy" data-home-open="${homeEsc(next.course || "")}">Continue</button>` : ""}
+    </div>
+  </section>` : ""}
+
+  <section class="zj-catalog" id="challenges">
+    <div class="zj-catalog-head">
+      <div><h2>Pick a challenge</h2><p>Each one is a real system, split into stages. Select a card to see stages and the exact command.</p></div>
+      <div class="zj-filters">${HOME_FILTERS.map(homeFilterButton).join("")}</div>
+    </div>
+    ${showTrack ? `<p class="zj-kicker"><b>Track</b> · the five-course prep path</p>
+    <div class="zj-track-grid">${tracks.map(homeTrackCard).join("")}</div>` : ""}
+    <p class="zj-kicker" id="path"><b>${homeEsc(moreHead)}</b> · ${pool.length} challenges</p>
+    <div class="zj-more-grid">${pool.map(homeMoreCard).join("")}</div>
+  </section>
+
+  <section class="zj-how" id="how">
+    <h2>Simple by design</h2>
+    <p>Pick a challenge, open your editor, <code>forja test</code>. That’s it.</p>
+    <ol>
+      <li><span>1</span><div><h3>Choose your challenge</h3><p>AWS, Infrastructure, LLM, Evals, Agents — real systems, not toy drills.</p></div></li>
+      <li><span>2</span><div><h3>Code in your own setup</h3><p>Your IDE, your extensions, your terminal. No toy editors.</p></div></li>
+      <li><span>3</span><div><h3>Test and get feedback</h3><p><code>forja test</code> runs the grader. Causes and hints in seconds.</p></div></li>
+    </ol>
+  </section>
+
+  <footer class="zj-footer">
+    <div><img src="logos/forja.svg" width="22" height="22" alt=""><span>The engine is the CLI — this page only reads it.</span></div>
+    <ul>
+      <li><code>./forja track</code><span>the five-course prep track</span></li>
+      <li><code>./forja guide &lt;course&gt; 1</code><span>one stage’s page</span></li>
+      <li><code>./forja test &lt;course&gt;</code><span>run the grader</span></li>
+      <li><code>cz next</code><span>the next action</span></li>
+    </ul>
+  </footer>
+  ${homeDrawer(selected)}`;
+}
+
+/* home events: cards, filters, drawer, copy. The root is stable; only its
+   contents are replaced, so one delegated listener is enough. */
+function homeOpen(slug) {
+  if (!slug) return;
+  const item = allItems().find((i) => i.course === slug || i.id === slug);
+  const course = item?.course || slug;
+  const node = findNodeByCourse(course) || item;
+  if (!node) return;
+  HOME_SEL = null;
+  if (node.course) {
+    if (node.next_step) openStage(node.course, node.next_step);
+    else selectChallenge(node.course);
+  } else {
+    selectNode(node.id, "work");
   }
 }
 
-function renderFilters() {
-  const cats = ["All", "Cloud & LLM", "RAG", "Evals & agents", "Machine stack", "Applied", "Banking", "Drivers", "Web3"];
-  const root = $("#filters");
-  root.innerHTML = "";
-  for (const label of cats) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = label;
-    b.classList.toggle("is-active", label === FILTER);
-    b.onclick = () => { FILTER = label; renderFilters(); renderCatalog(); };
-    root.appendChild(b);
-  }
-}
-
-function renderCatalog() {
-  const root = $("#catalog");
-  root.innerHTML = "";
-  const items = [];
-  for (const phase of STATE.phases) {
-    if (FILTER !== "All" && !phase.title.toLowerCase().includes(FILTER.split(" ")[0].toLowerCase())) continue;
-    for (const item of phase.items) items.push(item);
-  }
-  for (const item of items) {
-    const s = itemState(item);
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "cat-card";
-    const checks = item.checks || {};
-    const progress = completion(item.stages || []);
-    const label = checks.total
-      ? `${fmt.format(progress.done)}/${fmt.format(checks.total)}`
-      : stateLabel(s);
-    btn.innerHTML = `
-      <img src="${asset(item.logo_url)}" alt="" width="40" height="40" style="opacity:${s === "blocked" ? .45 : 1}">
-      <span class="cat-copy">
-        <span class="cat-title">${item.title}</span>
-        <span class="cat-state" style="color:${stateColor(s)}">${label}</span>
-      </span>`;
-    btn.onclick = () => selectNode(item.id, "work");
-    root.appendChild(btn);
-  }
+function bindHome() {
+  const root = $("#home-root");
+  if (!root) return;
+  root.addEventListener("click", async (event) => {
+    const filter = event.target.closest("[data-home-filter]");
+    if (filter) {
+      FILTER = filter.dataset.homeFilter;
+      HOME_SEL = null;
+      renderHome();
+      return;
+    }
+    const close = event.target.closest("[data-home-close]");
+    if (close) {
+      HOME_SEL = null;
+      renderHome();
+      return;
+    }
+    const card = event.target.closest("[data-home-slug]");
+    if (card) {
+      HOME_SEL = card.dataset.homeSlug;
+      renderHome();
+      return;
+    }
+    const open = event.target.closest("[data-home-open]");
+    if (open) {
+      event.stopPropagation();
+      homeOpen(open.dataset.homeOpen);
+      return;
+    }
+    const copy = event.target.closest("[data-copy-text]");
+    if (copy) {
+      event.stopPropagation();
+      const text = copy.dataset.copyText;
+      const ok = await copyText(text);
+      const old = copy.textContent;
+      copy.textContent = ok ? "Copied" : "Copy failed";
+      setTimeout(() => { copy.textContent = old; }, 1600);
+    }
+  });
+  const scrollHome = (id) => {
+    if (VIEW !== "home") go("home");
+    requestAnimationFrame(() => $(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
+  $("#nav-how")?.addEventListener("click", () => scrollHome("#how"));
 }
 
 /* work -------------------------------------------------------------- */
@@ -573,6 +773,19 @@ function renderWork() {
     $("#w-stage-context").textContent = stage.why || "";
     $("#w-stage-context").hidden = !stage.why;
     $("#w-stage-task").textContent = stage.action;
+    const fillStageList = (element, items) => {
+      element.replaceChildren();
+      for (const text of items || []) {
+        const li = document.createElement("li");
+        li.textContent = text;
+        element.appendChild(li);
+      }
+    };
+
+    fillStageList($("#w-stage-reqs"), stage.requirements);
+    $("#w-stage-reqs-wrap").hidden = !(stage.requirements || []).length;
+    fillStageList($("#w-stage-out-of-scope"), stage.out_of_scope);
+    $("#w-stage-scope-wrap").hidden = !(stage.out_of_scope || []).length;
     $("#w-stage-example").textContent = stage.example || "";
     $("#w-stage-example-wrap").hidden = !stage.example;
     $("#w-stage-predict").textContent = stage.predict ? `Before testing: ${stage.predict}` : "";
@@ -591,6 +804,8 @@ function renderWork() {
     }
   } else {
     iface.hidden = true;
+    $("#w-stage-reqs").replaceChildren();
+    $("#w-stage-out-of-scope").replaceChildren();
   }
   renderSource(course, stage);
 
@@ -2062,8 +2277,16 @@ async function ghRestore() {
 }
 
 
-$("#go-home").addEventListener("click", () => go("home"));
-$$(".topnav button").forEach((b) => b.addEventListener("click", () => go(b.dataset.view)));
+$("#go-home").addEventListener("click", () => {
+  go("home");
+  requestAnimationFrame(() => scrollTo({ top: 0, behavior: "smooth" }));
+});
+$$(".zj-nav-btn[data-view]").forEach((b) => b.addEventListener("click", () => {
+  go(b.dataset.view);
+  if (b.dataset.view === "home") {
+    requestAnimationFrame(() => $("#challenges")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+}));
 addEventListener("popstate", () => applyRoute(false));
 
 /* GitHub account and the fork dialog. */
@@ -2105,6 +2328,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   if (!$("#gh-stats-modal").hidden) closeGhStats();
   else if (!$("#gh-modal").hidden) { $("#gh-modal").hidden = true; ghStatus(""); }
+  else if (HOME_SEL) { HOME_SEL = null; renderHome(); }
   else closeGhMenu();
 });
 addEventListener("storage", (event) => {
@@ -2277,6 +2501,7 @@ async function init() {
   STATE = await loadState();
   applyPersonalDone();
   ghRestore();               // re-check the fork, then read its commits
+  bindHome();
   applyRoute(false);
   render();
 }

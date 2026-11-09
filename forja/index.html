@@ -8,7 +8,7 @@
   <title>forja · Challenges</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,600&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="vendor/codemirror/codemirror.css">
   <link rel="stylesheet" href="vendor/codemirror/dialog.css">
   <link rel="stylesheet" href="styles.css">
@@ -16,43 +16,41 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
-  <header class="topbar">
-    <div class="topbar-in">
-      <button type="button" class="brand" id="go-home" aria-label="forja home">
+  <header class="topbar zj-header">
+    <div class="zj-header-in">
+      <button type="button" class="brand zj-brand" id="go-home" aria-label="forja home">
         <img src="logos/forja.svg" width="30" height="30" alt="">
         <span>forja</span>
       </button>
-      <nav class="topnav" aria-label="Primary">
-        <button type="button" data-view="home">Home</button>
-        <button type="button" data-view="work">Workspace</button>
-        <button type="button" data-view="map">Dependencies</button>
+      <nav class="zj-nav" aria-label="Primary">
+        <button type="button" class="zj-nav-btn is-active" id="nav-challenges" data-view="home">Challenges</button>
+        <button type="button" class="zj-nav-btn" id="nav-path" data-view="map">Full path</button>
+        <button type="button" class="zj-nav-btn" id="nav-how">How it works</button>
       </nav>
-      <code class="pip">pip install forja</code>
-
-      <!-- GitHub sign-in: connect a public fork; progress comes from its commits. -->
-      <div class="auth" id="auth">
-        <button type="button" class="gh-signin" id="gh-signin" aria-label="Sign in with GitHub">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-          <span>Sign in with GitHub</span>
-        </button>
-
-        <div class="gh-account" id="gh-account" hidden>
-          <button type="button" class="gh-user" id="gh-user" aria-haspopup="menu" aria-expanded="false" aria-controls="gh-menu">
-            <span class="gh-avatar" id="gh-avatar" aria-hidden="true"></span>
-            <span class="gh-login" id="gh-login"></span>
-            <span class="gh-caret" aria-hidden="true">▾</span>
+      <div class="zj-actions">
+        <code class="pip">pip install forja</code>
+        <div class="auth" id="auth">
+          <button type="button" class="gh-signin" id="gh-signin" aria-label="Start building">
+            <span>Start building</span>
           </button>
-          <div class="gh-menu" id="gh-menu" role="menu" aria-label="GitHub account" hidden>
-            <div class="gh-menu-head">
-              <span class="gh-name" id="gh-name"></span>
-              <span class="gh-handle">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-                <span id="gh-handle"></span>
-              </span>
+          <div class="gh-account" id="gh-account" hidden>
+            <button type="button" class="gh-user" id="gh-user" aria-haspopup="menu" aria-expanded="false" aria-controls="gh-menu">
+              <span class="gh-avatar" id="gh-avatar" aria-hidden="true"></span>
+              <span class="gh-login" id="gh-login"></span>
+              <span class="gh-caret" aria-hidden="true">▾</span>
+            </button>
+            <div class="gh-menu" id="gh-menu" role="menu" aria-label="GitHub account" hidden>
+              <div class="gh-menu-head">
+                <span class="gh-name" id="gh-name"></span>
+                <span class="gh-handle">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                  <span id="gh-handle"></span>
+                </span>
+              </div>
+              <button type="button" class="gh-item" role="menuitem" id="gh-progress">Progress &amp; stats</button>
+              <button type="button" class="gh-item" role="menuitem" id="gh-repos">Linked repos</button>
+              <button type="button" class="gh-item gh-signout" role="menuitem" id="gh-signout">Sign out</button>
             </div>
-            <button type="button" class="gh-item" role="menuitem" id="gh-progress">Progress &amp; stats</button>
-            <button type="button" class="gh-item" role="menuitem" id="gh-repos">Linked repos</button>
-            <button type="button" class="gh-item gh-signout" role="menuitem" id="gh-signout">Sign out</button>
           </div>
         </div>
       </div>
@@ -62,33 +60,7 @@
   <!-- ================================================== home -->
   <main id="main">
     <div class="view" id="view-home">
-      <div class="home-main">
-        <section class="hero-card" id="next-card" hidden aria-labelledby="next-h">
-          <img class="hero-logo" id="next-logo" src="logos/forge.svg" width="88" height="88" alt="">
-          <div class="hero-copy">
-            <div class="hero-titlerow">
-              <h1 id="next-h">Build your own AWS</h1>
-              <span class="hero-count mono" id="next-count"></span>
-            </div>
-            <div class="bar bar-lg" aria-hidden="true"><div class="bar-fill" id="next-bar"></div></div>
-            <p class="hero-meta"><span id="next-what"></span><span class="mono dim" id="next-cmd"></span></p>
-          </div>
-          <button type="button" class="cta cta-green" id="next-go">Continue</button>
-        </section>
-
-        <section class="also" id="also" hidden aria-labelledby="also-h">
-          <h2 class="kicker">Also in progress</h2>
-          <div class="also-grid" id="also-grid"></div>
-        </section>
-
-        <section class="catalog">
-          <div class="catalog-head">
-            <h2 class="kicker">All challenges</h2>
-            <div class="filters" id="filters" role="group" aria-label="Filter challenges"></div>
-          </div>
-          <div class="catalog-grid" id="catalog"></div>
-        </section>
-      </div>
+      <div id="home-root"></div>
     </div>
 
     <!-- ================================================== workspace -->
@@ -116,6 +88,14 @@
               <h2 id="w-stage-title"></h2>
               <p class="w-stage-context" id="w-stage-context"></p>
               <p class="w-stage-task" id="w-stage-task"></p>
+              <div id="w-stage-reqs-wrap" hidden>
+                <span class="kicker">Requirements</span>
+                <ul class="w-stage-list" id="w-stage-reqs"></ul>
+              </div>
+              <div id="w-stage-scope-wrap" hidden>
+                <span class="kicker">Not in this stage</span>
+                <ul class="w-stage-list w-stage-list-muted" id="w-stage-out-of-scope"></ul>
+              </div>
               <div id="w-stage-example-wrap" hidden>
                 <span class="kicker">Example edit</span>
                 <pre class="code" id="w-stage-example"></pre>
