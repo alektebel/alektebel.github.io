@@ -1155,9 +1155,11 @@ function prepareWorkShell() {
   const browserButton = $("#w-open-editor");
   const localButton = $("#w-local-mode");
   const reviewButton = $("#w-play-review");
+  const editorReviewButton = $("#editor-review");
   if (browserButton) browserButton.onclick = openWorkEditor;
   if (localButton) localButton.onclick = () => resetWorkMode();
   if (reviewButton) reviewButton.onclick = playWorkReview;
+  if (editorReviewButton) editorReviewButton.onclick = playWorkReview;
   bindReviewModal();
   bindWorkResizers();
   applyWorkSplit(workSplitPct, false);
@@ -1249,7 +1251,7 @@ function renderWork() {
   }
 
   /* v2 stage brief */
-  const spec = stage ? window.forjaEditor?.specFor?.(stage.id) : null;
+  const spec = stage ? window.forjaEditor?.specFor?.(stage.id, course, stage) : null;
   const ifaceCode = $("#w-v2-interface-code");
   ifaceCode.textContent = (spec?.signatures || []).join("\n");
   $("#w-v2-interface").hidden = !ifaceCode.textContent;
@@ -1332,9 +1334,12 @@ function renderWork() {
 
   const browserButton = $("#w-open-editor");
   const localButton = $("#w-local-mode");
-  const canBrowse = course === "aws-from-scratch" && !!stage;
+  const hasWorkspace = !STATE?.workspaces || STATE.workspaces.includes(course);
+  const canBrowse = Boolean(course && stage && hasWorkspace);
   browserButton.hidden = !canBrowse;
   localButton.hidden = !canBrowse;
+  const playReviewButton = $("#w-play-review");
+  if (playReviewButton) playReviewButton.hidden = !hasWorkspace;
   if (canBrowse) {
     browserButton.onclick = openWorkEditor;
     localButton.onclick = resetWorkMode;

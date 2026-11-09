@@ -1,11 +1,12 @@
 /* A local, stage-aware Python workspace. Drafts never leave this browser. */
 (() => {
   const $ = (id) => document.getElementById(id);
-  const PREFIX = "forja.code.aws-from-scratch.";
+  const draftKey = (name) => `forja.code.${course}.${name}`;
   const learning = window.forjaLearning;
   const VIM_KEY = "forja.vim.enabled.v1";
   const STAGE_SPECS = {
-    9: {
+    "aws-from-scratch": {
+      9: {
       title: "S3 object round trip",
       setup: 'from s3 import S3\nstore = S3()\nstore.create_bucket("b")',
       note: "The slash is part of the key. It does not create a folder. ETag text is not checked until stage 11.",
@@ -63,6 +64,7 @@
           expected: 'get_object(...).body == b""',
         },
       ],
+      },
     },
   };
 
@@ -149,13 +151,14 @@
     $(`editor-${kind}-submit`).disabled = true;
   }
 
+  const stagePath = (name) => bundle?.stageFiles?.[name] || name;
   function draft(name) {
-    try { return localStorage.getItem(PREFIX + name); } catch { return null; }
+    try { return localStorage.getItem(draftKey(name)); } catch { return null; }
   }
   function save() {
     if (!file || !bundle || !cm || settingCode) return;
     try {
-      localStorage.setItem(PREFIX + file, cm.getValue());
+      localStorage.setItem(draftKey(file), cm.getValue());
       $("editor-save-state").textContent = "Saved in this browser";
     } catch {
       $("editor-save-state").textContent = "Storage unavailable · download your file";
@@ -242,7 +245,8 @@
   }
   function jumpToTask() {
     if (!stage) return;
-    if (file !== stage.file) selectFile(stage.file);
+    const target = stagePath(stage.file);
+    if (target && file !== target && bundle?.editable.includes(target)) selectFile(target);
     const at = taskLine();
     if (!at) return;
     cm.setCursor(at);
@@ -250,11 +254,11 @@
     cm.focus();
   }
   async function load() {
-    if (bundle) return bundle;
+    if (bundle && bundle.course === course) return bundle;
     let response;
-    try { response = await fetch("/api/workspace/aws-from-scratch"); } catch { /* static site */ }
-    if (!response?.ok) response = await fetch(asset("workspace.json"));
-    if (!response.ok) throw new Error("Could not load the AWS starter files. Refresh and try again.");
+    try { response = await fetch(`/api/workspace/${course}`); } catch { /* static site */ }
+    if (!response?.ok) response = await fetch(asset(`workspaces/${course}.json`));
+    if (!response.ok) throw new Error(`Could not load the ${course} starter files. Refresh and try again.`);
     bundle = await response.json();
     const picker = $("editor-file");
     picker.replaceChildren();
@@ -277,8 +281,27 @@
     body.textContent = detail;
     box.append(title, body);
   }
+  function genericSpec(targetStage) {
+    if (!targetStage) return null;
+    return {
+      title: targetStage.title,
+      setup: `# ${targetStage.file || "stage"}`,
+      note: targetStage.action || "Run the stage checker against the current browser draft.",
+      signatures: [],
+      examples: [],
+      cases: [{
+        id: "stage",
+        label: "Stage checker",
+        input: targetStage.action || targetStage.title || "stage check",
+        expected: "PASS",
+      }],
+    };
+  }
+  function specFor(stageId, courseName = course, stageData = null) {
+    return STAGE_SPECS[courseName]?.[stageId] || genericSpec(stageData);
+  }
   function spec() {
-    return stage ? STAGE_SPECS[stage.id] : null;
+    return specFor(stage?.id, course, stage);
   }
   function showHelper(name) {
     for (const button of document.querySelectorAll("[data-helper-tab]")) {
@@ -408,11 +431,13 @@
       $("editor-tests-note").textContent = stageSpec.note;
     }
     showHelper(stageSpec ? "case" : "guide");
-    if (bundle?.editable.includes(stage.file)) selectFile(stage.file);
+    const target = stagePath(stage.file);
+    if (target && bundle?.editable.includes(target)) selectFile(target);
     if (bundle) showPractice();
   }
   async function open(nextCourse, nextStage) {
-    if (nextCourse !== "aws-from-scratch" || !nextStage) return;
+    if (!nextCourse || !nextStage) return;
+    if (course !== nextCourse) bundle = null;
     course = nextCourse;
     stage = nextStage;
     window.forjaWorkspace?.setMode?.("browser");
@@ -435,7 +460,7 @@
   }
   function workerRequest(payload) {
     return new Promise((resolve, reject) => {
-      const worker = new Worker(asset("py-worker.mjs") + "?v=20261109b", { type: "module" });
+      const worker = new Worker(asset("py-worker.mjs") + "?v=20261109e", { type: "module" });
       const id = Date.now();
       const timeout = setTimeout(() => {
         worker.terminate();
@@ -470,7 +495,10 @@
     const prior = records().filter((e) => e.kind === "run" && e.course === checkedCourse && e.stage === checkedStage.id);
     let outcome;
     try {
-      outcome = await workerRequest({ files, stage: checkedStage.id });
+      outcome = await workerRequest({
+        files, stage: checkedStage.id, course: checkedCourse,
+        entry: bundle.entry, label: checkedStage.title, input: checkedStage.action,
+      });
     } catch (error) {
       outcome = { status: "ERROR", detail: error.message };
     } finally {
@@ -520,17 +548,23 @@
     summary.dataset.status = "running";
     summary.textContent = `Running ${stageSpec.cases.length} test cases…`;
     try {
-      const outcome = await workerRequest({ files: currentFiles(), stage: stage.id, mode: "tests" });
+      const outcome = await workerRequest({
+        files: currentFiles(), stage: stage.id, mode: "tests",
+        course, entry: bundle.entry, label: stage.title, input: stage.action,
+      });
       if (!Array.isArray(outcome.cases)) {
         if (outcome.line) markErrorLines([outcome.line]);
         throw new Error(outcome.detail || "The test worker returned no cases.");
       }
       const results = new Map(outcome.cases.map((test) => [test.id, test]));
       renderTests(stageSpec, results);
-      summary.dataset.status = outcome.cases.some((test) => test.status !== "passed") ? "error" : "passed";
+      const statuses = outcome.cases.map((test) => test.status);
+      summary.dataset.status = statuses.includes("error")
+        ? "error"
+        : statuses.some((status) => status !== "passed") ? "failed" : "passed";
     } catch (error) {
-      const learner = error.message.match(/File "\/forja-aws\/[^"]+", line (\d+)/);
-      if (learner) markErrorLines([Number(learner[1])]);
+      const learner = error.message.match(/File "\/forja-[^/]+\/([^"]+)", line (\d+)/);
+      if (learner) markErrorLines([Number(learner[2])]);
       summary.dataset.status = "error";
       summary.textContent = `Could not run tests: ${error.message}`;
     } finally {
@@ -771,7 +805,8 @@
     if (!stage || !file || !code()) return null;
     const source = code();
     const ranges = window.forjaCodeReview?.targetRanges(source.split("\n"), stage.target) || [];
-    const failureLine = lastOutcome?.file === file
+    const failureFile = lastOutcome?.file;
+    const failureLine = (failureFile === file || failureFile === stage.file)
       && lastOutcome.sourceHash === learning.fingerprint(source) ? lastOutcome.line : null;
     const review = window.forjaCodeReview?.review(source, {
       ranges,
@@ -847,7 +882,7 @@
   });
   $("editor-tests-run").addEventListener("click", runTests);
   $("vim-analyze").addEventListener("click", analyzeKeys);
-  $("editor-review").addEventListener("click", reviewCode);
+
   $("editor-run").addEventListener("click", run);
   $("editor-close").addEventListener("click", () => {
     $("browser-editor").hidden = true;
@@ -867,6 +902,6 @@
     onStage,
     review: reviewSnapshot,
     code,
-    specFor: (stageId) => STAGE_SPECS[stageId] || null,
+    specFor,
   };
 })();

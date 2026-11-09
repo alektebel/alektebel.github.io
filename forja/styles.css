@@ -2031,6 +2031,8 @@ body.resizing-tiles.v2-row { cursor: row-resize; }
 body.review-open { overflow: hidden; }
 #editor-tests-summary[data-status="error"] { color: #fb4934; }
 #editor-tests-summary[data-status="passed"] { color: #b8bb26; }
+#editor-tests-summary[data-status="failed"] { color: #fabd2f; }
 #view-work.is-browser #editor-tests-summary[data-status="error"] { color: #fb4934; }
 #view-work.is-browser #editor-tests-summary[data-status="passed"] { color: #b8bb26; }
+#view-work.is-browser #editor-tests-summary[data-status="failed"] { color: #fabd2f; }
 #view-work.is-browser #editor-tests-summary[data-status="running"] { color: #fabd2f; }

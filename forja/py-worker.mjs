@@ -3,8 +3,6 @@
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs";
 
 const ready = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/" });
-const ROOT = "/forja-aws";
-const MODULES = ["iam", "s3", "sqs", "dynamodb", "lambda_svc", "sns", "kms", "vpc", "capstone", "stage_checks"];
 
 const PRELUDE = `
 import importlib, json, os, sys, traceback
@@ -16,32 +14,86 @@ for name in forja_modules:
 importlib.invalidate_caches()
 `;
 
+const CHECK_CALL = `
+    if forja_mode == "course":
+        import course as _checker
+        _checker.STAGES[forja_stage - 1].check()
+    else:
+        import check as _checker
+        _entry = _checker.CHECKS[forja_stage - 1]
+        if isinstance(_entry, (tuple, list)):
+            _entry[2]()
+        elif hasattr(_entry, "check"):
+            _entry.check()
+        else:
+            _entry()
+`;
+
 const STAGE_SCRIPT = `
 try:
-    import stage_checks
-    stage_checks.CHECKS[forja_stage - 1]()
+${CHECK_CALL}
     outcome = {"status": "PASS", "detail": "Stage passed."}
 except NotImplementedError as exc:
     frames = traceback.extract_tb(exc.__traceback__)
-    learner = next((f for f in reversed(frames) if f.filename.startswith(forja_root) and not f.filename.endswith("stage_checks.py")), None)
+    learner = next((f for f in reversed(frames)
+                    if f.filename.startswith(forja_root)
+                    and not f.filename.endswith(("check.py", "course.py", "stage_checks.py"))), None)
     outcome = {"status": "TODO", "detail": str(exc) or "Finish the indicated function, then run again.",
                "file": os.path.basename(learner.filename) if learner else "", "line": learner.lineno if learner else 0}
 except AssertionError as exc:
     frames = traceback.extract_tb(exc.__traceback__)
-    check = next((f for f in reversed(frames) if f.filename.endswith("stage_checks.py")), None)
+    check = next((f for f in reversed(frames)
+                  if f.filename.endswith(("check.py", "course.py", "stage_checks.py"))), None)
     outcome = {"status": "FAIL", "detail": str(exc) or "The stage assertion failed.",
                "check": {"line": check.lineno, "expression": (check.line or "").strip()[:240]} if check else None}
+except SystemExit as exc:
+    code = getattr(exc, "code", None)
+    detail = str(exc) or "The stage checker exited without a message."
+    todo = code in (2, 42) or "not implemented" in detail.lower()
+    outcome = {"status": "TODO" if todo else "ERROR",
+               "detail": "Stage is not implemented yet." if todo else detail}
 except Exception as exc:
     frames = traceback.extract_tb(exc.__traceback__)
-    learner = next((f for f in reversed(frames) if f.filename.startswith(forja_root) and not f.filename.endswith("stage_checks.py")), None)
+    learner = next((f for f in reversed(frames)
+                    if f.filename.startswith(forja_root)
+                    and not f.filename.endswith(("check.py", "course.py", "stage_checks.py"))), None)
     where = f"{os.path.basename(learner.filename)}:{learner.lineno}: " if learner else ""
     outcome = {"status": "ERROR", "detail": where + type(exc).__name__ + ": " + str(exc),
                "file": os.path.basename(learner.filename) if learner else "", "line": learner.lineno if learner else 0}
 json.dumps(outcome)
 `;
 
+const GENERIC_TEST_SCRIPT = `
+def _line_for(exc):
+    frames = traceback.extract_tb(exc.__traceback__)
+    learner = next((f for f in reversed(frames)
+                    if f.filename.startswith(forja_root)
+                    and not f.filename.endswith(("check.py", "course.py", "stage_checks.py"))), None)
+    return learner.lineno if learner else 0
+
+try:
+${CHECK_CALL}
+    case = {"status": "passed", "actual": "PASS", "error": ""}
+except NotImplementedError as exc:
+    case = {"status": "failed", "actual": "", "error": "NotImplementedError: " + (str(exc) or "finish the stage"),
+            "line": _line_for(exc)}
+except AssertionError as exc:
+    case = {"status": "failed", "actual": "", "error": "AssertionError: " + (str(exc) or "the stage assertion failed"),
+            "line": _line_for(exc)}
+except SystemExit as exc:
+    code = getattr(exc, "code", None)
+    todo = code in (2, 42) or "not implemented" in (str(exc) or "").lower()
+    case = {"status": "failed", "actual": "",
+            "error": "Not implemented yet." if todo else "SystemExit: " + (str(exc) or "the stage checker exited")}
+except Exception as exc:
+    case = {"status": "error", "actual": "",
+            "error": type(exc).__name__ + ": " + str(exc), "line": _line_for(exc)}
+json.dumps({"cases": [{"id": "stage", "label": forja_label or "Stage checker",
+                       "input": forja_input or "", "expected": "PASS", **case}]})
+`;
+
 const TEST_SCRIPTS = {
-  9: `
+  "aws-from-scratch:9": `
 from s3 import S3, S3Error
 
 def _store():
@@ -112,26 +164,45 @@ json.dumps({"cases": cases})
 `,
 };
 
+function moduleNames(files) {
+  const names = new Set(["codecraft", "codecraft.api"]);
+  for (const name of Object.keys(files || {})) {
+    if (!name.endsWith(".py")) continue;
+    names.add(name.slice(0, -3).replaceAll("/", "."));
+  }
+  return [...names];
+}
+
 self.onmessage = async ({ data }) => {
-  const { id, files, stage, mode = "stage" } = data;
+  const { id, files, stage, mode = "stage", course = "aws-from-scratch", label = "", input = "" } = data;
+  const root = `/forja-${course}`;
   try {
     if (!Number.isInteger(stage) || stage < 1 || stage > 63) throw new Error("Invalid stage");
-    const script = mode === "tests" ? TEST_SCRIPTS[stage] : STAGE_SCRIPT;
-    if (!script) throw new Error(`No test cases for stage ${stage}.`);
+    if (!/^[a-z0-9-]+$/.test(course)) throw new Error("Invalid course");
+    const specific = mode === "tests" ? TEST_SCRIPTS[`${course}:${stage}`] : null;
+    const script = specific || (mode === "tests" ? GENERIC_TEST_SCRIPT : STAGE_SCRIPT);
     const pyodide = await ready;
-    pyodide.FS.mkdirTree(ROOT);
+    pyodide.FS.mkdirTree(root);
     for (const [name, source] of Object.entries(files || {})) {
-      if (!/^[a-z0-9_]+\.py$/.test(name) || typeof source !== "string") continue;
-      pyodide.FS.writeFile(`${ROOT}/${name}`, source, { encoding: "utf8" });
+      if (typeof source !== "string") continue;
+      if (!/^[A-Za-z0-9_][A-Za-z0-9_./-]*$/.test(name) || name.includes("..")) continue;
+      const path = `${root}/${name}`;
+      const slash = path.lastIndexOf("/");
+      if (slash > 0) pyodide.FS.mkdirTree(path.slice(0, slash));
+      pyodide.FS.writeFile(path, source, { encoding: "utf8" });
     }
     pyodide.globals.set("forja_stage", stage);
-    pyodide.globals.set("forja_root", ROOT);
-    pyodide.globals.set("forja_modules", MODULES);
+    pyodide.globals.set("forja_root", root);
+    pyodide.globals.set("forja_mode", data.entry === "course.py" ? "course" : "check");
+    pyodide.globals.set("forja_modules", moduleNames(files));
+    pyodide.globals.set("forja_label", label);
+    pyodide.globals.set("forja_input", input);
     const result = await pyodide.runPythonAsync(PRELUDE + script);
     self.postMessage({ id, mode, ...JSON.parse(result) });
   } catch (error) {
     const detail = error?.message || String(error);
-    const learner = detail.match(/File "\/forja-aws\/([^"]+)", line (\d+)/);
+    const escaped = root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const learner = detail.match(new RegExp(`File "${escaped}/([^"]+)", line (\\d+)`));
     self.postMessage({
       id, mode, status: "ERROR", detail,
       file: learner?.[1] || "",
