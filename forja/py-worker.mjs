@@ -27,7 +27,10 @@ except NotImplementedError as exc:
     outcome = {"status": "TODO", "detail": str(exc) or "Finish the indicated function, then run again.",
                "file": os.path.basename(learner.filename) if learner else "", "line": learner.lineno if learner else 0}
 except AssertionError as exc:
-    outcome = {"status": "FAIL", "detail": str(exc) or "The stage assertion failed."}
+    frames = traceback.extract_tb(exc.__traceback__)
+    check = next((f for f in reversed(frames) if f.filename.endswith("stage_checks.py")), None)
+    outcome = {"status": "FAIL", "detail": str(exc) or "The stage assertion failed.",
+               "check": {"line": check.lineno, "expression": (check.line or "").strip()[:240]} if check else None}
 except Exception as exc:
     frames = traceback.extract_tb(exc.__traceback__)
     learner = next((f for f in reversed(frames) if f.filename.startswith(forja_root) and not f.filename.endswith("stage_checks.py")), None)

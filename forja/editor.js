@@ -427,6 +427,7 @@
     learning.append(localStorage, {
       ts: Date.now(), course: checkedCourse, stage: checkedStage.id, kind: "run",
       status: outcome.status, detail: outcome.detail,
+      checkId: outcome.check?.line || null,
       sourceHash: learning.fingerprint(source), hintCount: hintIndex,
     });
     if (outcome.status === "PASS") {
@@ -443,6 +444,7 @@
     result(outcome.status, outcome.detail);
     $("editor-run-advice").textContent = advice.message;
     $("editor-run-advice").hidden = false;
+    showHelper("guide");
     if (advice.probe && currentLearning()?.concept) showConcept();
     if (outcome.status === "PASS") showPractice();
   }

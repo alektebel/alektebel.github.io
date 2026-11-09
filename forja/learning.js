@@ -51,8 +51,14 @@
   function runAdvice(learning, target, outcome, source, priorRuns) {
     const previous = priorRuns.at(-1);
     const currentHash = fingerprint(source);
+    const expression = outcome.check?.expression || "";
+    const check = expression.startsWith("assert ") ? expression.slice(7)
+      : expression.startsWith("raise AssertionError(") ? outcome.detail : expression;
+    const checkId = outcome.check?.line || null;
     if (outcome.status === "PASS") {
-      return { message: "The code check passed. You can check the idea separately when you're ready.", probe: false };
+      return { message: previous && previous.status !== "PASS"
+        ? "Your latest change passed the stage check. Check the idea separately when you're ready."
+        : "The code check passed. You can check the idea separately when you're ready.", probe: false };
     }
     if (outcome.status === "ERROR") {
       const runtimeLookup = /(?:KeyError|IndexError|S3Error):/.test(outcome.detail || "");
@@ -60,19 +66,26 @@
         ? [learning.check_case, learning.failure_focus].filter(Boolean).join(" ")
         : "Fix the reported Python error first, then rerun this stage.", probe: false };
     }
-    if (previous?.sourceHash === currentHash && previous?.status === outcome.status) {
+    if (previous?.sourceHash === currentHash && previous?.status === outcome.status
+        && (outcome.status !== "FAIL" || (previous.checkId ?? null) === checkId)) {
       return { message: "This run used the same code and got the same result. Make one small edit before running again.", probe: false };
     }
     const stub = outcome.status === "TODO" ? unfinishedTarget(source, target) : null;
     if (stub) {
       return { message: `The checker reached the unfinished ${stub} function. Start with that function, then rerun the stage.`, probe: false };
     }
-    const check = learning?.check_case || "";
-    const focus = learning?.failure_focus || "Inspect the first failing behavior before changing more code.";
-    const attemptsWithEdits = priorRuns.filter((run) => run.sourceHash !== currentHash).length;
+    const caseText = check ? `The failing check is: ${check}.` : learning?.check_case || "";
+    const focus = learning?.failure_focus || "Inspect that behavior before changing more code.";
+    const sameFailure = outcome.status === "FAIL" && checkId != null
+      && priorRuns.some((run) => run.status === "FAIL" && run.checkId === checkId
+        && run.sourceHash !== currentHash);
+    const movedFailure = outcome.status === "FAIL" && previous?.status === "FAIL"
+      && previous.checkId != null && checkId != null && previous.checkId !== checkId;
     return {
-      message: [check, focus].filter(Boolean).join(" "),
-      probe: outcome.status === "FAIL" || (outcome.status === "TODO" && attemptsWithEdits > 0),
+      message: [movedFailure ? "Your edit reached a different check." :
+        sameFailure ? "The same check still fails after your edit." : "",
+      caseText, focus].filter(Boolean).join(" "),
+      probe: sameFailure,
     };
   }
 
