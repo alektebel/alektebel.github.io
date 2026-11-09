@@ -723,7 +723,7 @@ function setWorkMode(mode) {
 function openWorkEditor() {
   if (!WORK_COURSE || !WORK_STAGE) return;
   setWorkMode("browser");
-  window.forjaEditor?.open(WORK_COURSE, WORK_STAGE);
+  return window.forjaEditor?.open(WORK_COURSE, WORK_STAGE);
 }
 
 function resetWorkMode() {
@@ -743,6 +743,101 @@ function resetWorkMode() {
   if (editor) editor.hidden = true;
   $("#w-open-editor")?.setAttribute("aria-pressed", "false");
   $("#w-local-mode")?.setAttribute("aria-pressed", "true");
+}
+
+/* Resizable workspace tiles: brief/editor and code/console. Values persist
+   per browser; double-click and Enter reset to the v2 defaults. */
+const WORK_SPLIT_KEY = "forja.work.split.v1";
+const WORK_CONSOLE_KEY = "forja.work.console.v1";
+function savedNumber(key, fallback) {
+  try {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  } catch { return fallback; }
+}
+let workSplitPct = savedNumber(WORK_SPLIT_KEY, 42);
+let workConsolePx = savedNumber(WORK_CONSOLE_KEY, 300);
+function refreshWorkEditor() {
+  requestAnimationFrame(() => {
+    const cm = $("#editor-code-area .CodeMirror")?.CodeMirror;
+    cm?.refresh();
+  });
+}
+function applyWorkSplit(value, persist = true) {
+  workSplitPct = Math.max(24, Math.min(70, Number(value) || 42));
+  $("#work-main")?.style.setProperty("--work-split", workSplitPct.toFixed(2));
+  if (persist) {
+    try { localStorage.setItem(WORK_SPLIT_KEY, workSplitPct.toFixed(2)); } catch { /* storage disabled */ }
+  }
+  refreshWorkEditor();
+}
+function applyWorkConsole(value, persist = true) {
+  const pane = $("#browser-editor");
+  const height = pane?.offsetHeight || 0;
+  const maximum = height > 240 ? height - 150 : 10000;
+  workConsolePx = Math.max(110, Math.min(maximum, Number(value) || 300));
+  pane?.style.setProperty("--editor-console-h", `${Math.round(workConsolePx)}px`);
+  if (persist) {
+    try { localStorage.setItem(WORK_CONSOLE_KEY, String(Math.round(workConsolePx))); } catch { /* storage disabled */ }
+  }
+  refreshWorkEditor();
+}
+function bindWorkResizers() {
+  const column = $("#v2-split");
+  if (column) {
+    column.onpointerdown = (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      const main = $("#work-main");
+      const rect = main.getBoundingClientRect();
+      const move = (ev) => applyWorkSplit(((ev.clientX - rect.left) / rect.width) * 100);
+      const stop = () => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", stop);
+        window.removeEventListener("pointercancel", stop);
+        document.body.classList.remove("resizing-tiles", "v2-col");
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", stop);
+      window.addEventListener("pointercancel", stop);
+      document.body.classList.add("resizing-tiles", "v2-col");
+    };
+    column.ondblclick = () => applyWorkSplit(42);
+    column.onkeydown = (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        applyWorkSplit(workSplitPct + (event.key === "ArrowLeft" ? -2 : 2));
+      }
+      if (event.key === "Enter") applyWorkSplit(42);
+    };
+  }
+  const row = $("#v2-editor-split");
+  if (row) {
+    row.onpointerdown = (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      const rect = $("#browser-editor").getBoundingClientRect();
+      const move = (ev) => applyWorkConsole(rect.bottom - ev.clientY - 5);
+      const stop = () => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", stop);
+        window.removeEventListener("pointercancel", stop);
+        document.body.classList.remove("resizing-tiles", "v2-row");
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", stop);
+      window.addEventListener("pointercancel", stop);
+      document.body.classList.add("resizing-tiles", "v2-row");
+    };
+    row.ondblclick = () => applyWorkConsole(300);
+    row.onkeydown = (event) => {
+      if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        applyWorkConsole(workConsolePx + (event.key === "ArrowUp" ? 20 : -20));
+      }
+      if (event.key === "Enter") applyWorkConsole(300);
+    };
+  }
 }
 
 function renderWorkTests(data) {
@@ -765,18 +860,179 @@ function renderWorkTests(data) {
   }
   if (score) {
     const total = data?.total ?? rows.length;
+    const failed = rows.some((row) => row.status === "failed" || row.status === "error");
     score.textContent = data ? `${data.passed} / ${total}` : "—";
     score.dataset.complete = String(Boolean(data && data.passed === total && total > 0));
+    score.dataset.failed = String(Boolean(data && failed));
   }
 }
 
-function playWorkReview() {
-  setWorkMode("local");
-  const source = $("#w-source-wrap");
-  if (!source) return;
-  source.hidden = false;
-  $("#w-review-source")?.click();
-  requestAnimationFrame(() => source.scrollIntoView({ behavior: "smooth", block: "center" }));
+const reviewPlayback = { timer: null, paused: true, speed: 1, current: 0, total: 0, rows: [], bubbles: [] };
+function stopReviewPlayback() {
+  clearInterval(reviewPlayback.timer);
+  reviewPlayback.timer = null;
+}
+function paintReviewFrame() {
+  const { current, rows, bubbles, total } = reviewPlayback;
+  for (const row of rows) {
+    const line = Number(row.dataset.line);
+    row.classList.toggle("is-seen", line <= current);
+    row.classList.toggle("is-current", line === current);
+  }
+  for (const bubble of bubbles) {
+    bubble.classList.toggle("is-on", Number(bubble.dataset.line) <= current);
+  }
+  const progress = $("#v2-review-progress");
+  if (progress) progress.style.width = `${total ? (current / total) * 100 : 0}%`;
+}
+function finishReviewPlayback() {
+  stopReviewPlayback();
+  reviewPlayback.paused = true;
+  reviewPlayback.current = reviewPlayback.total;
+  paintReviewFrame();
+  const toggle = $("#v2-review-toggle");
+  if (toggle) toggle.textContent = "Play";
+  const footer = $("#v2-review-foot");
+  if (footer) footer.hidden = false;
+}
+function startReviewPlayback() {
+  stopReviewPlayback();
+  reviewPlayback.paused = false;
+  const toggle = $("#v2-review-toggle");
+  if (toggle) toggle.textContent = "Pause";
+  $("#v2-review-foot").hidden = true;
+  reviewPlayback.timer = setInterval(() => {
+    if (reviewPlayback.paused) return;
+    reviewPlayback.current += 1;
+    paintReviewFrame();
+    if (reviewPlayback.current >= reviewPlayback.total) finishReviewPlayback();
+  }, 70 / reviewPlayback.speed);
+}
+function resetReviewPlayback() {
+  stopReviewPlayback();
+  reviewPlayback.current = 0;
+  paintReviewFrame();
+  startReviewPlayback();
+}
+function closeWorkReview() {
+  stopReviewPlayback();
+  reviewPlayback.paused = true;
+  const modal = $("#v2-review-modal");
+  if (modal) modal.hidden = true;
+  document.body.classList.remove("review-open");
+}
+function openWorkReview(snapshot) {
+  const modal = $("#v2-review-modal");
+  const codeBox = $("#v2-review-code");
+  const commentBox = $("#v2-review-comments");
+  if (!modal || !codeBox || !commentBox || !snapshot) return;
+  stopReviewPlayback();
+  codeBox.replaceChildren();
+  commentBox.replaceChildren();
+
+  const lines = snapshot.source.split("\n");
+  if (lines[lines.length - 1] === "") lines.pop();
+  const byLine = new Map();
+  for (const row of snapshot.review.lines || []) {
+    for (const comment of row.comments || []) {
+      const list = byLine.get(row.line) || [];
+      list.push(comment);
+      byLine.set(row.line, list);
+    }
+  }
+
+  reviewPlayback.rows = [];
+  reviewPlayback.bubbles = [];
+  reviewPlayback.current = 0;
+  reviewPlayback.total = lines.length;
+  reviewPlayback.speed = 1;
+
+  $("#v2-review-title").textContent = `Code review · ${snapshot.file}`;
+  $("#v2-review-sub").textContent = `Stage ${String(snapshot.stage.id).padStart(2, "0")} · ${snapshot.stage.target || snapshot.stage.file}`;
+  $("#v2-review-bad").textContent = `✗ ${snapshot.review.total} issue${snapshot.review.total === 1 ? "" : "s"}`;
+  const flagged = byLine.size;
+  $("#v2-review-good").textContent = `✓ ${Math.max(0, lines.length - flagged)} line${lines.length - flagged === 1 ? "" : "s"} clean`;
+  $("#v2-review-toggle").textContent = "Pause";
+  $("#v2-review-speed").textContent = "1×";
+  $("#v2-review-foot").hidden = true;
+  $("#v2-review-progress").style.width = "0%";
+
+  lines.forEach((text, index) => {
+    const line = index + 1;
+    const row = document.createElement("div");
+    row.className = `v2-rv-line ${byLine.has(line) ? "is-bad" : "is-good"}`;
+    row.dataset.line = String(line);
+    const number = document.createElement("span");
+    number.className = "n";
+    number.textContent = String(line);
+    const content = document.createElement("span");
+    content.className = "code";
+    content.textContent = text || " ";
+    row.append(number, content);
+    codeBox.appendChild(row);
+    reviewPlayback.rows.push(row);
+  });
+
+  for (const [line, comments] of [...byLine.entries()].sort((a, b) => a[0] - b[0])) {
+    const bubble = document.createElement("div");
+    bubble.className = `v2-rv-bubble${comments.some((c) => c.kind === "error") ? " is-error" : ""}`;
+    bubble.dataset.line = String(line);
+    bubble.style.top = `${(line - 1) * 22 + 8}px`;
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = `Line ${line} · ${comments.some((c) => c.kind === "error") ? "error" : "guideline"}`;
+    const message = document.createElement("span");
+    message.className = "msg";
+    message.textContent = comments.map((c) => c.message).join(" ");
+    bubble.append(tag, message);
+    commentBox.appendChild(bubble);
+    reviewPlayback.bubbles.push(bubble);
+  }
+
+  modal.hidden = false;
+  document.body.classList.add("review-open");
+  paintReviewFrame();
+  requestAnimationFrame(() => {
+    $("#v2-review-close")?.focus();
+    startReviewPlayback();
+  });
+}
+async function playWorkReview() {
+  if (!WORK_COURSE || !WORK_STAGE) return;
+  let snapshot = window.forjaEditor?.review?.();
+  if (!snapshot) {
+    await window.forjaEditor?.open(WORK_COURSE, WORK_STAGE);
+    snapshot = window.forjaEditor?.review?.();
+  }
+  if (snapshot) openWorkReview(snapshot);
+}
+function bindReviewModal() {
+  const modal = $("#v2-review-modal");
+  if (!modal || modal.dataset.bound) return;
+  modal.dataset.bound = "1";
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeWorkReview();
+  });
+  $("#v2-review-close")?.addEventListener("click", closeWorkReview);
+  $("#v2-review-replay")?.addEventListener("click", resetReviewPlayback);
+  $("#v2-review-toggle")?.addEventListener("click", () => {
+    if (reviewPlayback.paused) {
+      if (reviewPlayback.current >= reviewPlayback.total) resetReviewPlayback();
+      else startReviewPlayback();
+    } else {
+      reviewPlayback.paused = true;
+      stopReviewPlayback();
+      $("#v2-review-toggle").textContent = "Play";
+    }
+  });
+  $("#v2-review-speed")?.addEventListener("click", () => {
+    reviewPlayback.speed = reviewPlayback.speed === 1 ? 2 : reviewPlayback.speed === 2 ? 4 : 1;
+    $("#v2-review-speed").textContent = `${reviewPlayback.speed}×`;
+    if (!reviewPlayback.paused) startReviewPlayback();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("#v2-review-modal")?.hidden) closeWorkReview();
+  });
 }
 
 function renderWorkRibbon(logo, title, checks, stages, current, course) {
@@ -852,6 +1108,10 @@ function prepareWorkShell() {
   if (browserButton) browserButton.onclick = openWorkEditor;
   if (localButton) localButton.onclick = () => resetWorkMode();
   if (reviewButton) reviewButton.onclick = playWorkReview;
+  bindReviewModal();
+  bindWorkResizers();
+  applyWorkSplit(workSplitPct, false);
+  applyWorkConsole(workConsolePx, false);
   const goHome = $("#v2-home");
   const navHome = $("#v2-nav-home");
   const navWork = $("#v2-nav-work");

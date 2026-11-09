@@ -164,6 +164,20 @@
   function code() {
     return cm ? cm.getValue() : "";
   }
+  let markedLines = [];
+  function clearErrorLines() {
+    if (!cm) return;
+    for (const handle of markedLines) cm.removeLineClass(handle, "background", "cm-error-line");
+    markedLines = [];
+  }
+  function markErrorLines(lines) {
+    clearErrorLines();
+    if (!cm) return;
+    const unique = [...new Set(lines.filter((line) =>
+      Number.isInteger(line) && line > 0 && line <= cm.lineCount()))];
+    for (const line of unique) markedLines.push(cm.addLineClass(line - 1, "background", "cm-error-line"));
+    if (unique.length) cm.scrollIntoView({ line: unique[0] - 1, ch: 0 }, 80);
+  }
   function flashEditor(message) {
     const label = $("editor-format-msg");
     if (!label) return;
@@ -313,11 +327,13 @@
     let passed = 0;
     let finished = 0;
     const rows = [];
+    const errorLines = [];
     for (const test of stageSpec.cases) {
       const actual = results.get(test.id);
       const status = actual?.status || "pending";
       if (status === "passed") passed += 1;
       if (status !== "pending") finished += 1;
+      if (status !== "passed" && actual?.line) errorLines.push(actual.line);
       rows.push({ label: test.label, status });
       const item = document.createElement("li");
       item.className = "test-case";
@@ -357,6 +373,7 @@
       }
       list.appendChild(item);
     }
+    markErrorLines(errorLines);
     const summary = $("editor-tests-summary");
     if (finished) {
       summary.textContent = `${passed}/${stageSpec.cases.length} passing` +
@@ -418,7 +435,7 @@
   }
   function workerRequest(payload) {
     return new Promise((resolve, reject) => {
-      const worker = new Worker(asset("py-worker.mjs"), { type: "module" });
+      const worker = new Worker(asset("py-worker.mjs") + "?v=20261109", { type: "module" });
       const id = Date.now();
       const timeout = setTimeout(() => {
         worker.terminate();
@@ -441,6 +458,7 @@
   async function run() {
     if (running || !bundle || !stage) return;
     save();
+    clearErrorLines();
     const checkedStage = stage;
     const checkedCourse = course;
     running = true;
@@ -478,6 +496,10 @@
     }
     if (stage?.id !== checkedStage.id || course !== checkedCourse) return;
     lastOutcome = { ...outcome, sourceHash: learning.fingerprint(source) };
+    if (outcome.status !== "PASS" && outcome.line
+        && (!outcome.file || outcome.file === checkedStage.file)) {
+      markErrorLines([outcome.line]);
+    }
     result(outcome.status, outcome.detail);
     $("editor-run-advice").textContent = advice.message;
     $("editor-run-advice").hidden = false;
@@ -489,18 +511,28 @@
     const stageSpec = spec();
     if (runningTests || !bundle || !stage || !stageSpec) return;
     save();
+    clearErrorLines();
     showHelper("tests");
     runningTests = true;
     $("editor-tests-run").disabled = true;
     $("editor-tests-run").textContent = "Running…";
-    $("editor-tests-summary").textContent = `Running ${stageSpec.cases.length} test cases…`;
+    const summary = $("editor-tests-summary");
+    summary.dataset.status = "running";
+    summary.textContent = `Running ${stageSpec.cases.length} test cases…`;
     try {
       const outcome = await workerRequest({ files: currentFiles(), stage: stage.id, mode: "tests" });
-      if (!Array.isArray(outcome.cases)) throw new Error(outcome.detail || "The test worker returned no cases.");
+      if (!Array.isArray(outcome.cases)) {
+        if (outcome.line) markErrorLines([outcome.line]);
+        throw new Error(outcome.detail || "The test worker returned no cases.");
+      }
       const results = new Map(outcome.cases.map((test) => [test.id, test]));
       renderTests(stageSpec, results);
+      summary.dataset.status = outcome.cases.some((test) => test.status !== "passed") ? "error" : "passed";
     } catch (error) {
-      $("editor-tests-summary").textContent = `Could not run tests: ${error.message}`;
+      const learner = error.message.match(/File "\/forja-aws\/[^"]+", line (\d+)/);
+      if (learner) markErrorLines([Number(learner[1])]);
+      summary.dataset.status = "error";
+      summary.textContent = `Could not run tests: ${error.message}`;
     } finally {
       runningTests = false;
       $("editor-tests-run").disabled = false;
@@ -735,8 +767,8 @@
       list.appendChild(item);
     }
   }
-  function reviewCode() {
-    if (!stage || !code()) return;
+  function reviewSnapshot() {
+    if (!stage || !file || !code()) return null;
     const source = code();
     const ranges = window.forjaCodeReview?.targetRanges(source.split("\n"), stage.target) || [];
     const failureLine = lastOutcome?.file === file
@@ -749,7 +781,12 @@
       failureLine,
       failureDetail: lastOutcome?.detail,
     });
-    if (review) renderReview(review);
+    return review ? { file, stage, source, ranges, failureLine, review } : null;
+  }
+  function reviewCode() {
+    const snapshot = reviewSnapshot();
+    if (!snapshot) return;
+    renderReview(snapshot.review);
   }
 
   cm = CodeMirror.fromTextArea($("editor-code"), {
@@ -773,7 +810,10 @@
     vimEnabled = localStorage.getItem(VIM_KEY) !== "off";
   } catch { vimEnabled = true; }
   if (!vimEnabled) cm.setOption("keyMap", "default");
-  cm.on("change", save);
+  cm.on("change", () => {
+    if (!settingCode) clearErrorLines();
+    save();
+  });
   cm.on("keydown", (editor, event) => recordKey(event));
   cm.on("vim-mode-change", (change) => {
     vimMode = change.mode;
@@ -825,6 +865,8 @@
   window.forjaEditor = {
     open,
     onStage,
+    review: reviewSnapshot,
+    code,
     specFor: (stageId) => STAGE_SPECS[stageId] || null,
   };
 })();

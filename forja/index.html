@@ -8,10 +8,10 @@
   <title>forja · Challenges</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="vendor/codemirror/codemirror.css">
   <link rel="stylesheet" href="vendor/codemirror/dialog.css">
-  <link rel="stylesheet" href="styles.css?v=353fa99">
+  <link rel="stylesheet" href="styles.css?v=20261109">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -184,6 +184,7 @@
                     <textarea id="editor-code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Python code in Vim mode"></textarea>
                   </div>
                 </div>
+                <div class="v2-editor-split" id="v2-editor-split" role="separator" aria-orientation="horizontal" aria-label="Resize code and test console" title="Drag to resize · double-click to reset" tabindex="0"><div></div></div>
                 <aside class="browser-helper" aria-label="Stage helper">
                   <div class="helper-tabs" role="tablist" aria-label="Helper sections">
                     <button type="button" class="helper-tab is-active" id="helper-tab-case" role="tab" aria-selected="true" aria-controls="helper-panel-case" data-helper-tab="case">Testcase</button>
@@ -295,7 +296,7 @@
               </div>
             </section>
           </div>
-          <div class="v2-split" id="v2-split" hidden aria-hidden="true"><div></div></div>
+          <div class="v2-split" id="v2-split" hidden role="separator" aria-orientation="vertical" aria-label="Resize brief and editor" title="Drag to resize · double-click to reset" tabindex="0"><div></div></div>
         </main>
 
         <aside class="v2-tests" id="v2-tests" hidden aria-label="Stage tests and code review">
@@ -411,6 +412,35 @@
     </div>
   </main>
 
+  <div class="v2-review-modal" id="v2-review-modal" hidden>
+    <div class="v2-review-dialog" role="dialog" aria-modal="true" aria-labelledby="v2-review-title">
+      <header class="v2-review-head">
+        <div class="v2-review-copy">
+          <span id="v2-review-title">Code review</span>
+          <span class="mono" id="v2-review-sub"></span>
+        </div>
+        <div class="v2-review-counts">
+          <span class="v2-review-bad" id="v2-review-bad">✗ 0 issues</span>
+          <span class="v2-review-good" id="v2-review-good">✓ 0 clean</span>
+        </div>
+        <div class="v2-review-actions">
+          <button type="button" id="v2-review-toggle">Pause</button>
+          <button type="button" id="v2-review-speed">1×</button>
+          <button type="button" id="v2-review-close" aria-label="Close code review">×</button>
+        </div>
+      </header>
+      <div class="v2-review-progress"><div id="v2-review-progress"></div></div>
+      <div class="v2-review-body">
+        <div class="v2-review-code" id="v2-review-code"></div>
+        <div class="v2-review-comments" id="v2-review-comments"></div>
+      </div>
+      <footer class="v2-review-foot" id="v2-review-foot" hidden>
+        <span>Review complete. Fix the highlighted lines, then run again.</span>
+        <button type="button" id="v2-review-replay">Replay</button>
+      </footer>
+    </div>
+  </div>
+
   <!-- GitHub "sign in": connect a public fork. Progress is read from the
        fork's commits via the public GitHub API; no OAuth, token, or server. -->
   <div class="auth-modal" id="gh-modal" hidden>
@@ -452,15 +482,15 @@
     </div>
   </div>
 
-  <script src="learning.js?v=353fa99"></script>
+  <script src="learning.js?v=20261109"></script>
   <script src="vendor/codemirror/codemirror.js"></script>
   <script src="vendor/codemirror/searchcursor.js"></script>
   <script src="vendor/codemirror/dialog.js"></script>
   <script src="vendor/codemirror/matchbrackets.js"></script>
   <script src="vendor/codemirror/vim.js"></script>
   <script src="vendor/codemirror/python.js"></script>
-  <script src="review.js?v=353fa99"></script>
-  <script src="editor.js?v=353fa99"></script>
-  <script src="app.js?v=353fa99"></script>
+  <script src="review.js?v=20261109"></script>
+  <script src="editor.js?v=20261109"></script>
+  <script src="app.js?v=20261109"></script>
 </body>
 </html>

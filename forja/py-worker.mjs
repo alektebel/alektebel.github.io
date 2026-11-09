@@ -56,8 +56,13 @@ def _run(case_id, label, input_text, expected, fn):
                 "expected": expected, "status": "passed" if ok else "failed",
                 "actual": str(actual)[:400]}
     except Exception as exc:
+        frames = traceback.extract_tb(exc.__traceback__)
+        learner = next((f for f in reversed(frames)
+                        if f.filename.startswith(forja_root)
+                        and not f.filename.endswith("stage_checks.py")), None)
         return {"id": case_id, "label": label, "input": input_text,
                 "expected": expected, "status": "error", "actual": "",
+                "line": learner.lineno if learner else 0,
                 "error": (type(exc).__name__ + ": " + str(exc))[:400]}
 
 def _etag():
@@ -125,6 +130,12 @@ self.onmessage = async ({ data }) => {
     const result = await pyodide.runPythonAsync(PRELUDE + script);
     self.postMessage({ id, mode, ...JSON.parse(result) });
   } catch (error) {
-    self.postMessage({ id, mode, status: "ERROR", detail: error?.message || String(error) });
+    const detail = error?.message || String(error);
+    const learner = detail.match(/File "\/forja-aws\/([^"]+)", line (\d+)/);
+    self.postMessage({
+      id, mode, status: "ERROR", detail,
+      file: learner?.[1] || "",
+      line: learner ? Number(learner[2]) : 0,
+    });
   }
 };
