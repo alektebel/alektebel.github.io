@@ -164,6 +164,39 @@
   function code() {
     return cm ? cm.getValue() : "";
   }
+  function flashEditor(message) {
+    const label = $("editor-format-msg");
+    if (!label) return;
+    label.textContent = message;
+    clearTimeout(flashEditor.timer);
+    flashEditor.timer = setTimeout(() => { label.textContent = ""; }, 2200);
+  }
+  function formatCode() {
+    if (!cm) return;
+    const before = cm.getValue();
+    const after = before
+      .replace(/\t/g, "    ")
+      .split("\n")
+      .map((line) => line.replace(/\s+$/, ""))
+      .join("\n")
+      .replace(/\s*$/, "\n");
+    if (after === before) {
+      flashEditor("Already formatted");
+      return;
+    }
+    cm.setValue(after);
+    cm.clearHistory();
+    save();
+    flashEditor("Formatted");
+  }
+  function resetCode() {
+    if (!cm || !file || !bundle) return;
+    cm.setValue(bundle.files[file]);
+    cm.clearHistory();
+    cm.setCursor({ line: 0, ch: 0 });
+    save();
+    flashEditor("Reset to starter");
+  }
   function currentFiles() {
     const files = { ...bundle.files };
     for (const name of bundle.editable) {
@@ -279,11 +312,13 @@
     list.replaceChildren();
     let passed = 0;
     let finished = 0;
+    const rows = [];
     for (const test of stageSpec.cases) {
       const actual = results.get(test.id);
       const status = actual?.status || "pending";
       if (status === "passed") passed += 1;
       if (status !== "pending") finished += 1;
+      rows.push({ label: test.label, status });
       const item = document.createElement("li");
       item.className = "test-case";
       item.dataset.status = status;
@@ -329,6 +364,7 @@
     } else {
       summary.textContent = "Not run yet. Tests run against the current browser draft.";
     }
+    window.forjaWorkspace?.onTests?.({ passed, total: stageSpec.cases.length, rows });
   }
   function guide() {
     hintIndex = 0;
@@ -354,7 +390,7 @@
       renderTests(stageSpec);
       $("editor-tests-note").textContent = stageSpec.note;
     }
-    showHelper(stageSpec ? "tests" : "guide");
+    showHelper(stageSpec ? "case" : "guide");
     if (bundle?.editable.includes(stage.file)) selectFile(stage.file);
     if (bundle) showPractice();
   }
@@ -362,14 +398,15 @@
     if (nextCourse !== "aws-from-scratch" || !nextStage) return;
     course = nextCourse;
     stage = nextStage;
+    window.forjaWorkspace?.setMode?.("browser");
     $("browser-editor").hidden = false;
     $("editor-goal").textContent = "Loading starter files…";
     requestAnimationFrame(() => cm.refresh());
-    $("browser-editor").scrollIntoView({ behavior: "smooth", block: "start" });
     try {
       await load();
       guide();
       jumpToTask();
+      requestAnimationFrame(() => cm.focus());
     } catch (error) { result("ERROR", error.message); }
   }
   function onStage(nextCourse, nextStage) {
@@ -408,7 +445,7 @@
     const checkedCourse = course;
     running = true;
     $("editor-run").disabled = true;
-    $("editor-run").textContent = "Running…";
+    $("editor-run").textContent = "Submitting…";
     result("TODO", "Loading Python and checking this stage. The first run may take a moment.");
     const files = currentFiles();
     const source = files[checkedStage.file] || "";
@@ -421,7 +458,7 @@
     } finally {
       running = false;
       $("editor-run").disabled = false;
-      $("editor-run").textContent = "Run stage";
+      $("editor-run").textContent = "Submit";
     }
     const advice = learning.runAdvice(checkedStage.learning, checkedStage.target, outcome, source, prior);
     learning.append(localStorage, {
@@ -452,6 +489,7 @@
     const stageSpec = spec();
     if (runningTests || !bundle || !stage || !stageSpec) return;
     save();
+    showHelper("tests");
     runningTests = true;
     $("editor-tests-run").disabled = true;
     $("editor-tests-run").textContent = "Running…";
@@ -466,7 +504,7 @@
     } finally {
       runningTests = false;
       $("editor-tests-run").disabled = false;
-      $("editor-tests-run").textContent = "Run tests";
+      $("editor-tests-run").textContent = "Run";
     }
   }
 
@@ -498,7 +536,8 @@
       replace: "-- REPLACE --", off: "-- VIM OFF --",
     }[mode];
     const toggle = $("editor-vim-toggle");
-    toggle.textContent = vimEnabled ? "Vim on" : "Vim off";
+    toggle.textContent = "Vim";
+    toggle.title = vimEnabled ? "Vim keybindings on" : "Vim keybindings off";
     toggle.setAttribute("aria-pressed", String(vimEnabled));
     $("editor-vim-keys").textContent = `${vimLog.length} keys`;
   }
@@ -745,6 +784,8 @@
 
   $("editor-file").addEventListener("change", (event) => selectFile(event.target.value));
   $("editor-jump").addEventListener("click", jumpToTask);
+  $("editor-format").addEventListener("click", formatCode);
+  $("editor-reset").addEventListener("click", resetCode);
   $("editor-vim-toggle").addEventListener("click", () => setVim(!vimEnabled));
   for (const button of document.querySelectorAll("[data-helper-tab]")) {
     button.addEventListener("click", () => showHelper(button.dataset.helperTab));
@@ -768,7 +809,10 @@
   $("vim-analyze").addEventListener("click", analyzeKeys);
   $("editor-review").addEventListener("click", reviewCode);
   $("editor-run").addEventListener("click", run);
-  $("editor-close").addEventListener("click", () => { $("browser-editor").hidden = true; });
+  $("editor-close").addEventListener("click", () => {
+    $("browser-editor").hidden = true;
+    window.forjaWorkspace?.setMode?.("local");
+  });
   $("editor-download").addEventListener("click", () => {
     if (!file) return;
     const url = URL.createObjectURL(new Blob([code()], { type: "text/x-python" }));
@@ -778,5 +822,9 @@
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
-  window.forjaEditor = { open, onStage };
+  window.forjaEditor = {
+    open,
+    onStage,
+    specFor: (stageId) => STAGE_SPECS[stageId] || null,
+  };
 })();

@@ -16,6 +16,22 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
+  <header class="v2-workbar" id="v2-workbar">
+    <div class="v2-workbar-in">
+      <button type="button" class="v2-brand" id="v2-home" aria-label="forja home">
+        <img src="logos/forja.svg" width="30" height="30" alt="">
+        <span>forja</span>
+      </button>
+      <nav class="v2-nav" aria-label="Workspace">
+        <button type="button" id="v2-nav-home">Home</button>
+        <button type="button" id="v2-nav-work" class="is-active">Workspace</button>
+        <button type="button" id="v2-nav-deps">Dependencies</button>
+      </nav>
+      <code class="v2-pip">pip install forja</code>
+      <button type="button" class="v2-start" id="v2-start">Start building</button>
+    </div>
+  </header>
+
   <header class="topbar zj-header">
     <div class="zj-header-in">
       <button type="button" class="brand zj-brand" id="go-home" aria-label="forja home">
@@ -65,7 +81,8 @@
 
     <!-- ================================================== workspace -->
     <div class="view" id="view-work" hidden>
-      <div class="work-grid">
+      <div class="v2-ribbon" id="v2-ribbon" hidden aria-label="Stage progress"></div>
+      <div class="work-grid" id="work-grid">
         <aside class="stagebar" id="stagebar" aria-label="Stages"></aside>
 
         <main class="work-main" id="work-main">
@@ -75,13 +92,52 @@
           </div>
           <div id="work-detail" hidden>
             <div class="work-head">
-              <span class="mono stage-crumb" id="w-crumb"></span>
+              <div class="v2-stage-top">
+                <span class="mono stage-crumb" id="w-crumb"></span>
+                <div class="v2-mode" role="group" aria-label="Workspace mode">
+                  <button type="button" id="w-open-editor" aria-pressed="false">Code in browser</button>
+                  <button type="button" id="w-local-mode" aria-pressed="true">Local CLI</button>
+                </div>
+              </div>
               <h1 id="w-title"></h1>
               <p class="work-why" id="w-why"></p>
               <div class="uses" id="w-uses"></div>
-              <button type="button" class="deps-jump" id="w-deps-jump">Dependencies across all projects ↓</button>
+              <button type="button" class="deps-jump" id="w-deps-jump" hidden>Dependencies across all projects ↓</button>
               <button type="button" class="deps-jump" id="w-tree" hidden>Stage tree ↑</button>
             </div>
+
+            <section class="v2-section" id="w-v2-interface">
+              <h2 class="v2-label">Interface</h2>
+              <pre class="v2-code" id="w-v2-interface-code"></pre>
+            </section>
+
+            <section class="v2-section" id="w-v2-requirements">
+              <h2 class="v2-label">Requirements</h2>
+              <ol class="v2-reqs" id="w-v2-req-list"></ol>
+            </section>
+
+            <section class="v2-section" id="w-v2-examples">
+              <h2 class="v2-label">Examples</h2>
+              <div class="v2-examples" id="w-v2-example-list"></div>
+            </section>
+
+            <section class="v2-section" id="w-v2-scope">
+              <h2 class="v2-label">Out of scope</h2>
+              <ul class="v2-mono-list" id="w-v2-scope-list"></ul>
+            </section>
+
+            <section class="v2-section" id="w-v2-hints">
+              <h2 class="v2-label">Hints</h2>
+              <div class="v2-hints" id="w-v2-hint-list"></div>
+            </section>
+
+            <section class="v2-review-cta" id="w-v2-review-cta">
+              <div class="v2-review-copy">
+                <span class="v2-review-title">Walk through your last push</span>
+                <span class="mono" id="w-v2-review-meta"></span>
+              </div>
+              <button type="button" id="w-play-review"><span aria-hidden="true">▶</span> Play code review</button>
+            </section>
 
             <section class="w-section" id="w-interface-sec">
               <span class="kicker">Current stage</span>
@@ -102,24 +158,27 @@
               </div>
               <p class="w-stage-predict" id="w-stage-predict"></p>
               <a class="w-stage-source" id="w-stage-source" target="_blank" rel="noopener"></a>
-              <button type="button" class="browser-open" id="w-open-editor" hidden>Code in browser ↗</button>
             </section>
 
             <section class="browser-editor" id="browser-editor" hidden aria-label="Browser code editor">
               <div class="browser-editor-head">
-                <div><span class="kicker">Browser workspace</span><h2 id="editor-stage-title">Stage</h2></div>
+                <select id="editor-file" aria-label="File"></select>
+                <span class="v2-editor-badge">Python 3.12</span>
+                <span class="v2-editor-msg" id="editor-format-msg" aria-live="polite"></span>
+                <span class="v2-editor-spacer"></span>
+                <button type="button" id="editor-format" title="Format"> <span class="mono">{ }</span> Format</button>
+                <button type="button" class="vim-toggle" id="editor-vim-toggle" aria-pressed="true">Vim</button>
+                <button type="button" id="editor-reset">Reset</button>
                 <button type="button" id="editor-close" aria-label="Close editor">×</button>
+                <span id="editor-stage-title" hidden>Stage</span>
               </div>
               <div class="browser-editor-grid">
                 <div class="browser-code">
                   <div class="browser-code-head">
-                    <label for="editor-file">File</label>
-                    <select id="editor-file"></select>
                     <button type="button" id="editor-jump">Jump to task</button>
                     <span class="vim-status" id="editor-vim-status" aria-live="polite">-- NORMAL --</span>
-                    <button type="button" class="vim-toggle" id="editor-vim-toggle" aria-pressed="true">Vim on</button>
                     <span class="vim-keys" id="editor-vim-keys">0 keys</span>
-                    <span id="editor-save-state" role="status">Saved in this browser</span>
+                    <span id="editor-save-state" role="status" hidden>Saved in this browser</span>
                   </div>
                   <div class="browser-code-area" id="editor-code-area">
                     <textarea id="editor-code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Python code in Vim mode"></textarea>
@@ -127,12 +186,17 @@
                 </div>
                 <aside class="browser-helper" aria-label="Stage helper">
                   <div class="helper-tabs" role="tablist" aria-label="Helper sections">
-                    <button type="button" class="helper-tab is-active" id="helper-tab-guide" role="tab" aria-selected="true" aria-controls="helper-panel-guide" data-helper-tab="guide">Guide</button>
-                    <button type="button" class="helper-tab" id="helper-tab-tests" role="tab" aria-selected="false" aria-controls="helper-panel-tests" data-helper-tab="tests">Tests</button>
+                    <button type="button" class="helper-tab is-active" id="helper-tab-case" role="tab" aria-selected="true" aria-controls="helper-panel-case" data-helper-tab="case">Testcase</button>
+                    <button type="button" class="helper-tab" id="helper-tab-tests" role="tab" aria-selected="false" aria-controls="helper-panel-tests" data-helper-tab="tests">Test result</button>
+                    <button type="button" class="helper-tab" id="helper-tab-guide" role="tab" aria-selected="false" aria-controls="helper-panel-guide" data-helper-tab="guide">Guide</button>
                     <button type="button" class="helper-tab" id="helper-tab-vim" role="tab" aria-selected="false" aria-controls="helper-panel-vim" data-helper-tab="vim">Vim coach</button>
                   </div>
                   <div class="editor-result" id="editor-result" hidden role="status" aria-live="polite"></div>
-                  <div class="helper-panel" id="helper-panel-guide" role="tabpanel" aria-labelledby="helper-tab-guide">
+                  <div class="helper-panel" id="helper-panel-case" role="tabpanel" aria-labelledby="helper-tab-case">
+                    <p class="editor-tests-note" id="editor-tests-note"></p>
+                    <div class="test-examples" id="editor-examples"></div>
+                  </div>
+                  <div class="helper-panel" id="helper-panel-guide" role="tabpanel" aria-labelledby="helper-tab-guide" hidden>
                     <p id="editor-goal"></p>
                     <p id="editor-target"></p>
                     <button type="button" id="editor-practice-jump" hidden></button>
@@ -161,12 +225,8 @@
                     </section>
                   </div>
                   <div class="helper-panel" id="helper-panel-tests" role="tabpanel" aria-labelledby="helper-tab-tests" hidden>
-                    <p class="editor-tests-note" id="editor-tests-note"></p>
-                    <h4 class="editor-subhead">Examples</h4>
-                    <div class="test-examples" id="editor-examples"></div>
                     <div class="tests-head">
                       <h4 class="editor-subhead">Test cases</h4>
-                      <button type="button" id="editor-tests-run">Run tests</button>
                     </div>
                     <p class="test-summary" id="editor-tests-summary" role="status" aria-live="polite"></p>
                     <ol class="test-list" id="editor-test-list"></ol>
@@ -186,7 +246,8 @@
                 <button type="button" class="code-review-btn" id="editor-review">
                   <span class="play" aria-hidden="true">▶</span> Review code
                 </button>
-                <button type="button" class="primary-btn" id="editor-run">Run stage</button>
+                <button type="button" id="editor-tests-run">Run</button>
+                <button type="button" class="primary-btn" id="editor-run">Submit</button>
               </div>
               <section class="editor-review" id="editor-review-wrap" hidden aria-label="Code review">
                 <div class="editor-review-head">
@@ -234,8 +295,17 @@
               </div>
             </section>
           </div>
+          <div class="v2-split" id="v2-split" hidden aria-hidden="true"><div></div></div>
         </main>
 
+        <aside class="v2-tests" id="v2-tests" hidden aria-label="Stage tests and code review">
+          <div class="v2-tests-head">
+            <h2>Tests</h2>
+            <span class="mono" id="v2-tests-score">—</span>
+          </div>
+          <ul class="v2-tests-list" id="v2-tests-list"></ul>
+          <div id="v2-tests-legacy"></div>
+        </aside>
       </div>
 
       <section class="w-deps" id="w-deps" hidden aria-labelledby="w-deps-h">

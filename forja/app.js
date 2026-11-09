@@ -11,6 +11,12 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 const fmt = new Intl.NumberFormat("en");
 
+/* Workspace mode. Local CLI keeps the stage brief, stage rail and test rail;
+   the browser mode swaps in the zip's split brief/editor shell. */
+let WORK_MODE = "local";
+let WORK_COURSE = null;
+let WORK_STAGE = null;
+
 const STATE_LABEL = {
   complete: "complete", doing: "in progress", ready: "not started",
   author: "to author", salvage: "port from a branch", legacy: "no checker yet",
@@ -689,7 +695,182 @@ function bindHome() {
 }
 
 /* work -------------------------------------------------------------- */
+function setWorkMode(mode) {
+  const browser = mode === "browser" && !!WORK_COURSE && !!WORK_STAGE;
+  WORK_MODE = browser ? "browser" : "local";
+  const view = $("#view-work");
+  if (!view) return;
+  view.classList.toggle("is-browser", browser);
+  view.classList.toggle("is-local", !browser);
+  const ribbon = $("#v2-ribbon");
+  if (ribbon) ribbon.hidden = !browser;
+  const split = $("#v2-split");
+  if (split) split.hidden = !browser;
+  const tests = $("#v2-tests");
+  if (tests) tests.hidden = browser || view.hidden;
+  const editor = $("#browser-editor");
+  if (editor) editor.hidden = !browser;
+  const browserBtn = $("#w-open-editor");
+  const localBtn = $("#w-local-mode");
+  if (browserBtn) browserBtn.setAttribute("aria-pressed", String(browser));
+  if (localBtn) localBtn.setAttribute("aria-pressed", String(!browser));
+  if (browser) requestAnimationFrame(() => {
+    const cm = $("#editor-code-area .CodeMirror");
+    if (cm?.CodeMirror) cm.CodeMirror.refresh();
+  });
+}
+
+function openWorkEditor() {
+  if (!WORK_COURSE || !WORK_STAGE) return;
+  setWorkMode("browser");
+  window.forjaEditor?.open(WORK_COURSE, WORK_STAGE);
+}
+
+function resetWorkMode() {
+  WORK_MODE = "local";
+  const view = $("#view-work");
+  if (view) {
+    view.classList.remove("is-browser");
+    view.classList.add("is-local");
+  }
+  const ribbon = $("#v2-ribbon");
+  if (ribbon) ribbon.hidden = true;
+  const split = $("#v2-split");
+  if (split) split.hidden = true;
+  const tests = $("#v2-tests");
+  if (tests) tests.hidden = false;
+  const editor = $("#browser-editor");
+  if (editor) editor.hidden = true;
+  $("#w-open-editor")?.setAttribute("aria-pressed", "false");
+  $("#w-local-mode")?.setAttribute("aria-pressed", "true");
+}
+
+function renderWorkTests(data) {
+  const list = $("#v2-tests-list");
+  const score = $("#v2-tests-score");
+  if (!list) return;
+  list.replaceChildren();
+  const rows = data?.rows || [];
+  for (const row of rows) {
+    const li = document.createElement("li");
+    li.dataset.status = row.status || "pending";
+    const sym = document.createElement("span");
+    sym.className = "v2-test-sym";
+    sym.textContent = { passed: "✓", failed: "✗", error: "!", pending: "○" }[row.status] || "○";
+    const label = document.createElement("span");
+    label.className = "v2-test-label";
+    label.textContent = row.label;
+    li.append(sym, label);
+    list.appendChild(li);
+  }
+  if (score) {
+    const total = data?.total ?? rows.length;
+    score.textContent = data ? `${data.passed} / ${total}` : "—";
+    score.dataset.complete = String(Boolean(data && data.passed === total && total > 0));
+  }
+}
+
+function playWorkReview() {
+  setWorkMode("local");
+  const source = $("#w-source-wrap");
+  if (!source) return;
+  source.hidden = false;
+  $("#w-review-source")?.click();
+  requestAnimationFrame(() => source.scrollIntoView({ behavior: "smooth", block: "center" }));
+}
+
+function renderWorkRibbon(logo, title, checks, stages, current, course) {
+  const ribbon = $("#v2-ribbon");
+  if (!ribbon) return;
+  const done = completion(stages).done;
+  ribbon.replaceChildren();
+  const head = document.createElement("div");
+  head.className = "v2-ribbon-head";
+  const img = document.createElement("img");
+  img.src = asset(logo);
+  img.width = 24;
+  img.height = 24;
+  img.alt = "";
+  const name = document.createElement("span");
+  name.className = "v2-ribbon-title";
+  name.textContent = title;
+  const count = document.createElement("span");
+  count.className = "v2-ribbon-count mono";
+  count.textContent = `${fmt.format(done)} / ${fmt.format(stages.length)}`;
+  head.append(img, name, count);
+
+  const ol = document.createElement("ol");
+  ol.className = "v2-ribbon-stages";
+  for (const s of stages) {
+    const li = document.createElement("li");
+    const active = current && s.id === current.id;
+    li.className = active ? "is-current" : "";
+    const sym = { PASS: "✓", PERSONAL: "✓", BROWSER: "✓", FAIL: "✗", ERROR: "✗" }[s.status] || "○";
+    const symbol = document.createElement("span");
+    symbol.className = "v2-ribbon-sym";
+    symbol.textContent = sym;
+    const number = document.createElement("span");
+    number.className = "v2-ribbon-num";
+    number.textContent = String(s.id).padStart(2, "0");
+    li.append(symbol, number);
+    if (active) {
+      const label = document.createElement("span");
+      label.className = "v2-ribbon-label";
+      label.textContent = s.title;
+      const meta = document.createElement("span");
+      meta.className = "v2-ribbon-meta mono";
+      meta.textContent = s.file;
+      li.append(label, meta);
+    }
+    li.title = `${String(s.id).padStart(2, "0")} · ${s.title}`;
+    li.tabIndex = 0;
+    li.setAttribute("role", "button");
+    li.onclick = () => openStage(course, s.id);
+    li.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openStage(course, s.id);
+      }
+    };
+    ol.appendChild(li);
+  }
+  ribbon.append(head, ol);
+}
+
+function prepareWorkShell() {
+  const main = $("#work-main");
+  const editor = $("#browser-editor");
+  if (main && editor && editor.parentElement !== main) main.appendChild(editor);
+  const slot = $("#v2-tests-legacy");
+  const source = $("#w-source-wrap");
+  const run = $(".w-run");
+  if (slot && source && source.parentElement !== slot) slot.appendChild(source);
+  if (slot && run && run.parentElement !== slot) slot.appendChild(run);
+  const browserButton = $("#w-open-editor");
+  const localButton = $("#w-local-mode");
+  const reviewButton = $("#w-play-review");
+  if (browserButton) browserButton.onclick = openWorkEditor;
+  if (localButton) localButton.onclick = () => resetWorkMode();
+  if (reviewButton) reviewButton.onclick = playWorkReview;
+  const goHome = $("#v2-home");
+  const navHome = $("#v2-nav-home");
+  const navWork = $("#v2-nav-work");
+  const navDeps = $("#v2-nav-deps");
+  const start = $("#v2-start");
+  if (goHome) goHome.onclick = () => go("home");
+  if (navHome) navHome.onclick = () => go("home");
+  if (navWork) navWork.onclick = () => { if (VIEW !== "work") go("work"); };
+  if (navDeps) navDeps.onclick = () => go("map");
+  if (start) start.onclick = () => $("#gh-signin")?.click();
+}
+
+window.forjaWorkspace = {
+  setMode: (mode) => setWorkMode(mode),
+  onTests: (data) => renderWorkTests(data),
+};
+
 function renderWork() {
+  prepareWorkShell();
   const empty = $("#work-empty");
   const detail = $("#work-detail");
   const item = SELECTED?.kind === "node" ? findItem(SELECTED.id) : null;
@@ -698,6 +879,9 @@ function renderWork() {
     empty.hidden = false;
     detail.hidden = true;
     $("#w-deps").hidden = true;
+    resetWorkMode();
+    $("#v2-ribbon").hidden = true;
+    $("#v2-tests").hidden = true;
     return;
   }
   empty.hidden = true;
@@ -710,160 +894,169 @@ function renderWork() {
   const checks = item?.checks || track?.checks || {};
   const logo = track?.logo_url || item?.logo_url || "logos/forge.svg";
   const title = track?.headline || item?.title || course;
-  const why = track?.description || track?.blurb || item?.why || "";
 
   /* header: use the selected stage, or the next one to do */
   const nextStep = item?.next_step || track?.next_step
     || (checks.total ? Math.min((checks.passed || 0) + 1, stages.length) : 1);
   const stage = (Number.isInteger(STAGE) && stages.find((s) => s.id === STAGE))
     || stages.find((s) => s.id === nextStep) || stages[0];
+  WORK_COURSE = course || null;
+  WORK_STAGE = stage || null;
+
   $("#w-crumb").textContent = stage
     ? `Stage ${String(stage.id).padStart(2, "0")} · ${stage.file}`
     : (item?.id || track?.id || "");
-  $("#w-title").textContent = title;
-  $("#w-why").textContent = why;
+  $("#w-title").textContent = stage?.title || title;
+  $("#w-why").textContent = stage?.why || item?.why || track?.description || "";
+  $("#w-why").hidden = !($("#w-why").textContent);
 
-  /* direct dependency chips, both directions */
+  /* v2 stage dependency chips */
   const uses = $("#w-uses");
-  uses.innerHTML = "";
-  if (graph && current) {
-    const addChip = (otherCourse, label, cls) => {
-      const other = graph.byCourse.get(otherCourse);
-      if (!other) return;
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = `chip ${cls}`;
-      chip.textContent = `${label} ${other.item.title}`;
-      chip.title = `Open ${other.item.title}`;
-      chip.onclick = () => selectNode(other.item.id, "work");
-      uses.appendChild(chip);
-    };
-    const reqs = [...(graph.deps.get(course) || [])];
-    const unlocks = [...(graph.rev.get(course) || [])];
-    if (!reqs.length) {
-      const chip = document.createElement("span");
-      chip.className = "chip chip-muted";
-      chip.textContent = "no prerequisites";
-      uses.appendChild(chip);
-    }
-    for (const c of reqs) addChip(c, "requires", "chip-req");
-    for (const c of unlocks) addChip(c, "unlocks", "chip-unlock");
-  }
-
-  const jump = $("#w-deps-jump");
-  if (jump) jump.onclick = () => {
-    const sec = $("#w-deps");
-    if (sec && !sec.hidden) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+  uses.replaceChildren();
+  const tree = course ? COURSE_TREES[course] : null;
+  const labelFor = (s) => (s.file || "").replace(/\.py$/, "").replace(/_svc$/, "").toUpperCase();
+  const addChip = (id, direction) => {
+    const other = stages.find((s) => s.id === id);
+    if (!other) return;
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = `chip ${direction === "uses" ? "chip-req" : "chip-unlock"}`;
+    const passed = ["PASS", "PERSONAL", "BROWSER"].includes(other.status);
+    chip.textContent = `${direction} ${String(other.id).padStart(2, "0")} ${labelFor(other)}${passed ? " ✓" : ""}`;
+    chip.title = `${direction === "uses" ? "Requires" : "Unlocks"} stage ${other.id}: ${other.title}`;
+    chip.onclick = () => openStage(course, other.id);
+    uses.appendChild(chip);
   };
-  const stageTree = $("#w-tree");
-  if (stageTree) {
-    const hasTree = !!(course && COURSE_TREES[course]);
-    stageTree.hidden = !hasTree;
-    if (hasTree) {
-      stageTree.textContent = "Stage tree ↑";
-      stageTree.onclick = () => selectCourse(course);
-    }
+  const stageDeps = (tree?.deps || []).filter(([, to]) => stage && to === stage.id).map(([from]) => from);
+  const stageUnlocks = (tree?.deps || []).filter(([from]) => stage && from === stage.id).map(([, to]) => to);
+  for (const id of stageDeps) addChip(id, "uses");
+  for (const id of stageUnlocks) addChip(id, "unlocks");
+  if (!stageDeps.length && !stageUnlocks.length) {
+    const chip = document.createElement("span");
+    chip.className = "chip chip-muted";
+    chip.textContent = "no stage prerequisites";
+    uses.appendChild(chip);
   }
 
-  /* Put the current stage's task ahead of the course outline. */
-  const iface = $("#w-interface-sec");
-  if (stage?.action) {
-    iface.hidden = false;
-    $("#w-stage-title").textContent = `${String(stage.id).padStart(2, "0")} · ${stage.title}`;
-    $("#w-stage-context").textContent = stage.why || "";
-    $("#w-stage-context").hidden = !stage.why;
-    $("#w-stage-task").textContent = stage.action;
-    const fillStageList = (element, items) => {
-      element.replaceChildren();
-      for (const text of items || []) {
-        const li = document.createElement("li");
-        li.textContent = text;
-        element.appendChild(li);
-      }
-    };
+  /* v2 stage brief */
+  const spec = stage ? window.forjaEditor?.specFor?.(stage.id) : null;
+  const ifaceCode = $("#w-v2-interface-code");
+  ifaceCode.textContent = (spec?.signatures || []).join("\n");
+  $("#w-v2-interface").hidden = !ifaceCode.textContent;
 
-    fillStageList($("#w-stage-reqs"), stage.requirements);
-    $("#w-stage-reqs-wrap").hidden = !(stage.requirements || []).length;
-    fillStageList($("#w-stage-out-of-scope"), stage.out_of_scope);
-    $("#w-stage-scope-wrap").hidden = !(stage.out_of_scope || []).length;
-    $("#w-stage-example").textContent = stage.example || "";
-    $("#w-stage-example-wrap").hidden = !stage.example;
-    $("#w-stage-predict").textContent = stage.predict ? `Before testing: ${stage.predict}` : "";
-    $("#w-stage-predict").hidden = !stage.predict;
-    const source = $("#w-stage-source");
-    source.hidden = !course || !stage.file;
-    if (!source.hidden) {
-      source.href = `https://github.com/${STATE?.repo || "alektebel/forja"}/blob/${STATE?.ref || "main"}/${course}/${stage.file}`;
-      source.textContent = `Open ${stage.file} in the source repo ↗`;
-    }
-    const editorButton = $("#w-open-editor");
-    editorButton.hidden = course !== "aws-from-scratch";
-    if (!editorButton.hidden) {
-      editorButton.onclick = () => window.forjaEditor?.open(course, stage);
-      window.forjaEditor?.onStage(course, stage);
-    }
-  } else {
-    iface.hidden = true;
-    $("#w-stage-reqs").replaceChildren();
-    $("#w-stage-out-of-scope").replaceChildren();
-  }
-  renderSource(course, stage);
-
-  /* requirements: per-stage titles */
-  $("#w-reqs-sec").hidden = Boolean(stage?.action);
-  const reqs = $("#w-reqs");
-  reqs.innerHTML = "";
-  for (const s of stages) {
+  const reqList = $("#w-v2-req-list");
+  reqList.replaceChildren();
+  for (const text of stage?.requirements || []) {
     const li = document.createElement("li");
-    li.innerHTML = `<span class="req-copy"><code>${s.file}</code> — ${s.title}</span>`;
-    if (course && s.status !== "PERSONAL") {
-      const run = document.createElement("button");
-      run.type = "button";
-      run.className = "req-run";
-      run.textContent = "Run";
-      run.title = `Run the grader for stage ${s.id}: forja test ${course} --stage ${s.id}`;
-      run.setAttribute("aria-label", `Run the grader for stage ${s.id}`);
-      run.onclick = () => runStage(course, s.id, run);
-      li.appendChild(run);
+    li.textContent = text;
+    reqList.appendChild(li);
+  }
+  $("#w-v2-requirements").hidden = !reqList.children.length;
+
+  const exampleList = $("#w-v2-example-list");
+  exampleList.replaceChildren();
+  const exampleWhy = [
+    "The stage only needs a non-empty placeholder ETag; stage 11 replaces it.",
+    "get_object returns the stored Version, not the raw body.",
+    "The body comes back as the exact bytes written.",
+    "The full key, slash included, is the dictionary key.",
+  ];
+  for (let i = 0; i < (spec?.examples || []).length; i += 1) {
+    const ex = spec.examples[i];
+    const card = document.createElement("div");
+    card.className = "v2-example";
+    const heading = document.createElement("span");
+    heading.className = "v2-example-title";
+    heading.textContent = `Example ${i + 1}`;
+    const grid = document.createElement("div");
+    grid.className = "v2-example-grid";
+    const add = (label, value, className = "") => {
+      const term = document.createElement("span");
+      term.className = "v2-example-label";
+      term.textContent = label;
+      const detail = document.createElement("span");
+      detail.className = `v2-example-value ${className}`.trim();
+      detail.textContent = value;
+      grid.append(term, detail);
+    };
+    add("Input", `${spec.setup}\n${ex.call}`);
+    add("Output", ex.output);
+    add("Why", exampleWhy[i] || stage?.why || "", "v2-example-why");
+    card.append(heading, grid);
+    exampleList.appendChild(card);
+  }
+  $("#w-v2-examples").hidden = !exampleList.children.length;
+
+  const scopeList = $("#w-v2-scope-list");
+  scopeList.replaceChildren();
+  for (const text of stage?.out_of_scope || []) {
+    const li = document.createElement("li");
+    li.textContent = text;
+    scopeList.appendChild(li);
+  }
+  $("#w-v2-scope").hidden = !scopeList.children.length;
+
+  const hintsRoot = $("#w-v2-hint-list");
+  hintsRoot.replaceChildren();
+  for (const text of stage?.hints || []) {
+    const box = document.createElement("div");
+    box.className = "v2-hint";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.innerHTML = `<span>${text}</span><span class="h-sym">+</span>`;
+    const body = document.createElement("p");
+    body.hidden = true;
+    body.textContent = stage?.action || stage?.why || "";
+    btn.onclick = () => {
+      body.hidden = !body.hidden;
+      btn.querySelector(".h-sym").textContent = body.hidden ? "+" : "−";
+    };
+    box.append(btn, body);
+    hintsRoot.appendChild(box);
+  }
+  $("#w-v2-hints").hidden = !hintsRoot.children.length;
+
+  const pad = stage ? String(stage.id).padStart(2, "0") : "";
+  $("#w-v2-review-meta").textContent = stage ? `${stage.file} · stage ${pad}` : "";
+  $("#w-v2-review-cta").onclick = null;
+
+  const browserButton = $("#w-open-editor");
+  const localButton = $("#w-local-mode");
+  const canBrowse = course === "aws-from-scratch" && !!stage;
+  browserButton.hidden = !canBrowse;
+  localButton.hidden = !canBrowse;
+  if (canBrowse) {
+    browserButton.onclick = openWorkEditor;
+    localButton.onclick = resetWorkMode;
+    if (WORK_MODE === "browser") {
+      setWorkMode("browser");
+      if ($("#browser-editor").hidden) window.forjaEditor?.open(course, stage);
+      else window.forjaEditor?.onStage(course, stage);
+    } else {
+      resetWorkMode();
     }
-    reqs.appendChild(li);
+  } else {
+    resetWorkMode();
   }
 
-  /* hints: collapse of stage actions for upcoming stages */
-  const hintsSec = $("#w-hints-sec");
-  const hintsRoot = $("#w-hints");
-  hintsRoot.innerHTML = "";
-  const upcoming = stages.filter((s) => s.id !== stage?.id && !["PASS", "PERSONAL", "BROWSER"].includes(s.status) && s.action);
-  if (!upcoming.length) {
-    hintsSec.hidden = true;
-  } else {
-    hintsSec.hidden = false;
-    for (const s of upcoming.slice(0, 4)) {
-      const box = document.createElement("div");
-      box.className = "hint";
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.innerHTML = `<span>Stage ${String(s.id).padStart(2, "0")} — what's the catch?</span><span class="h-sym">+</span>`;
-      const body = document.createElement("p");
-      body.hidden = true;
-      body.textContent = s.action;
-      btn.onclick = () => {
-        body.hidden = !body.hidden;
-        btn.querySelector(".h-sym").textContent = body.hidden ? "+" : "−";
-      };
-      box.append(btn, body);
-      hintsRoot.appendChild(box);
-    }
-  }
+  renderWorkTests(spec ? {
+    passed: 0,
+    total: spec.cases.length,
+    rows: spec.cases.map((test) => ({ label: test.label, status: "pending" })),
+  } : null);
+
+  renderSource(course, stage);
 
   /* commands */
   const cmd = course && stage ? `forja test ${course} --stage ${stage.id}`
     : (item?.command || track?.command || `forja test ${course}`);
-  $("#w-cmd").textContent = cmd;
-  $("#w-cmd-hint").textContent = track?.smoke ? `smoke test: ${track.smoke}` : "";
+  const cmdEl = $("#w-cmd");
+  if (cmdEl) cmdEl.textContent = cmd;
+  const cmdHint = $("#w-cmd-hint");
+  if (cmdHint) cmdHint.textContent = "Runs against the browser draft and saved files.";
 
   renderStageBar(logo, title, checks, stages, stage, course);
-
+  renderWorkRibbon(logo, title, checks, stages, stage, course);
   renderAllDeps(course, graph);
 }
 
