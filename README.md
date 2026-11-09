@@ -1,6 +1,61 @@
 Página web personal:
 https://diegoatencia.dev/
 
+## Blog
+
+Posts are static pages in `blog/`, dressed by a TUI-style shell
+(`assets/personal/tui.css` + `blog/tui.js`): title bar, post index on the left,
+status bar at the bottom, and keyboard navigation (`↑`/`↓` or `j`/`k`, `↵` to
+read, `/` to filter, `g`/`G` for the ends). `blog/posts.json` is the index — it
+feeds the left pane and the preview. The shell removes the old
+`.site-header`/`.site-footer` when a page still carries them, so legacy posts
+keep working unchanged.
+
+### Writing a post in markdown
+
+```bash
+mkdir -p blog/posts
+$EDITOR blog/posts/my-new-post.md
+python3 blog/build.py            # renders every blog/posts/*.md
+```
+
+Front matter and body:
+
+```md
+---
+title: My new post
+date: 2026-11-09
+tags: mathematics, llm
+excerpt: One sentence for the index (optional; derived from the body otherwise).
+---
+
+Body in markdown. Math between $...$ or $$...$$ is rendered by KaTeX.
+```
+
+`build.py` needs `md2html` (md4c) or `markdown-it` (markdown-it-py) on PATH.
+It writes `blog/<slug>.html` and upserts the entry in `blog/posts.json`
+(slug = filename, or a `slug:` front-matter key). LaTeX is protected from the
+markdown renderer, so backslashes survive; avoid bare `$` outside math, since
+KaTeX pairs dollar signs greedily.
+
+Preview locally:
+
+```bash
+python3 -m http.server 8000   # http://127.0.0.1:8000/blog/blog.html
+```
+
+Then `git add -A && git commit && git push`; Pages publishes `main`.
+
+### Identity / editing from the browser
+
+GitHub Pages is static: there is no server-side login and everything in the
+repo is public, so a login form on the site cannot protect authoring. The
+credential is your GitHub account — `git push` (or `gh auth login`) is the
+authentication. For a "log in and edit a post" flow, use a git-based CMS
+(Sveltia or Decap) or GitHub's editor (`github.com/.../edit/main/...`, or `.`
+for github.dev); those commit through the GitHub API. A CMS authoring markdown
+still needs the build step above, e.g. a GitHub Action before Pages deploys.
+
 ## Custom domain — diegoatencia.dev
 
 The site is served from the `CNAME` file at the repo root (`diegoatencia.dev`),

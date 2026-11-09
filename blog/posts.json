@@ -1,0 +1,71 @@
+{
+  "posts": [
+    {
+      "slug": "transparency-gdpr-art-17",
+      "title": "How to reconcile transparency with Article 17 of the GDPR",
+      "date": "2026-11-09",
+      "dateLabel": "nov 2026",
+      "tags": [
+        "GDPR",
+        "SOC 2",
+        "compliance",
+        "privacy"
+      ],
+      "excerpt": "Retention laws force banks to keep the records behind their decisions; Article 17 gives clients the right to erasure. Envelope encryption and crypto-shredding reconcile the two."
+    },
+    {
+      "slug": "mus-against-the-machine",
+      "title": "Teaching LLMs to wink",
+      "date": "2026-09-14",
+      "dateLabel": "sep 2026",
+      "tags": [
+        "multi-agent",
+        "games"
+      ],
+      "excerpt": "Two AI teams play mus — partners speak only through facial gestures. An órdago on a tiebreak, a quarter of the signal channel lost to timing, and the harness catching an error I had already written into a draft."
+    },
+    {
+      "slug": "proposal-for-consensus-algorithm",
+      "title": "Bayesian Consensus Algorithm for Multi-Class Data Labeling",
+      "date": "2025-11-20",
+      "dateLabel": "nov 2025",
+      "tags": [
+        "bayesian",
+        "labeling"
+      ],
+      "excerpt": "A Bayesian approach to recover the true label of an example from several noisy annotators. Still in progress."
+    },
+    {
+      "slug": "exploring-collatz-conjecture-using-linear-algebra",
+      "title": "Can the Collatz map be read as linear algebra?",
+      "date": "2025-11-02",
+      "dateLabel": "nov 2025",
+      "tags": [
+        "mathematics",
+        "open question"
+      ],
+      "excerpt": "Representing 3n+1 and n/2 as a sparse linear operator, and asking whether spectral structure explains why orbits fall to 1."
+    },
+    {
+      "slug": "master-thesis-reinforcement-learning",
+      "title": "Master Thesis: Reinforcement Learning Applications",
+      "date": "2025-10-15",
+      "dateLabel": "oct 2025",
+      "tags": [
+        "reinforcement learning"
+      ],
+      "excerpt": "Soft Actor-Critic and continuous control — the thesis write-up."
+    },
+    {
+      "slug": "kan-implementation-pytorch-taylor",
+      "title": "Kolmogorov-Arnold Networks: Implementation Using Taylor Polynomials",
+      "date": "2025-01-20",
+      "dateLabel": "jan 2025",
+      "tags": [
+        "deep learning",
+        "pytorch"
+      ],
+      "excerpt": "KANs with Taylor polynomials in place of B-splines, implemented in PyTorch."
+    }
+  ]
+}

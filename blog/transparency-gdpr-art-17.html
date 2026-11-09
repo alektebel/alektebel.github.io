@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>How to reconcile transparency with Article 17 of the GDPR • Diego Rodríguez Atencia</title>
+<meta content="Retention laws force banks to keep the records behind their decisions; Article 17 gives clients the right to erasure. Envelope encryption and crypto-shredding reconcile the two." name="description"/>
+
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="/assets/personal/tui.css" rel="stylesheet"/>
+<script defer src="/blog/tui.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<a href="/">diego rodríguez atencia</a>
+<nav aria-label="Site">
+<a href="/index.html">me</a>
+<a href="/cv.html">cv</a>
+<a aria-current="page" href="/blog/blog.html">blog</a>
+<a class="github-link" href="https://github.com/alektebel" rel="noopener noreferrer" target="_blank">github ↗</a>
+</nav>
+</header>
+<main class="wrap" id="main">
+<header class="post-header">
+<h1>How to reconcile transparency with Article 17 of the GDPR</h1>
+<p class="post-meta">November 2026 · GDPR · SOC 2 · Compliance · Privacy</p>
+</header>
+<article class="content">
+<p>Several laws require a bank to retain the data used to make decisions. Examples of these laws are:</p>
+<ul>
+<li>Spanish Law 10/2010 (anti-money laundering), art. 25 — keep documentation for 10 years</li>
+<li>GDPR Article 5.2 — accountability: being able to demonstrate that you comply</li>
+<li>EU AI Act, art. 12 — automatic logging in high-risk systems (e.g. ones using LLMs)</li>
+<li>SOC 2 Type II — requires showing that the controls worked over the period</li>
+</ul>
+<p>This clashes somewhat with Article 17 of the GDPR, which guarantees our clients the right to erasure. This right lets a client demand that all their data be deleted from our files, with up to one month for the deletion to take place. How can we guarantee this transparency and at the same time be able to delete that data at any moment? We need some way to &quot;join&quot; all this data into a data structure that makes it robust to traverse everything associated with one specific person.</p>
+<p>There is another layer of complexity: suppose we are a consultancy A providing services to company B. If we work with the clients of company B, erasure requests have to take effect recursively — the data must be deleted both on the client side and in our files. For this, AWS gives us the &quot;envelope encryption&quot; abstraction. We keep the necessary files encrypted, and when we need to read them we decrypt them on the spot with the key, never storing them in plaintext. We use the client&#x27;s encryption to encrypt our own per-user/per-account-holder keys.</p>
+<p>For example, what happens if María wants her data deleted from entity B? Entity B sends us an erasure request through an agreed channel, which we process recursively over the documents we hold. First we delete the corresponding user&#x27;s key via crypto-shredding: the key we used to encrypt all her files is deleted for good. With that, we have already removed read access to the data: the ciphertext that remains is inert — effectively erased, yet still kept for the retention periods the law demands.</p>
+</article>
+</main>
+<footer class="site-footer">
+<div class="inner">
+<nav aria-label="Elsewhere">
+<a href="mailto:dratencia@gmail.com">email</a>
+<a href="https://github.com/alektebel" rel="noopener noreferrer" target="_blank">github</a>
+<a href="/blog/blog.html">all posts</a>
+<a href="/">home</a>
+</nav>
+<span class="copy">© 2026 Diego Rodríguez Atencia</span>
+</div>
+</footer>
+</body>
+</html>
