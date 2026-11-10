@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-09T22:59:43",
+ "generated_at": "2026-11-10T23:33:24",
  "order": "Anyformat prep track: AWS → infra → LLM → evals → agents; then RAG, MCP, harness, the machine stack",
  "brand": {
   "name": "forja",
@@ -7,10 +7,10 @@
   "loop": "Pick a challenge, open your editor, forja test. That's it."
  },
  "totals": {
-  "courses": 74,
+  "courses": 75,
   "complete": 0,
   "doing": 0,
-  "ready": 74,
+  "ready": 75,
   "missing": 8,
   "checks_passed": 0,
   "checks_total": 192,
@@ -16841,6 +16841,305 @@
        "learning": null
       }
      ]
+    },
+    {
+     "id": "M7",
+     "title": "SAS and LGD",
+     "kind": "ready",
+     "why": "The LGD calculation as a SAS analyst actually writes it, over a small defaulted book: EAD as drawn plus the undrawn part that converts at its CCF, the partial recoveries (MRP) accumulated with RETAIN and FIRST/LAST rather than one row per payment, added expenses capitalised only when they were not already in the drawn balance, passed-on expenses counted as recovery only when collected, the one-to-one MERGE that attaches MRP without multiplying EAD, the net recovery and the 0..10000 bp cap, each recovery flow discounted with its own factor, collateral after haircut and execution cost, guarantor contagion when the guarantor is also in default, cure versus write-off/sale, and the portfolio LGD weighted by EAD rather than averaged across loans. Built over a minimal deterministic SAS interpreter and eleven self-contained fixture tables in cents and basis points; every stage is a DATA step or PROC the checker executes, with a mutation battery that plants one business error per stage.",
+     "prereq": [],
+     "state": "ready",
+     "symbol": "○",
+     "course": "sas-lgd-from-scratch",
+     "logo": "forge",
+     "logo_url": "logos/forge.svg",
+     "command": "cz run sas-lgd-from-scratch",
+     "showcase": false,
+     "checks": null,
+     "repo": {
+      "baseline": 0,
+      "remaining": 0,
+      "written": 0,
+      "fraction": 0.0
+     },
+     "next_step": null,
+     "stages": [
+      {
+       "id": 1,
+       "file": "stage_01.sas",
+       "title": "EAD: lo dispuesto y lo que aún puede disponerse",
+       "tags": [
+        "sas",
+        "data-step",
+        "ead",
+        "ccf"
+       ],
+       "status": "TODO",
+       "action": "Escribe stage_01.sas: filtra los incumplidos y calcula ead_cents = dispuesto_cents + int(no_dispuesto_cents * ccf_bp / 10000). Deja prestamo, segmento y ead_cents.",
+       "why": "",
+       "predict": "¿Cuánto EAD tiene P1, que debe 12M y puede disponer 4M con CCF 50%?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "El CCF convierte el no dispuesto en exposición: 5000 pb son la mitad.",
+        "int() trunca; no uses round() para el EAD.",
+        "if incumplido = 1; no es una asignación: es un filtro de filas."
+       ],
+       "learning": null
+      },
+      {
+       "id": 2,
+       "file": "stage_02.sas",
+       "title": "MRP: pagos parciales con RETAIN y LAST",
+       "tags": [
+        "sas",
+        "retain",
+        "by-group",
+        "mrp"
+       ],
+       "status": "TODO",
+       "action": "Ordena cashflows_mrp por prestamo y periodo. Acumula mrp_cents en mrp_total_cents con RETAIN; reinicia en FIRST.prestamo y emite solo en LAST.prestamo. Una fila por préstamo.",
+       "why": "",
+       "predict": "P1 paga 100k, 150k y 50k. ¿Qué total sale y por qué no se emite tres veces?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "RETAIN conserva el valor entre iteraciones; sin él, cada fila empieza de cero.",
+        "FIRST.prestamo y LAST.prestamo existen solo si declaras BY prestamo.",
+        "La suma automática `total + importe;` ya implica RETAIN."
+       ],
+       "learning": null
+      },
+      {
+       "id": 3,
+       "file": "stage_03.sas",
+       "title": "Gastos añadidos: capitalizar sin duplicar",
+       "tags": [
+        "sas",
+        "if-then-else",
+        "gastos",
+        "ead"
+       ],
+       "status": "TODO",
+       "action": "Calcula ead_final_cents. Si ya_en_dispuesto = 0, suma el gasto añadido; si ya estaba dentro del dispuesto, no lo sumes. Conserva prestamo y ead_final_cents.",
+       "why": "",
+       "predict": "P3 tiene 27.5M de EAD y 300k de gasto ya incluido. ¿Cuál es su EAD final?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "El gasto añadido no es un ingreso ni una recuperación: es más exposición.",
+        "ya_en_dispuesto es la bandera que evita contar dos veces el mismo gasto.",
+        "IF/THEN/ELSE en SAS termina con punto y coma; el ELSE mira la misma fila."
+       ],
+       "learning": null
+      },
+      {
+       "id": 4,
+       "file": "stage_04.sas",
+       "title": "Gastos repercutidos: solo lo cobrado recupera",
+       "tags": [
+        "sas",
+        "if",
+        "gastos",
+        "recovery"
+       ],
+       "status": "TODO",
+       "action": "Asigna recuperado_cents: si cobrado = 1, el gasto repercutido; si no, cero. Conserva una fila por flujo, con prestamo y recuperado_cents.",
+       "why": "",
+       "predict": "P1 repercute 100k cobrados y 50k impagados. ¿Cuánto entra en la LGD?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "Repercutir no es cobrar: el derecho a cobrar no mueve caja.",
+        "La recuperación es caja cobrada, no factura emitida.",
+        "No sumes las filas de P1 aquí: la etapa 2 ya enseñó a acumular."
+       ],
+       "learning": null
+      },
+      {
+       "id": 5,
+       "file": "stage_05.sas",
+       "title": "MERGE uno a uno: el MRP no multiplica el EAD",
+       "tags": [
+        "sas",
+        "merge",
+        "by",
+        "mrp"
+       ],
+       "status": "TODO",
+       "action": "Ordena ead_base y mrp_base por prestamo y haz un MERGE por esa clave. Deja prestamo, ead_cents y mrp_total_cents. El EAD no se toca y no pueden aparecer filas duplicadas.",
+       "why": "",
+       "predict": "Si el MERGE no lleva BY prestamo, ¿qué le pasa a un préstamo con dos MRP?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "MERGE sin BY pega por posición; con BY pega por clave.",
+        "El MRP se une al EAD, no se suma al EAD: son dos columnas distintas.",
+        "Comprueba el número de filas: un MERGE mal hecho lo delata."
+       ],
+       "learning": null
+      },
+      {
+       "id": 6,
+       "file": "stage_06.sas",
+       "title": "La LGD: recuperación neta sobre EAD",
+       "tags": [
+        "sas",
+        "lgd",
+        "arithmetic",
+        "caps"
+       ],
+       "status": "TODO",
+       "action": "Calcula recuperacion_neta_cents = MRP + recuperación final + repercutido cobrado - coste directo. Luego lgd_bp = 10000 - int(recuperacion_neta_cents * 10000 / ead_cents), con topes 0 y 10000.",
+       "why": "",
+       "predict": "P1 tiene EAD 14.2M y recupera 8.2M netos. ¿Qué LGD en pb sale?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "El coste directo resta de la recuperación; no se suma al EAD.",
+        "Multiplica por 10000 antes de dividir para no perder los pb.",
+        "P5 recupera de más y P6 no recupera: los topes existen para esos dos."
+       ],
+       "learning": null
+      },
+      {
+       "id": 7,
+       "file": "stage_07.sas",
+       "title": "Descontar cada flujo a su fecha",
+       "tags": [
+        "sas",
+        "discounting",
+        "cashflow",
+        "lgd"
+       ],
+       "status": "TODO",
+       "action": "Calcula vp_cents = int(importe_cents * factor_bp / 10000) para cada flujo, conservando prestamo, periodo y vp_cents. No sumes el nominal.",
+       "why": "",
+       "predict": "Un flujo de 200k con factor 9000 pb y otro de 100k con 9500: ¿suman 300k?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "El factor ya viene del área de tesorería: no lo recalcules con tipos.",
+        "Cada periodo tiene su factor; descontar el total una sola vez es el error.",
+        "El valor presente se suma después, cuando la etapa lo pida."
+       ],
+       "learning": null
+      },
+      {
+       "id": 8,
+       "file": "stage_08.sas",
+       "title": "Garantía: haircut y coste de ejecución",
+       "tags": [
+        "sas",
+        "collateral",
+        "haircut",
+        "lgd"
+       ],
+       "status": "TODO",
+       "action": "Calcula recuperacion_cents = int(valor_garantia_cents * (10000 - haircut_bp) / 10000) - coste_ejecucion_cents. Después lgd_bp = 10000 - int(recuperacion_cents * 10000 / ead_cents), con topes.",
+       "why": "",
+       "predict": "Una garantía de 10M con haircut 20% y coste 200k: ¿cuánto recupera?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "El haircut se aplica al valor de la garantía, no al EAD.",
+        "Ejecutar la garantía cuesta: ese coste reduce la recuperación.",
+        "El coste no puede llevar la LGD fuera de 0..10000."
+       ],
+       "learning": null
+      },
+      {
+       "id": 9,
+       "file": "stage_09.sas",
+       "title": "Contagio del garante: la misma garantía vale menos",
+       "tags": [
+        "sas",
+        "contagion",
+        "guarantee",
+        "if"
+       ],
+       "status": "TODO",
+       "action": "Aplica primero el haircut. Si garante_incumplido = 1, aplica también contagio_bp a la recuperación; si no, déjala en el valor con haircut. Deja prestamo y recuperacion_cents.",
+       "why": "",
+       "predict": "P1 tiene garantía de 10M, haircut 20% y contagio 30%. ¿Recupera 8M u 5.6M?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "El contagio no es un gasto: es una caída del valor esperado de la garantía.",
+        "Aplica los dos porcentajes en secuencia; no los sumes.",
+        "Solo el garante incumplido activa el segundo ajuste."
+       ],
+       "learning": null
+      },
+      {
+       "id": 10,
+       "file": "stage_10.sas",
+       "title": "Cura contra castigo: no toda salida es pérdida",
+       "tags": [
+        "sas",
+        "cure",
+        "write-off",
+        "lgd"
+       ],
+       "status": "TODO",
+       "action": "Si estado = 'CURA', lgd_bp = 0. En cualquier otro estado, calcula lgd_bp = 10000 - int(recuperacion_cents * 10000 / ead_cents). Conserva prestamo y lgd_bp.",
+       "why": "",
+       "predict": "P1 está en CURA y solo ha recuperado 9M de 10M. ¿Su LGD es 1000 pb o 0?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "CURA devuelve el préstamo a cumplimiento: la pérdida esperada se extingue.",
+        "CASTIGO y VENTA sí se miden contra la recuperación cash.",
+        "IF/THEN/ELSE compara texto con comillas simples: 'CURA'."
+       ],
+       "learning": null
+      },
+      {
+       "id": 11,
+       "file": "stage_11.sas",
+       "title": "LGD de cartera: ponderar por EAD",
+       "tags": [
+        "sas",
+        "proc-means",
+        "weighted",
+        "portfolio"
+       ],
+       "status": "TODO",
+       "action": "Suma ead_cents y perdida_cents por segmento con PROC MEANS y calcula lgd_bp = int(perdida_total_cents * 10000 / ead_total_cents). Deja segmento y lgd_bp.",
+       "why": "",
+       "predict": "Hipoteca tiene dos préstamos con LGD distintas. ¿Por qué el promedio simple no es la LGD del segmento?",
+       "example": "",
+       "target": "",
+       "requirements": [],
+       "out_of_scope": [],
+       "hints": [
+        "La LGD de cartera es pérdida total sobre EAD total, no media de ratios.",
+        "PROC MEANS puede sumar varias variables y sacar una fila por CLASE.",
+        "Revisa que el OUTPUT nombre las columnas que usará el DATA step."
+       ],
+       "learning": null
+      }
+     ]
     }
    ]
   },
@@ -26523,6 +26822,21 @@
    "next_step": null
   },
   {
+   "name": "sas-lgd-from-scratch",
+   "title": "SAS y LGD From Scratch",
+   "dir": "/home/runner/work/forja/forja/sas-lgd-from-scratch",
+   "mode": "course",
+   "order": 43,
+   "repo": {
+    "baseline": 0,
+    "remaining": 0,
+    "written": 0,
+    "fraction": 0.0
+   },
+   "checks": null,
+   "next_step": null
+  },
+  {
    "name": "llm-security-from-scratch",
    "title": "LLM Security From Scratch",
    "dir": "/home/runner/work/forja/forja/llm-security-from-scratch",
@@ -26585,6 +26899,7 @@
   "rag-from-scratch",
   "runtime-from-scratch",
   "sandbox-capabilities-from-scratch",
+  "sas-lgd-from-scratch",
   "shell-from-scratch",
   "tcp-ip-from-scratch",
   "transformer-inference-physics",
@@ -26593,5 +26908,5 @@
  ],
  "repo": "alektebel/forja",
  "ref": "main",
- "generated": "2026-11-09T22:59:43"
+ "generated": "2026-11-10T23:33:24"
 }

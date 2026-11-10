@@ -136,6 +136,7 @@ const CATEGORY = {
   "credit-origination-from-scratch": "Finance", "credit-lifecycle-from-scratch": "Finance",
   "collections-workout-from-scratch": "Finance", "irb-capital-from-scratch": "Finance",
   "distressed-debt-from-scratch": "Finance", "lbo-model-from-scratch": "Finance",
+  "sas-lgd-from-scratch": "Finance",
 };
 
 let STATE = null;
@@ -340,7 +341,10 @@ function selectChallenge(slug) {
   MAP_PREVIEW = null;
   STAGE = null;
   VIEW = "work";
-  SELECTED = findChallenge(slug) ? { kind: "challenge", id: slug } : null;
+  const challenge = findChallenge(slug);
+  const node = challenge ? null : findNodeByCourse(slug);
+  SELECTED = challenge ? { kind: "challenge", id: slug }
+    : node ? { kind: "node", id: node.id } : null;
   applyRoute(true);
 }
 function selectNode(id, view = "map") {
@@ -431,6 +435,7 @@ const HOME_MORE = [
   ["blockchain", "blockchain-from-scratch", "Blockchain", "Networking", "Keys, ledgers and a gossip net", "chain"],
   ["credit-origination", "credit-origination-from-scratch", "Credit origination", "Finance", "Policy rules and decisioning", "credit"],
   ["irb-capital", "irb-capital-from-scratch", "IRB capital", "Finance", "PD, LGD, EAD and RWA", "capital"],
+  ["sas-lgd", "sas-lgd-from-scratch", "SAS LGD", "Finance", "Contagion, recoveries and weighted LGD", "capital"],
   ["lbo-model", "lbo-model-from-scratch", "LBO model", "Finance", "Debt schedules and returns", "lbo"],
   ["distressed-debt", "distressed-debt-from-scratch", "Distressed debt", "Finance", "Waterfalls and recoveries", "debt"],
 ];
