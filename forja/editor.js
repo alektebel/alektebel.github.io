@@ -229,6 +229,8 @@
     settingCode = true;
     cm.setValue(saved ?? bundle.files[name]);
     cm.setOption("mode", name.endsWith(".sas") ? "text/x-sas" : "python");
+    const badge = document.querySelector(".v2-editor-badge");
+    if (badge) badge.textContent = name.endsWith(".sas") ? "SAS" : "Python 3.12";
     settingCode = false;
     cm.clearHistory();
     cm.setCursor({ line: 0, ch: 0 });

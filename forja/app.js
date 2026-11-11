@@ -435,7 +435,7 @@ const HOME_MORE = [
   ["blockchain", "blockchain-from-scratch", "Blockchain", "Networking", "Keys, ledgers and a gossip net", "chain"],
   ["credit-origination", "credit-origination-from-scratch", "Credit origination", "Finance", "Policy rules and decisioning", "credit"],
   ["irb-capital", "irb-capital-from-scratch", "IRB capital", "Finance", "PD, LGD, EAD and RWA", "capital"],
-  ["sas-lgd", "sas-lgd-from-scratch", "SAS LGD", "Finance", "Contagion, recoveries and weighted LGD", "capital"],
+  ["sas-lgd", "sas-lgd-from-scratch", "SAS y LGD", "Finance", "Contagio, recuperaciones y LGD ponderada", "capital", "SAS y LGD", "Finanzas"],
   ["lbo-model", "lbo-model-from-scratch", "LBO model", "Finance", "Debt schedules and returns", "lbo"],
   ["distressed-debt", "distressed-debt-from-scratch", "Distressed debt", "Finance", "Waterfalls and recoveries", "debt"],
 ];
@@ -482,6 +482,7 @@ function homeRow(def, node, checks, stages, rawState) {
     blurb: def.blurb,
     logo: asset(def.logo),
     cat: def.cat,
+    catLabel: def.catLabel || def.cat,
     done, total, state,
     stateLabel: stateLabel(state),
     stateColor: HOME_STATE[state] || HOME_STATE.ready,
@@ -500,12 +501,12 @@ function homeRows() {
     const checks = row?.checks || node?.checks || null;
     return homeRow(def, node, checks, stages, row?.state || node?.state);
   });
-  const more = HOME_MORE.map(([slug, course, title, cat, blurb, logo]) => {
+  const more = HOME_MORE.map(([slug, course, title, cat, blurb, logo, fullTitle, catLabel]) => {
     const item = allItems().find((i) => i.course === course) || null;
     const stages = item?.stages || [];
     const checks = item?.checks || null;
     return homeRow({
-      slug, course, title: `Build your own ${title}`, cat, blurb,
+      slug, course, title: fullTitle || `Build your own ${title}`, cat, catLabel, blurb,
       logo: `logos/${logo}.svg`, id: cat[0] + "·",
     }, item, checks, stages, item?.state);
   });
@@ -531,7 +532,7 @@ function homeMoreCard(row) {
   return `<button type="button" class="zj-more-card" data-home-slug="${homeEsc(row.slug)}" style="border-color:${HOME_SEL === row.slug ? "#D6D8DC" : "rgba(255,255,255,.07)"}">
     <span class="zj-more-top">
       <span class="zj-more-logo"><img src="${row.logo}" alt="" width="48" height="48"></span>
-      <span class="zj-more-copy"><span class="zj-more-title">${homeEsc(row.title)}</span><span class="zj-more-cat">${homeEsc(row.cat)}</span></span>
+      <span class="zj-more-copy"><span class="zj-more-title">${homeEsc(row.title)}</span><span class="zj-more-cat">${homeEsc(row.catLabel || row.cat)}</span></span>
     </span>
     <span class="zj-more-blurb">${homeEsc(row.blurb)}</span>
     <span class="zj-more-foot"><span>${homeEsc(row.stageLabel)}</span><span style="color:${row.stateColor}">${row.state === "complete" ? "●" : row.state === "doing" ? "◐" : "○"}</span></span>
