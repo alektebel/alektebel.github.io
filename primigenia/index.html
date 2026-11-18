@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primigenia — from a tide pool to the stars</title>
+<meta name="description" content="Primigenia is the evolution game I'm building: cell to creature to the stars, where what you became early still matters at the end. It is also a benchmark for LLM and RL agents.">
+<meta property="og:title" content="Primigenia — from a tide pool to the stars">
+<meta property="og:description" content="An evolution game where what you became early still matters among the stars. Deterministic C core, Godot front end, and a benchmark for agents.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://diegoatencia.dev/primigenia/img/valley-poster.jpg">
+<link rel="canonical" href="https://diegoatencia.dev/primigenia/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#0e100c; --soil:#16190f; --moss:#1d2214; --line:#2c3220; --line-soft:#232819;
+    --bone:#efe8d8; --dim:#a9a28f; --faint:#948e7b;
+    --dawn:#f3c58f; --grass:#8fcf4e; --ember:#e5482f; --sky:#9cc6e0;
+    --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--night);color:var(--bone);font:17px/1.65 var(--sans);overflow-x:hidden}
+  a{color:inherit}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--dawn);outline-offset:3px}
+  ::selection{background:var(--ember);color:var(--bone)}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- top bar ---------- */
+  .bar{position:absolute;inset:0 0 auto 0;z-index:5}
+  .bar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px 24px;flex-wrap:wrap;padding-top:22px}
+  .bar a{font:500 13px/1 var(--mono);letter-spacing:.02em;text-decoration:none;color:var(--bone);opacity:.85;padding:10px 0}
+  .bar a:hover{opacity:1;color:var(--dawn)}
+  .bar nav{display:flex;gap:4px 24px}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;min-height:min(100svh,920px);display:flex;align-items:flex-end;overflow:hidden;isolation:isolate}
+  .hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transform:scale(1.04);animation:drift 32s ease-in-out infinite alternate}
+  @keyframes drift{to{transform:scale(1.1) translate(-1.2%,-1%)}}
+  .hero::after{content:"";position:absolute;inset:0;z-index:-1;
+    background:
+      linear-gradient(180deg,rgba(14,16,12,.55) 0%,rgba(14,16,12,0) 22%),
+      linear-gradient(0deg,var(--night) 0%,rgba(14,16,12,.82) 26%,rgba(14,16,12,.15) 58%,rgba(14,16,12,0) 75%)}
+  .hero .wrap{width:100%;padding-bottom:clamp(40px,7vh,80px)}
+  .eyebrow{display:flex;flex-wrap:wrap;gap:6px 18px;font:500 12px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dawn);margin:0 0 14px}
+  .eyebrow span::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-right:8px;vertical-align:1px;box-shadow:0 0 0 0 rgba(229,72,47,.6);animation:pulse 2.4s infinite}
+  .eyebrow span+span::before{display:none}
+  @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(229,72,47,0)}100%{box-shadow:0 0 0 0 rgba(229,72,47,0)}}
+  h1{font:400 clamp(64px,15vw,196px)/.82 var(--serif);letter-spacing:-.02em;margin:0 0 22px;text-shadow:0 2px 40px rgba(0,0,0,.35)}
+  h1 i{color:var(--dawn)}
+  .tagline{font:400 clamp(21px,2.7vw,30px)/1.3 var(--serif);max-width:30ch;margin:0;color:var(--bone)}
+  .tagline em{color:var(--dawn)}
+  .hero-foot{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;margin-top:30px;font:500 13px/1 var(--mono)}
+  .btn{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border:1px solid var(--bone);background:transparent;color:var(--bone);font:500 13px/1 var(--mono);letter-spacing:.04em;text-decoration:none;cursor:pointer}
+  .btn:hover{background:var(--bone);color:var(--night)}
+  .btn.solid{background:var(--bone);color:var(--night)}
+  .btn.solid:hover{background:var(--dawn);border-color:var(--dawn)}
+  .vidctl{position:absolute;right:clamp(16px,4vw,48px);bottom:clamp(40px,7vh,80px);z-index:2;width:46px;height:46px;border-radius:50%;border:1px solid rgba(239,232,216,.5);background:rgba(14,16,12,.35);color:var(--bone);display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(6px)}
+  .vidctl:hover{border-color:var(--bone)}
+  .vidctl svg{width:16px;height:16px}
+  @media (max-width:700px){.vidctl{top:76px;bottom:auto}}
+
+  /* ---------- sections ---------- */
+  section{padding:clamp(72px,11vw,128px) 0 0}
+  .kicker{font:500 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--grass);margin:0 0 18px;display:flex;align-items:center;gap:12px}
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+  h2{font:400 clamp(38px,6vw,68px)/1 var(--serif);letter-spacing:-.01em;margin:0 0 26px;max-width:18ch;text-wrap:balance}
+  h2 i{color:var(--dawn)}
+  .prose{max-width:62ch}
+  .prose p{margin:0 0 1.1em;color:#d9d2c0;text-wrap:pretty}
+  .prose strong{color:var(--bone);font-weight:600}
+  .prose .big{font:400 clamp(24px,3vw,32px)/1.3 var(--serif);color:var(--bone);margin-bottom:1em}
+
+  .split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:48px 64px;align-items:start}
+  @media (max-width:860px){.split{grid-template-columns:1fr}}
+  .pull{border-left:2px solid var(--ember);padding:4px 0 4px 22px;font:400 clamp(26px,3.2vw,36px)/1.2 var(--serif);color:var(--bone);margin:8px 0 0;position:sticky;top:32px}
+  .pull small{display:block;margin-top:14px;font:400 12px/1.5 var(--mono);color:var(--faint);letter-spacing:.04em}
+
+  /* ---------- arc ---------- */
+  .arc{margin-top:44px}
+  .arc-track{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;border-top:1px solid var(--line)}
+  .arc-track::before{content:"";position:absolute;left:0;top:-1px;height:1px;width:var(--fill,30%);background:linear-gradient(90deg,var(--sky),var(--grass),var(--dawn),var(--ember));transition:width .6s cubic-bezier(.2,.7,.2,1)}
+  .stage{appearance:none;background:none;border:0;border-right:1px solid var(--line-soft);color:var(--dim);text-align:left;padding:20px 14px 22px 0;cursor:pointer;font:inherit;min-width:0;position:relative}
+  .stage:last-child{border-right:0}
+  .stage+.stage{padding-left:14px}
+  .stage .n{display:block;font:500 11px/1 var(--mono);letter-spacing:.14em;color:var(--faint);margin-bottom:12px}
+  .stage .t{display:block;font:400 clamp(22px,2.6vw,32px)/1 var(--serif);color:var(--dim);transition:color .2s}
+  .stage .s{display:block;margin-top:8px;font:400 12px/1.4 var(--mono);color:var(--faint)}
+  .stage:hover .t{color:var(--bone)}
+  .stage[aria-selected="true"] .t{color:var(--bone)}
+  .stage[aria-selected="true"] .n{color:var(--dawn)}
+  .stage.here::after{content:"you are here";position:absolute;top:-28px;left:0;font:500 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--night);background:var(--grass);padding:5px 7px}
+  .stage.here+.stage.here::after{display:none}
+  .stage+.stage.here::after{left:14px}
+  @media (max-width:720px){
+    .arc-track{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .stage:nth-child(3){border-right:0}
+    .stage:nth-child(4){padding-left:0}
+    .stage:nth-child(n+4){border-top:1px solid var(--line-soft)}
+  }
+  .arc-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 48px;padding:30px 0 0;min-height:200px}
+  @media (max-width:720px){.arc-panel{grid-template-columns:1fr}}
+  .arc-panel h3{font:400 clamp(30px,4vw,44px)/1.05 var(--serif);margin:0 0 10px}
+  .arc-panel .fantasy{color:#d9d2c0;margin:0}
+  .arc-panel dl{margin:0;display:grid;gap:0;border-top:1px solid var(--line)}
+  .arc-panel dl div{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+  .arc-panel dt{font:500 11px/1.8 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  .arc-panel dd{margin:0;font-size:15px;color:#d9d2c0}
+  .fade{animation:fade .45s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}}
+
+  /* ---------- ledger ---------- */
+  .traits{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 28px}
+  .trait{appearance:none;border:1px solid var(--line);background:var(--soil);color:var(--dim);font:500 13px/1 var(--mono);padding:11px 14px;cursor:pointer;min-height:42px}
+  .trait:hover{color:var(--bone);border-color:var(--faint)}
+  .trait[aria-pressed="true"]{background:var(--bone);color:var(--night);border-color:var(--bone)}
+  .ledger{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);background:var(--line)}
+  .ledger>div{background:var(--soil);padding:20px 18px 22px;min-width:0;display:flex;flex-direction:column;gap:10px;position:relative}
+  .ledger>div:last-child{background:linear-gradient(160deg,#241c14 0%,var(--soil) 70%)}
+  .ledger>div:last-child .lstage{color:var(--dawn)}
+  .ledger .lstage{font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+  .ledger .eff{font-size:15.5px;line-height:1.5;color:#e2dbc9;text-wrap:pretty}
+  .ledger>div:not(:last-child)::after{content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:2;font:500 14px/1 var(--mono);color:var(--faint);background:var(--night);padding:3px 0}
+  @media (max-width:820px){.ledger{grid-template-columns:1fr 1fr}.ledger>div::after{display:none}}
+  @media (max-width:480px){.ledger{grid-template-columns:1fr}}
+  .earned{margin:16px 0 0;font:400 13px/1.6 var(--mono);color:var(--faint)}
+  .earned b{color:var(--grass);font-weight:500}
+
+  /* ---------- chain ---------- */
+  .chain{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:0;counter-reset:c}
+  .chain li{flex:1 1 140px;min-width:0;padding:18px 18px 18px 0;border-top:1px solid var(--line);position:relative}
+  .chain li::before{counter-increment:c;content:counter(c,decimal-leading-zero);display:block;font:500 11px/1 var(--mono);color:var(--faint);letter-spacing:.14em;margin-bottom:10px}
+  .chain li b{display:block;font:400 26px/1.05 var(--serif);font-weight:400;color:var(--bone)}
+  .chain li span{display:block;margin-top:6px;font-size:14px;color:var(--dim)}
+  .chain li:last-child b{color:var(--ember)}
+
+  /* ---------- bench ---------- */
+  .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  @media (max-width:820px){.two{grid-template-columns:1fr}}
+  .face{background:var(--soil);padding:26px 24px 28px;min-width:0}
+  .face h3{font:400 30px/1 var(--serif);margin:0 0 6px}
+  .face .who{font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--grass);margin:0 0 18px}
+  .face p{margin:0 0 16px;color:#d9d2c0;font-size:15.5px}
+  .keys{display:flex;flex-wrap:wrap;gap:8px}
+  .keys kbd{font:500 12px/1 var(--mono);padding:9px 10px;border:1px solid var(--line);border-bottom-width:3px;background:var(--night);color:var(--bone);border-radius:3px}
+  pre{margin:0;overflow-x:auto;background:var(--night);border:1px solid var(--line);padding:16px 18px;font:400 13px/1.6 var(--mono);color:#cfc8b5}
+  pre .k{color:var(--sky)} pre .s{color:var(--grass)} pre .c{color:var(--faint)} pre .v{color:var(--dawn)}
+  .score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:40px;border-top:1px solid var(--line)}
+  @media (max-width:720px){.score{grid-template-columns:1fr}}
+  .score div{padding:22px 24px 6px 0}
+  .score div+div{border-left:1px solid var(--line-soft);padding-left:24px}
+  @media (max-width:720px){.score div+div{border-left:0;padding-left:0;border-top:1px solid var(--line-soft)}}
+  .score b{display:block;font:400 clamp(30px,3.6vw,44px)/1 var(--serif);font-weight:400;color:var(--bone);margin-bottom:8px}
+  .score span{font-size:15px;color:var(--dim)}
+
+  /* ---------- film strip ---------- */
+  .strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:8px}
+  @media (max-width:720px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .strip figure{margin:0;overflow:hidden;aspect-ratio:4/3;background:var(--moss)}
+  .strip img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1);filter:saturate(1.05)}
+  .strip figure:hover img{transform:scale(1.06)}
+  .strip figure:nth-child(1) img{object-position:55% 70%}
+  .strip figure:nth-child(2) img{object-position:40% 30%}
+  .strip figure:nth-child(3) img{object-position:50% 65%}
+  .strip figure:nth-child(4) img{object-position:30% 40%}
+
+  /* ---------- status ---------- */
+  .status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 64px}
+  @media (max-width:760px){.status{grid-template-columns:1fr}}
+  .status h3{font:500 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;margin:0 0 14px;color:var(--grass)}
+  .status h3.no{color:var(--ember)}
+  .status ul{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+  .status li{padding:12px 0;border-bottom:1px solid var(--line-soft);font-size:15.5px;color:#d9d2c0}
+  .stats{display:flex;flex-wrap:wrap;gap:28px 56px;margin:0 0 48px}
+  .stats div{min-width:0}
+  .stats b{display:block;font:400 clamp(44px,6vw,72px)/1 var(--serif);font-weight:400;color:var(--bone)}
+  .stats span{font:400 12px/1.4 var(--mono);color:var(--faint);letter-spacing:.06em}
+
+  .closing{padding:clamp(88px,12vw,140px) 0 0;text-align:left}
+  .closing p{font:400 clamp(32px,5vw,60px)/1.08 var(--serif);margin:0;max-width:20ch;text-wrap:balance}
+  .closing p i{color:var(--dawn)}
+  .closing .hero-foot{margin-top:36px}
+
+  footer{margin-top:clamp(72px,10vw,120px);border-top:1px solid var(--line)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px 26px;padding-top:24px;padding-bottom:56px;font:400 13px/1.6 var(--mono);color:var(--faint)}
+  footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line)}
+  footer a:hover{color:var(--dawn);border-color:var(--dawn)}
+  footer .sp{flex:1 1 auto}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .hero video{animation:none;transform:none}
+    .eyebrow span::before{animation:none}
+    .reveal{opacity:1;transform:none;transition:none}
+    .fade{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a href="/index.html">← diego rodríguez atencia</a>
+    <nav aria-label="Project">
+      <a href="#idea">idea</a>
+      <a href="#arc">arc</a>
+      <a href="#agents">agents</a>
+      <a href="https://github.com/alektebel/cpore" target="_blank" rel="noopener noreferrer">repo ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="hero">
+  <video id="hero-video" autoplay muted loop playsinline preload="auto" poster="img/valley-poster.jpg" aria-label="A red, spined creature runs across green ridges in the first valley at dawn">
+    <source src="valley.mp4" type="video/mp4">
+  </video>
+  <button class="vidctl" id="vidctl" type="button" aria-label="Pause video">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" fill="currentColor"/></svg>
+  </button>
+  <div class="wrap">
+    <p class="eyebrow"><span>in progress</span><span>codename cpore</span><span>creature stage</span></p>
+    <h1>Primi<i>genia</i></h1>
+    <p class="tagline">Start in a tide pool. Walk out of the sea. Reach the stars. <em>Whatever you became on the way comes with you.</em></p>
+    <div class="hero-foot">
+      <a class="btn solid" href="#idea">what I'm going for ↓</a>
+      <a class="btn" href="https://github.com/alektebel/cpore" target="_blank" rel="noopener noreferrer">read the code ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- IDEA -->
+<section id="idea">
+  <div class="wrap split">
+    <div class="prose reveal">
+      <p class="kicker">the idea</p>
+      <h2>A game I wanted to play, so I'm <i>building it.</i></h2>
+      <p class="big">The video up there is 30 seconds of the first valley. A red, spiny thing out of the creature studio, running over ridges at dawn. Three and a half months of work to get here, and it is starting to feel like a place.</p>
+      <p>The promise of evolution games has always been the same: take one creature from a tide pool to the galaxy. What usually happens is five good mini-games glued together. Each stage hands the next a single badge and then forgets about you. The fish you were doesn't matter once you have a spaceship.</p>
+      <p>Primigenia is built around the opposite rule: <strong>what you became early still matters among the stars.</strong> If your lineage went back to the water, ocean worlds and ice moons are already home and you never terraform them. If you found the secret that seals your skin against the cold and the radiation on the high peaks, your ships don't need a pressure hull. Spin silk as a creature and your civilisation gets to the space elevator early, like the spiders in <em>Children of Time</em>.</p>
+      <p>Underneath, the whole thing runs on a <strong>deterministic C simulation</strong>: same seed, same inputs, same world, bit for bit. That's what lets it be two things at once: a game you play with your hands, and an environment where language models and RL agents play the exact same game through text and numbers.</p>
+    </div>
+    <p class="pull reveal">“The fish you were should still matter when you build your first starship.”<small>the one rule every other decision answers to</small></p>
+  </div>
+</section>
+
+<!-- STRIP -->
+<section aria-label="Frames from the first valley" style="padding-top:clamp(56px,8vw,88px)">
+  <div class="wrap">
+    <div class="strip reveal">
+      <figure><img src="img/still-2.jpg" alt="The creature from behind, climbing a grassy slope towards the light" loading="lazy" width="800" height="450"></figure>
+      <figure><img src="img/still-9.jpg" alt="Striated mountain faces with snow above the valley" loading="lazy" width="800" height="450"></figure>
+      <figure><img src="img/still-14.jpg" alt="The creature in profile on a ridge, spines along its back" loading="lazy" width="800" height="450"></figure>
+      <figure><img src="img/still-22.jpg" alt="A grassy saddle opening onto the sea at dawn" loading="lazy" width="800" height="450"></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ARC -->
+<section id="arc">
+  <div class="wrap">
+    <p class="kicker reveal">the arc</p>
+    <h2 class="reveal">Six stages, <i>one lineage.</i></h2>
+    <div class="arc reveal">
+      <div class="arc-track" role="tablist" aria-label="Stages" id="arc-track">
+        <button class="stage" role="tab" data-i="0"><span class="n">01</span><span class="t">Cell</span><span class="s">tide pool</span></button>
+        <button class="stage here" role="tab" data-i="1"><span class="n">02</span><span class="t">Creature</span><span class="s">the island</span></button>
+        <button class="stage" role="tab" data-i="2"><span class="n">03</span><span class="t">Band</span><span class="s">hunter-gatherers</span></button>
+        <button class="stage" role="tab" data-i="3"><span class="n">04</span><span class="t">Realm</span><span class="s">fields to empire</span></button>
+        <button class="stage" role="tab" data-i="4"><span class="n">05</span><span class="t">Industry</span><span class="s">the whole planet</span></button>
+        <button class="stage" role="tab" data-i="5"><span class="n">06</span><span class="t">Space</span><span class="s">the galaxy</span></button>
+      </div>
+      <div class="arc-panel" id="arc-panel" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- LEDGER -->
+<section id="ledger">
+  <div class="wrap">
+    <p class="kicker reveal">the lineage ledger</p>
+    <h2 class="reveal">Pick something you became. <i>Follow it to the stars.</i></h2>
+    <div class="prose reveal" style="margin-bottom:22px"><p>Every place you can live, from a biome to a moon to the hull of a ship, has an environment: medium, pressure, temperature, atmosphere, gravity, radiation, light, food. Your species has a tolerance for each. The gap between the two is what it costs you to live there. One mechanism, written once in C, and it grows with every stage.</p></div>
+    <div class="traits reveal" id="traits" role="group" aria-label="Lineage traits"></div>
+    <div class="ledger reveal" id="ledger-row" aria-live="polite"></div>
+    <p class="earned reveal" id="earned"></p>
+  </div>
+</section>
+
+<!-- CHAIN -->
+<section>
+  <div class="wrap">
+    <p class="kicker reveal">nothing is arbitrary</p>
+    <h2 class="reveal">Every trait has a <i>why</i>, and the why is the move.</h2>
+    <div class="prose reveal">
+      <p>I don't want creatures that are a random pile of horns. Every trait in the world is the end of a causal chain that starts at the star. Shared pressures give you convergent solutions or opposite ones, and the same rules make other planets grow different life once you get to space.</p>
+      <p>In play, you <strong>observe</strong> a species, quietly and up close, and the journal fills in the chain one link at a time. Understand the whole why, and you learn its move.</p>
+    </div>
+    <ol class="chain reveal">
+      <li><b>Star</b><span>light, age, flares</span></li>
+      <li><b>Planet</b><span>gravity, day, air, oceans</span></li>
+      <li><b>Habitat</b><span>cliff, reef, cave, steppe</span></li>
+      <li><b>Pressure</b><span>what kills you here</span></li>
+      <li><b>Trait</b><span>what survived it</span></li>
+      <li><b>Your move</b><span>a skill, or a weakness to use</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- AGENTS -->
+<section id="agents">
+  <div class="wrap">
+    <p class="kicker reveal">it's also a benchmark</p>
+    <h2 class="reveal">How fast can an agent <i>win the whole arc?</i></h2>
+    <div class="prose reveal" style="margin-bottom:34px">
+      <p>Same thing that drove me with <a href="/mus/">mus</a>: I'd rather watch models do something long, messy and strategic than answer another multiple-choice test. Winning six genres in a row, with choices that pay off three stages later, is a hard planning problem. The C core has two faces on top of one simulation, and humans, LLMs and RL policies all play the same world.</p>
+    </div>
+    <div class="two reveal">
+      <div class="face">
+        <p class="who">you</p>
+        <h3>Godot, keyboard, mouse</h3>
+        <p>The desktop build is the game proper: the island, the creature studio, procedural animation from your creature's actual body. Leg count, length and mass decide how it walks; nothing is canned.</p>
+        <div class="keys" aria-label="Controls"><kbd>W A S D</kbd><kbd>1 bite</kbd><kbd>2 charge</kbd><kbd>space guard</kbd><kbd>Q / E dodge</kbd></div>
+      </div>
+      <div class="face">
+        <p class="who">an agent</p>
+        <h3>JSON in, verbs out</h3>
+        <p>Language models get a structured observation and answer with id-targeted verbs. RL gets float vectors from the same state.</p>
+<pre><span class="c">// what the model sees (trimmed)</span>
+{ <span class="k">"near"</span>: [{ <span class="k">"id"</span>: <span class="v">12</span>, <span class="k">"type"</span>: <span class="s">"grazer"</span>,
+            <span class="k">"bearing"</span>: <span class="v">-34</span>, <span class="k">"dist"</span>: <span class="v">18.5</span> }],
+  <span class="k">"progress"</span>: <span class="v">0.41</span>, <span class="k">"dna"</span>: <span class="v">220</span>,
+  <span class="k">"traits"</span>: [<span class="s">"aquatic"</span>] }
+
+<span class="c">// what it can say</span>
+approach #12   sing #12   bite #12
+explore 270    edit {genome}   advance</pre>
+      </div>
+    </div>
+    <div class="score reveal">
+      <div><b>Stages won</b><span>first, and the only thing that really counts.</span></div>
+      <div><b>Then decisions</b><span>fewer is better. Tokens and cost get reported, not ranked.</span></div>
+      <div><b>Replays</b><span>every run logs seed and actions. Anyone can re-simulate it bit for bit.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS -->
+<section id="status">
+  <div class="wrap">
+    <p class="kicker reveal">where it actually is</p>
+    <h2 class="reveal">Honest status, <i>November 2026.</i></h2>
+    <div class="stats reveal">
+      <div><b>440+</b><span>commits since 1 aug 2026</span></div>
+      <div><b>1 / 6</b><span>stages being finished</span></div>
+      <div><b>46</b><span>creature parts in the studio</span></div>
+    </div>
+    <div class="status reveal">
+      <div>
+        <h3>works today</h3>
+        <ul>
+          <li>The island: eroded terrain, carved rivers, cliffs, clouds and their shadows, dawn fog.</li>
+          <li>The creature studio: sculpt the spine, place parts, paint, and it walks the way it's built.</li>
+          <li>Combat in the C core, with tells you can read and dodge.</li>
+          <li>The social side: befriend, observe, intimidate, eat. Herds remember what you did.</li>
+          <li>Python bindings, Gymnasium envs and a text face for LLMs.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="no">not yet</h3>
+        <ul>
+          <li>Water, flying and digging. The creature is still stuck on dry land.</li>
+          <li>Parts discovery, nest editing, the journal, most of the secrets.</li>
+          <li>Everything after the creature stage. My rule: finish one stage completely, then build on top.</li>
+          <li>A download. When there is one it will be desktop builds, not the browser.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap closing">
+  <p class="reveal">If you ever wanted the fish you were to <i>matter</i> when you reach the stars, this is for you.</p>
+  <div class="hero-foot reveal">
+    <a class="btn solid" href="https://github.com/alektebel/cpore" target="_blank" rel="noopener noreferrer">follow along on github ↗</a>
+    <a class="btn" href="mailto:dratencia@gmail.com?subject=Primigenia">tell me what you'd evolve</a>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="/index.html">diegoatencia.dev</a>
+    <a href="/blog/blog.html">blog</a>
+    <span class="sp"></span>
+    <span>MIT code · CC BY 4.0 art · independent, not affiliated with any publisher</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* hero video: play / pause */
+  var v = document.getElementById('hero-video'), b = document.getElementById('vidctl');
+  var pauseIcon = b.innerHTML;
+  var playIcon = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6z" fill="currentColor"/></svg>';
+  function sync(){ var p = v.paused; b.innerHTML = p ? playIcon : pauseIcon; b.setAttribute('aria-label', p ? 'Play video' : 'Pause video'); }
+  b.addEventListener('click', function(){ if (v.paused) { v.play(); } else { v.pause(); } });
+  v.addEventListener('play', sync); v.addEventListener('pause', sync);
+  if (reduce) { v.removeAttribute('autoplay'); v.pause(); }
+  sync();
+
+  /* arc */
+  var stages = [
+    { t:'Cell', f:'Not eat-or-be-eaten. A small automation puzzle inside the cell: evolve proteins that catalyse, carry, sense and move, then groups of cells, then specialised ones, until a body is complex enough to crawl ashore.',
+      d:[['you play','a molecule designer'],['carries','your body plan becomes the creature’s first genome'],['state','design proposal']] },
+    { t:'Creature', f:'An island, 3.6 km across. Hunt, sing to strangers, hide and watch, eat the right rocks. Every part you grow changes how you move and what you can do. Your ancestors stay behind as wild cousins.',
+      d:[['you play','one body, then a herd'],['carries','diet, habitat, secrets, size'],['state','being built now']] },
+    { t:'Band', f:'You are still your creature, now chief of a band of 10 to 40. You fight and hunt with your own body while you lead everyone else. Action and RTS in the same hands.',
+      d:[['you play','the chief, third person'],['carries','settled or nomadic'],['state','designed, not built']] },
+    { t:'Realm', f:'Fields, settlements, an economy, diplomacy, conquest. From the first crops to an iron-age empire, on whatever terrain your lineage can actually live on.',
+      d:[['you play','an almost full RTS'],['carries','what you domesticated'],['state','designed, not built']] },
+    { t:'Industry', f:'Engines to a planetary civilisation. Factory production chains, supply lines, units that run out of fuel, data centres that grow your own AI, and a planet whose health you decide.',
+      d:[['you play','a planet-scale RTS'],['carries','planet health, your AI tier'],['state','designed, not built']] },
+    { t:'Space', f:'A galaxy of a few hundred stars, with the real Sun in its real place. You mostly delegate to ship minds. Settle worlds three ways: terraform them, adapt yourself to them, or enclose yourself.',
+      d:[['you play','a gardener with minds'],['ends','the galactic core'],['state','designed, not built']] }
+  ];
+  var track = document.getElementById('arc-track'), panel = document.getElementById('arc-panel');
+  var tabs = track.querySelectorAll('.stage');
+  function showStage(i, focus){
+    tabs.forEach(function(el, j){ el.setAttribute('aria-selected', j===i ? 'true' : 'false'); el.tabIndex = j===i ? 0 : -1; });
+    if (focus) tabs[i].focus();
+    track.style.setProperty('--fill', ((i+1)/6*100) + '%');
+    var s = stages[i];
+    panel.innerHTML = '<div class="fade"><h3>' + s.t + '</h3><p class="fantasy">' + s.f + '</p></div>' +
+      '<dl class="fade">' + s.d.map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('') + '</dl>';
+  }
+  tabs.forEach(function(el, i){ el.addEventListener('click', function(){ showStage(i); }); });
+  track.addEventListener('keydown', function(e){
+    var cur = [].indexOf.call(tabs, document.activeElement); if (cur < 0) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); showStage((cur+1)%6, true); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); showStage((cur+5)%6, true); }
+  });
+  showStage(1);
+
+  /* ledger */
+  var traits = [
+    { n:'Aquatic', from:'a filter-feeding cell, or a creature with gills and a water nest',
+      e:['Fishing camps, rafts, diving for food.','Naval power, coastal and floating farms.','Tidal energy, undersea cities and mines.','Ocean worlds and ice moons count as home. No terraforming. Your ships are full of water.'] },
+    { n:'Void-adapted', from:'a creature-stage secret: sealed skin, radiation sacs, cold',
+      e:['You survive the peaks and the cold nights.','Mountain fortresses nobody else can hold.','Cheap high-altitude industry, cheaper launches.','Unpressurised ships and habitats. Live on airless moons. With enough mass, build your own planets.'] },
+    { n:'Silk-spinner', from:'silk glands fed by an insect diet; webs, lines, bridges',
+      e:['Nets, rope, bridges over gorges.','Textiles and rigging.','Cables and suspension bridges.','The space elevator, early.'] },
+    { n:'Rock-eater', from:'eating the right rocks for rock armour',
+      e:['Stoneworking.','Quarries and fortresses.','Ore efficiency.','Barren rock worlds have food. You are a lithotroph.'] },
+    { n:'Flyer', from:'wings or a glider membrane',
+      e:['Scouting, camps on the cliffs.','Messenger birds, early maps.','Early aviation.','Floating cities on gas giants.'] },
+    { n:'Fire-breather', from:'the flamethrower recipe, found by observing',
+      e:['Early fire. Burning the grass.','Metallurgy ahead of its time.','Better combustion.','Plasma weapons and engines.'] },
+    { n:'Nocturnal', from:'a rare night-eyed body plan',
+      e:['Night raids and hunts.','Spies.','Night shifts, more output.','Dark worlds far from their star are habitable.'] },
+    { n:'Befriender', from:'winning species over instead of eating them',
+      e:['Befriended species hunt with you.','Mounts and draft animals.','A society of many species.','Uplift other species into allies.'] }
+  ];
+  var tWrap = document.getElementById('traits'), row = document.getElementById('ledger-row'), earned = document.getElementById('earned');
+  var heads = ['Band','Realm','Industry','Space'];
+  traits.forEach(function(t, i){
+    var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'trait'; btn.textContent = t.n;
+    btn.addEventListener('click', function(){ showTrait(i); });
+    tWrap.appendChild(btn);
+  });
+  function showTrait(i){
+    [].forEach.call(tWrap.children, function(el, j){ el.setAttribute('aria-pressed', j===i ? 'true' : 'false'); });
+    var t = traits[i];
+    row.innerHTML = t.e.map(function(x, j){ return '<div class="fade" style="animation-delay:' + (j*70) + 'ms"><span class="lstage">' + heads[j] + '</span><span class="eff">' + x + '</span></div>'; }).join('');
+    earned.innerHTML = '<b>' + t.n.toLowerCase() + '</b> · earned from ' + t.from;
+  }
+  showTrait(0);
+
+  /* reveal on scroll */
+  var els = document.querySelectorAll('.reveal');
+  if (reduce || !('IntersectionObserver' in window)) { els.forEach(function(el){ el.classList.add('in'); }); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, { rootMargin:'0px 0px -8% 0px', threshold:0.08 });
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
