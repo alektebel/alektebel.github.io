@@ -81,58 +81,55 @@
   .pull{border-left:2px solid var(--ember);padding:4px 0 4px 22px;font:400 clamp(26px,3.2vw,36px)/1.2 var(--serif);color:var(--bone);margin:8px 0 0;position:sticky;top:32px}
   .pull small{display:block;margin-top:14px;font:400 12px/1.5 var(--mono);color:var(--faint);letter-spacing:.04em}
 
-  /* ---------- arc ---------- */
-  .arc{margin-top:52px}
-  .arc-track{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;border-top:1px solid var(--line)}
-  .arc-track::before{content:"";position:absolute;left:0;top:-1px;height:1px;width:var(--fill,30%);background:linear-gradient(90deg,var(--sky),var(--grass),var(--dawn),var(--ember));transition:width .6s cubic-bezier(.2,.7,.2,1)}
-  .stage{appearance:none;background:none;border:0;border-right:1px solid var(--line-soft);color:var(--dim);text-align:left;padding:20px 14px 22px 0;cursor:pointer;font:inherit;min-width:0;position:relative}
-  .stage:last-child{border-right:0}
-  .stage+.stage{padding-left:14px}
-  .stage .n{display:block;font:500 11px/1 var(--mono);letter-spacing:.14em;color:var(--faint);margin-bottom:12px}
-  .stage .t{display:block;font:400 clamp(22px,2.6vw,32px)/1 var(--serif);color:var(--dim);transition:color .2s}
-  .stage .s{display:block;margin-top:8px;font:400 12px/1.4 var(--mono);color:var(--faint)}
-  .stage .art{display:block;width:100%;aspect-ratio:4/3;margin:0 0 14px;opacity:.5;filter:saturate(.4);transition:opacity .35s,filter .35s,transform .45s cubic-bezier(.2,.7,.2,1);transform-origin:50% 100%}
-  .stage:hover .art{opacity:.7;filter:saturate(.8)}
-  .stage[aria-selected="true"] .art{opacity:1;filter:none;transform:translateY(-4px) scale(1.04)}
-  .art img{display:block;width:100%;height:100%;object-fit:cover;border-radius:2px}
-  .arc-view{position:relative;aspect-ratio:1600/663;overflow:hidden;background:#050605;margin:0 0 60px;isolation:isolate}
-  @media (max-width:640px){.arc-view{aspect-ratio:4/3}}
-  .arc-view img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.07);transition:opacity 1s ease,transform 7s cubic-bezier(.2,.6,.2,1)}
-  .arc-view img.on{opacity:1;transform:scale(1)}
-  .arc-view::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg,rgba(5,6,5,.78) 0%,rgba(5,6,5,0) 42%)}
-  .arc-cap{position:absolute;left:clamp(16px,3vw,32px);bottom:clamp(14px,2.6vw,28px);z-index:2;display:flex;align-items:baseline;gap:14px}
+  /* ---------- arc (scroll-driven) ---------- */
+  .arc-scroll{position:relative;height:calc(100svh + 320svh)}
+  .arc-pin{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+  .arc{width:100%;display:flex;flex-direction:column;gap:clamp(14px,2.4vh,24px)}
+  .arc-view{position:relative;height:min(54svh,42vw);overflow:hidden;background:#050605;isolation:isolate}
+  .arc-view img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease;transform:scale(1.08);will-change:opacity,transform}
+  .arc-view img.on{opacity:1;transform:scale(calc(1.08 - .08 * var(--k,0)))}
+  .arc-view::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg,rgba(5,6,5,.72) 0%,rgba(5,6,5,0) 40%)}
+  .arc-cap{position:absolute;left:clamp(16px,3vw,32px);bottom:clamp(14px,2.6vw,26px);z-index:2;display:flex;align-items:baseline;gap:14px}
   .arc-cap .n{font:500 12px/1 var(--mono);letter-spacing:.16em;color:var(--dawn)}
   .arc-cap .t{font:400 clamp(30px,5vw,60px)/1 var(--serif);color:var(--bone);text-shadow:0 2px 24px rgba(0,0,0,.5)}
-  .arc-nav{position:absolute;right:clamp(16px,3vw,32px);bottom:clamp(14px,2.6vw,28px);z-index:2;display:flex;gap:8px}
+  .arc-nav{position:absolute;right:clamp(16px,3vw,32px);bottom:clamp(14px,2.6vw,26px);z-index:2;display:flex;gap:8px}
   .arc-nav button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(239,232,216,.5);background:rgba(14,16,12,.4);color:var(--bone);font:500 16px/1 var(--mono);cursor:pointer;backdrop-filter:blur(6px)}
   .arc-nav button:hover{border-color:var(--bone);background:rgba(14,16,12,.7)}
-  .arc-prog{position:absolute;left:0;right:0;bottom:0;height:2px;z-index:2;background:rgba(239,232,216,.12)}
-  .arc-prog i{display:block;height:100%;width:0;background:var(--dawn)}
-  .arc-prog i.run{animation:prog var(--dur,6s) linear forwards}
-  @keyframes prog{to{width:100%}}
-  @media (prefers-reduced-motion:reduce){.arc-view img{transition:opacity .01s;transform:none}.arc-view img.on{transform:none}}
+  .arc-hint{position:absolute;top:clamp(12px,2vw,20px);right:clamp(16px,3vw,32px);z-index:2;font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--bone);opacity:.75;transition:opacity .4s}
+  .arc-hint.gone{opacity:0}
+  .arc-text{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:8px 40px;align-items:start;min-height:4.8em}
+  .arc-text .fantasy{margin:0;color:#d9d2c0;font-size:16px;line-height:1.55;text-wrap:pretty}
+  .arc-text dl{margin:0;display:flex;flex-wrap:wrap;gap:6px 22px}
+  .arc-text dl div{display:flex;flex-direction:column;gap:4px}
+  .arc-text dt{font:500 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .arc-text dd{margin:0;font-size:14.5px;color:var(--bone)}
+  .arc-track{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-top:1px solid var(--line)}
+  .arc-track::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:var(--fill,0%);background:linear-gradient(90deg,var(--sky),var(--grass),var(--dawn),var(--ember))}
+  .stage{appearance:none;background:none;border:0;border-right:1px solid var(--line-soft);color:var(--dim);text-align:left;padding:14px 12px 4px;cursor:pointer;font:inherit;min-width:0;display:flex;align-items:center;gap:12px}
+  .stage:first-child{padding-left:0}
+  .stage:last-child{border-right:0}
+  .stage .art{flex:none;width:clamp(48px,5.4vw,76px);aspect-ratio:4/3;opacity:.45;filter:saturate(.35);transition:opacity .35s,filter .35s,transform .35s}
+  .stage .art img{display:block;width:100%;height:100%;object-fit:cover;border-radius:2px}
+  .stage .lbl{min-width:0}
+  .stage .n{display:block;font:500 10.5px/1 var(--mono);letter-spacing:.14em;color:var(--faint);margin-bottom:6px;white-space:nowrap}
+  .stage .t{display:block;font:400 clamp(18px,1.9vw,26px)/1 var(--serif);color:var(--dim);transition:color .2s}
   .stage:hover .t{color:var(--bone)}
+  .stage:hover .art{opacity:.75}
   .stage[aria-selected="true"] .t{color:var(--bone)}
   .stage[aria-selected="true"] .n{color:var(--dawn)}
-  .stage.here::after{content:"you are here";position:absolute;top:-28px;left:0;font:500 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--night);background:var(--grass);padding:5px 7px}
-  .stage.here+.stage.here::after{display:none}
-  .stage+.stage.here::after{left:14px}
+  .stage[aria-selected="true"] .art{opacity:1;filter:none;transform:translateY(-2px)}
+  .stage.here .n::after{content:" · now";color:var(--grass)}
+  @media (max-width:900px){.stage .lbl{display:none}.stage{justify-content:center;padding:12px 4px 2px}.stage:first-child{padding-left:4px}.stage .art{width:100%}}
   @media (max-width:720px){
-    .arc-track{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .stage:nth-child(3){border-right:0}
-    .stage:nth-child(4){padding-left:0}
-    .stage:nth-child(n+4){border-top:1px solid var(--line-soft)}
+    .arc-view{height:38svh}
+    .arc-text{grid-template-columns:1fr;min-height:0}
+    .arc-text .fantasy{font-size:15px}
   }
-  .arc-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 48px;padding:30px 0 0;min-height:200px}
-  @media (max-width:720px){.arc-panel{grid-template-columns:1fr}}
-  .arc-panel h3{font:400 clamp(30px,4vw,44px)/1.05 var(--serif);margin:0 0 10px}
-  .arc-panel .fantasy{color:#d9d2c0;margin:0}
-  .arc-panel dl{margin:0;display:grid;gap:0;border-top:1px solid var(--line)}
-  .arc-panel dl div{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
-  .arc-panel dt{font:500 11px/1.8 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-  .arc-panel dd{margin:0;font-size:15px;color:#d9d2c0}
+  .arc-scroll.static{height:auto}
+  .arc-scroll.static .arc-pin{position:static;height:auto;padding:24px 0 0}
   .fade{animation:fade .45s ease both}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}}
+  @media (prefers-reduced-motion:reduce){.arc-view img{transition:opacity .01s}.arc-view img.on{transform:none}.fade{animation:none}}
 
   /* ---------- ledger ---------- */
   .traits{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 28px}
@@ -151,6 +148,51 @@
   .earned{margin:16px 0 0;font:400 13px/1.6 var(--mono);color:var(--faint)}
   .earned b{color:var(--grass);font-weight:500}
 
+  /* ---------- types tree ---------- */
+  .ask{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:8px 0 36px}
+  @media (max-width:860px){.ask{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .ask fieldset{margin:0;border:0;background:var(--soil);padding:14px 14px 16px;min-width:0}
+  .ask legend{float:left;width:100%;font:500 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 10px;padding:0}
+  .seg{clear:both;display:flex;gap:6px}
+  .seg button{flex:1;min-height:42px;appearance:none;border:1px solid var(--line);background:var(--night);color:var(--dim);font:500 13px/1.2 var(--mono);cursor:pointer;padding:6px 8px}
+  .seg button:hover{color:var(--bone);border-color:var(--faint)}
+  .seg button[aria-pressed="true"]{background:var(--bone);color:var(--night);border-color:var(--bone)}
+  .types{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:32px 48px;align-items:start}
+  @media (max-width:900px){.types{grid-template-columns:1fr}}
+  .tree{position:relative;display:grid;grid-template-columns:64px 72px 72px 72px minmax(0,1fr);grid-template-rows:repeat(16,36px);row-gap:4px;column-gap:22px}
+  @media (max-width:560px){.tree{grid-template-columns:22px 34px 34px 34px minmax(0,1fr);column-gap:12px;grid-template-rows:repeat(16,34px)}}
+  .tree svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .tree path{fill:none;stroke:var(--line);stroke-width:1.5;transition:stroke .3s}
+  .tree path.on{stroke:var(--dawn);stroke-width:2}
+  .node{position:relative;z-index:1;align-self:center;justify-self:start;appearance:none;border:1px solid var(--line);background:var(--soil);color:var(--dim);font:500 12px/1 var(--mono);padding:8px 9px;cursor:pointer;white-space:nowrap;transition:background .25s,color .25s,border-color .25s}
+  .node:hover{color:var(--bone);border-color:var(--faint)}
+  .node.on{background:var(--bone);color:var(--night);border-color:var(--bone)}
+  .node .w{color:inherit;opacity:.7;margin-left:5px}
+  @media (max-width:560px){.node .w{display:none}.node{padding:7px 0;width:30px;text-align:center}}
+  .root{cursor:default;padding:8px 6px}
+  @media (max-width:560px){.root{width:22px;padding:6px 0;font-size:10px;writing-mode:vertical-rl}}
+  .leaf{width:100%;text-align:left;display:flex;align-items:baseline;gap:10px;padding:8px 10px;font:400 15px/1 var(--sans);color:var(--dim)}
+  .leaf .c{font:500 10.5px/1 var(--mono);letter-spacing:.06em;color:var(--faint);flex:none}
+  .leaf .nm{overflow:hidden;text-overflow:ellipsis}
+  .leaf.on .c{color:var(--night)}
+  .heads{display:grid;grid-template-columns:64px 72px 72px 72px minmax(0,1fr);column-gap:22px;margin:0 0 10px;font:500 10px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  @media (max-width:560px){.heads{grid-template-columns:22px 34px 34px 34px minmax(0,1fr);column-gap:12px;font-size:8.5px;letter-spacing:.04em}}
+  .tcard{position:sticky;top:24px;border:1px solid var(--line);background:linear-gradient(160deg,#241c14 0%,var(--soil) 65%);padding:26px 24px 24px}
+  .tcard .code{font:500 13px/1 var(--mono);letter-spacing:.2em;color:var(--dawn)}
+  .tcard h3{font:400 clamp(36px,4.4vw,52px)/1 var(--serif);margin:14px 0 4px}
+  .tcard .es{font:italic 400 19px/1.2 var(--serif);color:var(--dim);margin:0 0 16px}
+  .tcard .desc{margin:0 0 20px;color:#e2dbc9}
+  .tcard h4{font:500 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 10px}
+  .tcard ul{list-style:none;margin:0 0 20px;padding:0;border-top:1px solid var(--line)}
+  .tcard li{display:grid;grid-template-columns:128px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:14.5px;color:#d9d2c0}
+  .tcard li b{font:500 11px/1.7 var(--mono);color:var(--bone);font-weight:500}
+  .perk{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--night);border:1px solid var(--line)}
+  .perk span{font:500 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--grass)}
+  .perk b{font-weight:500;color:var(--bone)}
+  .tnote{margin:14px 0 0;font:400 12px/1.6 var(--mono);color:var(--faint)}
+
+  @media (max-width:560px){.heads{display:none}.leaf .c{display:none}.leaf{font-size:14px;padding:8px}}
+  @media (max-width:900px){.tcard{position:static}}
   /* ---------- chain ---------- */
   .chain{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:0;counter-reset:c}
   .chain li{flex:1 1 140px;min-width:0;padding:18px 18px 18px 0;border-top:1px solid var(--line);position:relative}
@@ -287,22 +329,26 @@
 <section id="arc">
   <div class="wrap">
     <p class="kicker reveal">the arc</p>
-    <h2 class="reveal">Six stages, <i>one lineage.</i></h2>
-    <div class="arc reveal">
-      <div class="arc-view" id="arc-view" role="group" aria-roledescription="carousel" aria-label="The lineage, stage by stage"><img style="object-position:30% 50%" src="img/arc/cell.jpg" srcset="img/arc/cell-960.jpg 960w, img/arc/cell.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="A translucent red cell with white spines and flagella, drifting in green water" width="1600" height="663" loading="lazy"><img style="object-position:28% 50%" src="img/arc/creature.jpg" srcset="img/arc/creature-960.jpg 960w, img/arc/creature.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="The striped red creature on a ridge at sunset, spines along its back" width="1600" height="663" class="on"><img style="object-position:60% 50%" src="img/arc/band.jpg" srcset="img/arc/band-960.jpg 960w, img/arc/band.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="At night the creature holds a spear while its band gathers round a campfire" width="1600" height="663" loading="lazy"><img style="object-position:18% 50%" src="img/arc/realm.jpg" srcset="img/arc/realm-960.jpg 960w, img/arc/realm.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="Crowned and cloaked, the creature holds a red banner before a castle at sunset" width="1600" height="663" loading="lazy"><img style="object-position:42% 50%" src="img/arc/industry.jpg" srcset="img/arc/industry-960.jpg 960w, img/arc/industry.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="In goggles and holding a hammer, the creature walks a catwalk above smokestacks" width="1600" height="663" loading="lazy"><img style="object-position:45% 50%" src="img/arc/space.jpg" srcset="img/arc/space-960.jpg 960w, img/arc/space.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="In a space suit on a moon, by a red flag, a ringed planet filling the sky" width="1600" height="663" loading="lazy">
-        <div class="arc-cap" aria-live="polite"><span class="n" id="arc-n">02 / 06</span><span class="t" id="arc-t">Creature</span></div>
-        <div class="arc-nav"><button type="button" id="arc-prev" aria-label="Previous stage">←</button><button type="button" id="arc-next" aria-label="Next stage">→</button></div>
-        <div class="arc-prog" aria-hidden="true"><i id="arc-bar"></i></div>
+    <h2 class="reveal" style="margin-bottom:0">Six stages, <i>one lineage.</i></h2>
+  </div>
+  <div class="arc-scroll" id="arc-scroll">
+    <div class="arc-pin">
+      <div class="wrap arc">
+        <div class="arc-view" id="arc-view" role="group" aria-roledescription="carousel" aria-label="The lineage, stage by stage"><img style="object-position:30% 50%" src="img/arc/cell.jpg" srcset="img/arc/cell-960.jpg 960w, img/arc/cell.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="A translucent red cell with white spines and flagella, drifting in green water" width="1600" height="663" loading="lazy"><img style="object-position:28% 50%" src="img/arc/creature.jpg" srcset="img/arc/creature-960.jpg 960w, img/arc/creature.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="The striped red creature on a ridge at sunset, spines along its back" width="1600" height="663"><img style="object-position:60% 50%" src="img/arc/band.jpg" srcset="img/arc/band-960.jpg 960w, img/arc/band.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="At night the creature holds a spear while its band gathers round a campfire" width="1600" height="663" loading="lazy"><img style="object-position:18% 50%" src="img/arc/realm.jpg" srcset="img/arc/realm-960.jpg 960w, img/arc/realm.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="Crowned and cloaked, the creature holds a red banner before a castle at sunset" width="1600" height="663" loading="lazy"><img style="object-position:42% 50%" src="img/arc/industry.jpg" srcset="img/arc/industry-960.jpg 960w, img/arc/industry.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="In goggles and holding a hammer, the creature walks a catwalk above smokestacks" width="1600" height="663" loading="lazy"><img style="object-position:45% 50%" src="img/arc/space.jpg" srcset="img/arc/space-960.jpg 960w, img/arc/space.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="In a space suit on a moon, by a red flag, a ringed planet filling the sky" width="1600" height="663" loading="lazy">
+          <span class="arc-hint" id="arc-hint" aria-hidden="true">scroll to evolve ↓</span>
+          <div class="arc-cap" aria-live="polite"><span class="n" id="arc-n">01 / 06</span><span class="t" id="arc-t">Cell</span></div>
+          <div class="arc-nav"><button type="button" id="arc-prev" aria-label="Previous stage">←</button><button type="button" id="arc-next" aria-label="Next stage">→</button></div>
+        </div>
+        <div class="arc-text" id="arc-panel" role="tabpanel"></div>
+        <div class="arc-track" role="tablist" aria-label="Stages" id="arc-track">
+          <button class="stage" role="tab" data-i="0" aria-label="Cell"><span class="art"><img src="img/arc/cell-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="lbl"><span class="n">01</span><span class="t">Cell</span></span></button>
+          <button class="stage here" role="tab" data-i="1" aria-label="Creature"><span class="art"><img src="img/arc/creature-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="lbl"><span class="n">02</span><span class="t">Creature</span></span></button>
+          <button class="stage" role="tab" data-i="2" aria-label="Band"><span class="art"><img src="img/arc/band-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="lbl"><span class="n">03</span><span class="t">Band</span></span></button>
+          <button class="stage" role="tab" data-i="3" aria-label="Realm"><span class="art"><img src="img/arc/realm-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="lbl"><span class="n">04</span><span class="t">Realm</span></span></button>
+          <button class="stage" role="tab" data-i="4" aria-label="Industry"><span class="art"><img src="img/arc/industry-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="lbl"><span class="n">05</span><span class="t">Industry</span></span></button>
+          <button class="stage" role="tab" data-i="5" aria-label="Space"><span class="art"><img src="img/arc/space-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="lbl"><span class="n">06</span><span class="t">Space</span></span></button>
+        </div>
       </div>
-      <div class="arc-track" role="tablist" aria-label="Stages" id="arc-track">
-        <button class="stage" role="tab" data-i="0"><span class="art"><img src="img/arc/cell-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">01</span><span class="t">Cell</span><span class="s">tide pool</span></button>
-        <button class="stage here" role="tab" data-i="1"><span class="art"><img src="img/arc/creature-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">02</span><span class="t">Creature</span><span class="s">the island</span></button>
-        <button class="stage" role="tab" data-i="2"><span class="art"><img src="img/arc/band-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">03</span><span class="t">Band</span><span class="s">hunter-gatherers</span></button>
-        <button class="stage" role="tab" data-i="3"><span class="art"><img src="img/arc/realm-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">04</span><span class="t">Realm</span><span class="s">fields to empire</span></button>
-        <button class="stage" role="tab" data-i="4"><span class="art"><img src="img/arc/industry-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">05</span><span class="t">Industry</span><span class="s">the whole planet</span></button>
-        <button class="stage" role="tab" data-i="5"><span class="art"><img src="img/arc/space-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">06</span><span class="t">Space</span><span class="s">the galaxy</span></button>
-      </div>
-      <div class="arc-panel" id="arc-panel" role="tabpanel" aria-live="polite"></div>
     </div>
   </div>
 </section>
@@ -316,6 +362,26 @@
     <div class="traits reveal" id="traits" role="group" aria-label="Lineage traits"></div>
     <div class="ledger reveal" id="ledger-row" aria-live="polite"></div>
     <p class="earned reveal" id="earned"></p>
+  </div>
+</section>
+
+<!-- TYPES -->
+<section id="types">
+  <div class="wrap">
+    <p class="kicker reveal">sixteen creature types</p>
+    <h2 class="reveal">You never pick a class. <i>You become what you do.</i></h2>
+    <div class="prose reveal" style="margin-bottom:8px">
+      <p>Every creature starts as <strong>?-?-?-?</strong>. The game keeps count of your deeds on four axes: do you fight or befriend, eat meat or plants, roam or build, charge in or watch first. An axis only gets its letter once you lean clearly one way, and when all four are set you have a type, a name, and exactly one small perk. It travels down the generations and shows up in the family tree.</p>
+      <p>Choose the four below, or click a type in the tree.</p>
+    </div>
+    <div class="ask reveal" id="ask"></div>
+    <div class="types reveal">
+      <div>
+        <div class="heads" aria-hidden="true"><span>start</span><span>approach</span><span>diet</span><span>way of life</span><span>temper → type</span></div>
+        <div class="tree" id="tree" role="group" aria-label="The sixteen creature types as a tree"></div>
+      </div>
+      <div class="tcard" id="tcard" aria-live="polite"></div>
+    </div>
   </div>
 </section>
 
@@ -460,44 +526,57 @@ explore 270    edit {genome}   advance</pre>
   ];
   var track = document.getElementById('arc-track'), panel = document.getElementById('arc-panel');
   var tabs = track.querySelectorAll('.stage');
-  var view = document.getElementById('arc-view'), shots = view.querySelectorAll('img');
-  var capN = document.getElementById('arc-n'), capT = document.getElementById('arc-t'), bar = document.getElementById('arc-bar');
-  var cur = 1, DUR = 6000, timer = null, auto = !reduce, inView = false, hover = false;
+  var scroller = document.getElementById('arc-scroll'), view = document.getElementById('arc-view'), shots = view.querySelectorAll('img');
+  var capN = document.getElementById('arc-n'), capT = document.getElementById('arc-t'), hint = document.getElementById('arc-hint');
+  var cur = -1, pinned = true, ticking = false;
   function showStage(i, focus){
+    if (focus) tabs[i].focus();
+    if (i === cur) return;
     cur = i;
     tabs.forEach(function(el, j){ el.setAttribute('aria-selected', j===i ? 'true' : 'false'); el.tabIndex = j===i ? 0 : -1; });
     shots.forEach(function(el, j){ el.classList.toggle('on', j===i); });
-    if (focus) tabs[i].focus();
-    track.style.setProperty('--fill', ((i+1)/6*100) + '%');
     var s = stages[i];
     capN.textContent = '0' + (i+1) + ' / 06'; capT.textContent = s.t;
-    panel.innerHTML = '<div class="fade"><h3>' + s.t + '</h3><p class="fantasy">' + s.f + '</p></div>' +
+    panel.innerHTML = '<p class="fantasy fade">' + s.f + '</p>' +
       '<dl class="fade">' + s.d.map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('') + '</dl>';
-    schedule();
   }
-  function schedule(){
-    clearTimeout(timer); bar.classList.remove('run'); void bar.offsetWidth;
-    if (!auto || !inView || hover || document.hidden) return;
-    bar.style.setProperty('--dur', DUR + 'ms'); bar.classList.add('run');
-    timer = setTimeout(function(){ showStage((cur+1)%6); }, DUR);
+  function range(){ return scroller.offsetHeight - window.innerHeight; }
+  function update(){
+    ticking = false;
+    if (!pinned) return;
+    var r = range(), p = r > 0 ? Math.min(1, Math.max(0, -scroller.getBoundingClientRect().top / r)) : 0;
+    var x = p * 6, i = Math.min(5, Math.floor(x));
+    showStage(i);
+    view.style.setProperty('--k', Math.min(1, x - i).toFixed(3));
+    track.style.setProperty('--fill', (p * 100).toFixed(2) + '%');
+    hint.classList.toggle('gone', p > 0.02);
   }
-  function manual(i, focus){ auto = false; showStage(i, focus); }
-  tabs.forEach(function(el, i){ el.addEventListener('click', function(){ manual(i); }); });
-  document.getElementById('arc-prev').addEventListener('click', function(){ manual((cur+5)%6); });
-  document.getElementById('arc-next').addEventListener('click', function(){ manual((cur+1)%6); });
+  function onScroll(){ if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  function layout(){
+    pinned = window.innerHeight >= 560;
+    scroller.classList.toggle('static', !pinned);
+    hint.style.display = pinned ? '' : 'none';
+    if (!pinned) { view.style.setProperty('--k', 1); track.style.setProperty('--fill', ((cur+1)/6*100) + '%'); }
+    update();
+  }
+  function go(i, focus){
+    i = (i + 6) % 6;
+    if (!pinned) { showStage(i, focus); track.style.setProperty('--fill', ((i+1)/6*100) + '%'); return; }
+    var top = window.scrollY + scroller.getBoundingClientRect().top + (i + 0.5) / 6 * range();
+    window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+    if (focus) tabs[i].focus({ preventScroll: true });
+  }
+  tabs.forEach(function(el, i){ el.addEventListener('click', function(){ go(i); }); });
+  document.getElementById('arc-prev').addEventListener('click', function(){ go(cur - 1); });
+  document.getElementById('arc-next').addEventListener('click', function(){ go(cur + 1); });
   track.addEventListener('keydown', function(e){
     var k = [].indexOf.call(tabs, document.activeElement); if (k < 0) return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); manual((k+1)%6, true); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); manual((k+5)%6, true); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(k + 1, true); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); go(k - 1, true); }
   });
-  var arcBox = view.parentNode;
-  arcBox.addEventListener('mouseenter', function(){ hover = true; schedule(); });
-  arcBox.addEventListener('mouseleave', function(){ hover = false; schedule(); });
-  document.addEventListener('visibilitychange', schedule);
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(function(en){ inView = en[0].isIntersecting; schedule(); }, { threshold: 0.35 }).observe(view);
-  }
-  showStage(1);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', layout);
+  showStage(0); layout();
 
   /* ledger */
   var traits = [
@@ -532,6 +611,98 @@ explore 270    edit {genome}   advance</pre>
     earned.innerHTML = '<b>' + t.n.toLowerCase() + '</b> · earned from ' + t.from;
   }
   showTrait(0);
+
+
+  /* sixteen types tree */
+  (function(){
+    var AX = [
+      { k:'Approach', q:'fight or befriend?', p:[['A','fight','Aggressive','kills and intimidation'],['S','befriend','Social','befriending and gifts']] },
+      { k:'Diet', q:'meat or plants?', p:[['H','meat','Hunter','meat eaten and hunts'],['G','plants','Gatherer','plants, fruit and foraging']] },
+      { k:'Way of life', q:'roam or build?', p:[['R','roam','Roamer','distance and new places'],['I','build','Industrious','nest time, building, digging, hoarding']] },
+      { k:'Temper', q:'bold or wary?', p:[['B','bold','Bold','starting fights, facing bigger creatures, deep dives'],['W','wary','Wary','observing, stealth, fleeing early']] }
+    ];
+    var T = {
+      AHRB:['Flint Stalker','Acechador de sílex','Ranges far and meets danger head on.','Carcass food +10%'],
+      SHRB:['Hearth Fang','Colmillo del hogar','Shares the hunt and stands beside companions.','First-meeting trust +10'],
+      AGRB:['Bramble Runner','Corredor de zarzas','Forages boldly and defends each find.','Carcass food +10%'],
+      SGRB:['Orchard Sentinel','Centinela del huerto','Gathers a circle and guards its harvest.','First-meeting trust +10'],
+      AHIB:['Den Forger','Forjador de guaridas','Builds a strong den with a hunter’s resolve.','Nest actions 15% faster'],
+      SHIB:['Hearth Keeper','Guardián del hogar','Welcomes companions into a well-stocked den.','Nest actions 15% faster'],
+      AGIB:['Root Mason','Albañil de raíces','Shapes the land and keeps intruders at bay.','Nest actions 15% faster'],
+      SGIB:['Grove Tender','Cuidador del soto','Builds a home around shared abundance.','Nest actions 15% faster'],
+      AHRW:['Dusk Tracker','Rastreador del ocaso','Tracks prey across the land with patient caution.','Observing 20% faster'],
+      SHRW:['Quiet Companion','Compañero discreto','Travels with companions and watches before acting.','Observing 20% faster'],
+      AGRW:['Seed Wanderer','Viajero de semillas','Carries seeds between safe paths.','Observing 20% faster'],
+      SGRW:['Meadow Listener','Oyente del prado','Finds company by listening at the meadow’s edge.','Observing 20% faster'],
+      AHIW:['Burrow Warden','Vigía de la madriguera','Guards the den through watchful hunting.','Observing 20% faster'],
+      SHIW:['Lantern Host','Anfitrión del farol','Keeps a warm home and a careful welcome.','Observing 20% faster'],
+      AGIW:['Moss Architect','Arquitecto de musgo','Builds shelter quietly and guards the stores.','Observing 20% faster'],
+      SGIW:['Patient Gardener','Jardinero paciente','Tends a shared home with patient attention.','Observing 20% faster']
+    };
+    var tree = document.getElementById('tree'), card = document.getElementById('tcard'), ask = document.getElementById('ask');
+    if (!tree) return;
+    var sel = 'AHRB', nodes = {}, paths = [];
+    var svgNS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('aria-hidden', 'true'); tree.appendChild(svg);
+    var root = document.createElement('span'); root.className = 'node root'; root.textContent = '?-?-?-?';
+    root.style.gridColumn = '1'; root.style.gridRow = '1 / span 16'; tree.appendChild(root); nodes[''] = root;
+    function build(prefix, level, row){
+      if (level === 4) return;
+      var span = 16 >> (level + 1);
+      AX[level].p.forEach(function(pole, b){
+        var id = prefix + pole[0], r = row + b * span, el = document.createElement('button');
+        el.type = 'button'; el.dataset.id = id;
+        el.style.gridColumn = String(level + 2); el.style.gridRow = (r + 1) + ' / span ' + span;
+        if (level === 3) {
+          el.className = 'node leaf';
+          el.innerHTML = '<span class="c">' + id.split('').join('-') + '</span><span class="nm">' + T[id][0] + '</span>';
+          el.setAttribute('aria-label', T[id][0] + ', ' + id.split('').join('-'));
+        } else {
+          el.className = 'node';
+          el.innerHTML = pole[0] + '<span class="w">' + pole[1] + '</span>';
+          el.setAttribute('aria-label', AX[level].k + ': ' + pole[2]);
+        }
+        el.addEventListener('click', function(){ pick(id + sel.slice(id.length)); });
+        tree.appendChild(el); nodes[id] = el;
+        var pa = document.createElementNS(svgNS, 'path'); pa.dataset.from = prefix; pa.dataset.to = id; svg.appendChild(pa); paths.push(pa);
+        build(id, level + 1, r);
+      });
+    }
+    build('', 0, 0);
+    AX.forEach(function(ax, i){
+      var f = document.createElement('fieldset'), lg = document.createElement('legend'), seg = document.createElement('div');
+      lg.textContent = ax.k + ' · ' + ax.q; seg.className = 'seg';
+      ax.p.forEach(function(pole){
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = pole[1]; b.dataset.i = i; b.dataset.l = pole[0];
+        b.addEventListener('click', function(){ pick(sel.slice(0, i) + pole[0] + sel.slice(i + 1)); });
+        seg.appendChild(b);
+      });
+      f.appendChild(lg); f.appendChild(seg); ask.appendChild(f);
+    });
+    function draw(){
+      var box = tree.getBoundingClientRect();
+      paths.forEach(function(pa){
+        var a = nodes[pa.dataset.from].getBoundingClientRect(), b = nodes[pa.dataset.to].getBoundingClientRect();
+        var x1 = a.right - box.left, y1 = a.top + a.height / 2 - box.top, x2 = b.left - box.left, y2 = b.top + b.height / 2 - box.top, mx = (x1 + x2) / 2;
+        pa.setAttribute('d', 'M' + x1 + ' ' + y1 + 'H' + mx + 'V' + y2 + 'H' + x2);
+      });
+    }
+    function pick(code){
+      sel = code;
+      Object.keys(nodes).forEach(function(id){ nodes[id].classList.toggle('on', code.indexOf(id) === 0); });
+      paths.forEach(function(pa){ pa.classList.toggle('on', code.indexOf(pa.dataset.to) === 0); });
+      [].forEach.call(ask.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', code[b.dataset.i] === b.dataset.l ? 'true' : 'false'); });
+      var d = T[code];
+      card.innerHTML = '<div class="fade"><span class="code">' + code.split('').join('-') + '</span><h3>' + d[0] + '</h3><p class="es">' + d[1] + '</p><p class="desc">' + d[2] + '</p>' +
+        '<h4>how you get here</h4><ul>' + AX.map(function(ax, i){ var pole = ax.p[code[i] === ax.p[0][0] ? 0 : 1]; return '<li><b>' + pole[0] + ' · ' + pole[2] + '</b><span>' + pole[3] + '</span></li>'; }).join('') + '</ul>' +
+        '<div class="perk"><span>perk</span><b>' + d[3] + '</b></div>' +
+        '<p class="tnote">Draft names, still to be approved. Perks are small on purpose: no damage, speed or health changes.</p></div>';
+    }
+    pick(sel); draw();
+    window.addEventListener('resize', draw);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+    if ('ResizeObserver' in window) new ResizeObserver(draw).observe(tree);
+  })();
 
   /* reveal on scroll */
   var els = document.querySelectorAll('.reveal');
