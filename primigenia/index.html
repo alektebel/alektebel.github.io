@@ -94,23 +94,23 @@
   .stage .art{display:block;width:100%;aspect-ratio:4/3;margin:0 0 14px;opacity:.5;filter:saturate(.4);transition:opacity .35s,filter .35s,transform .45s cubic-bezier(.2,.7,.2,1);transform-origin:50% 100%}
   .stage:hover .art{opacity:.7;filter:saturate(.8)}
   .stage[aria-selected="true"] .art{opacity:1;filter:none;transform:translateY(-4px) scale(1.04)}
-  .art svg{display:block;width:100%;height:100%;overflow:visible}
-  .art .bd{fill:#c9432f}.art .dk{fill:#6e2317}.art .dks{stroke:#6e2317;fill:none;stroke-width:3.2;stroke-linecap:round}
-  .art .sp{fill:#f3ede0}.art .ey{fill:#f3c58f}.art .pu{fill:#1a0d09}
-  .art .gr{stroke:#3a4128;stroke-width:1.5}.art .tool{stroke:#b9b09a;stroke-width:2.6;stroke-linecap:round;fill:none}
-  .art .stone{fill:#d8cfb8}.art .bg{fill:#232a19}.art .wt{stroke:#9cc6e0;fill:none;stroke-width:1.4;stroke-linecap:round;opacity:.55}
-  .art .fl{fill:#f3a24a}.art .fl2{fill:#e5482f}.art .cl{fill:#2d4a6b}.art .gold{fill:#f3c58f}.art .ban{fill:#e5482f}
-  .art .sm{fill:#948e7b;opacity:.35}.art .suit{fill:#a9b4b8}.art .suitd{fill:#6d7a80}.art .glass{fill:#9cc6e0;fill-opacity:.18;stroke:#cfe4f0;stroke-width:1.6}
-  .art .star{fill:#efe8d8}.art .pl{fill:#9cc6e0}.art .ring{fill:none;stroke:#f3c58f;stroke-width:1.6}.art .moon{fill:#2c3220}
-  @media (prefers-reduced-motion:reduce){.stage .art{transition:none}}
-  @media (prefers-reduced-motion:no-preference){
-    .stage[aria-selected="true"] .art .bob{animation:bob 2.6s ease-in-out infinite}
-    .stage[aria-selected="true"] .art .flick{animation:flick .5s ease-in-out infinite alternate;transform-origin:50% 100%;transform-box:fill-box}
-    .stage[aria-selected="true"] .art .rise{animation:rise 3s ease-in infinite;transform-box:fill-box}
-  }
-  @keyframes bob{50%{transform:translateY(-2.5px)}}
-  @keyframes flick{to{transform:scaleY(1.18) scaleX(.9)}}
-  @keyframes rise{0%{transform:translateY(0);opacity:.35}100%{transform:translateY(-14px);opacity:0}}
+  .art img{display:block;width:100%;height:100%;object-fit:cover;border-radius:2px}
+  .arc-view{position:relative;aspect-ratio:1600/663;overflow:hidden;background:#050605;margin:0 0 60px;isolation:isolate}
+  @media (max-width:640px){.arc-view{aspect-ratio:4/3}}
+  .arc-view img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.07);transition:opacity 1s ease,transform 7s cubic-bezier(.2,.6,.2,1)}
+  .arc-view img.on{opacity:1;transform:scale(1)}
+  .arc-view::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg,rgba(5,6,5,.78) 0%,rgba(5,6,5,0) 42%)}
+  .arc-cap{position:absolute;left:clamp(16px,3vw,32px);bottom:clamp(14px,2.6vw,28px);z-index:2;display:flex;align-items:baseline;gap:14px}
+  .arc-cap .n{font:500 12px/1 var(--mono);letter-spacing:.16em;color:var(--dawn)}
+  .arc-cap .t{font:400 clamp(30px,5vw,60px)/1 var(--serif);color:var(--bone);text-shadow:0 2px 24px rgba(0,0,0,.5)}
+  .arc-nav{position:absolute;right:clamp(16px,3vw,32px);bottom:clamp(14px,2.6vw,28px);z-index:2;display:flex;gap:8px}
+  .arc-nav button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(239,232,216,.5);background:rgba(14,16,12,.4);color:var(--bone);font:500 16px/1 var(--mono);cursor:pointer;backdrop-filter:blur(6px)}
+  .arc-nav button:hover{border-color:var(--bone);background:rgba(14,16,12,.7)}
+  .arc-prog{position:absolute;left:0;right:0;bottom:0;height:2px;z-index:2;background:rgba(239,232,216,.12)}
+  .arc-prog i{display:block;height:100%;width:0;background:var(--dawn)}
+  .arc-prog i.run{animation:prog var(--dur,6s) linear forwards}
+  @keyframes prog{to{width:100%}}
+  @media (prefers-reduced-motion:reduce){.arc-view img{transition:opacity .01s;transform:none}.arc-view img.on{transform:none}}
   .stage:hover .t{color:var(--bone)}
   .stage[aria-selected="true"] .t{color:var(--bone)}
   .stage[aria-selected="true"] .n{color:var(--dawn)}
@@ -289,13 +289,18 @@
     <p class="kicker reveal">the arc</p>
     <h2 class="reveal">Six stages, <i>one lineage.</i></h2>
     <div class="arc reveal">
+      <div class="arc-view" id="arc-view" role="group" aria-roledescription="carousel" aria-label="The lineage, stage by stage"><img style="object-position:30% 50%" src="img/arc/cell.jpg" srcset="img/arc/cell-960.jpg 960w, img/arc/cell.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="A translucent red cell with white spines and flagella, drifting in green water" width="1600" height="663" loading="lazy"><img style="object-position:28% 50%" src="img/arc/creature.jpg" srcset="img/arc/creature-960.jpg 960w, img/arc/creature.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="The striped red creature on a ridge at sunset, spines along its back" width="1600" height="663" class="on"><img style="object-position:60% 50%" src="img/arc/band.jpg" srcset="img/arc/band-960.jpg 960w, img/arc/band.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="At night the creature holds a spear while its band gathers round a campfire" width="1600" height="663" loading="lazy"><img style="object-position:18% 50%" src="img/arc/realm.jpg" srcset="img/arc/realm-960.jpg 960w, img/arc/realm.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="Crowned and cloaked, the creature holds a red banner before a castle at sunset" width="1600" height="663" loading="lazy"><img style="object-position:42% 50%" src="img/arc/industry.jpg" srcset="img/arc/industry-960.jpg 960w, img/arc/industry.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="In goggles and holding a hammer, the creature walks a catwalk above smokestacks" width="1600" height="663" loading="lazy"><img style="object-position:45% 50%" src="img/arc/space.jpg" srcset="img/arc/space-960.jpg 960w, img/arc/space.jpg 1600w" sizes="(max-width:1120px) 100vw, 1024px" alt="In a space suit on a moon, by a red flag, a ringed planet filling the sky" width="1600" height="663" loading="lazy">
+        <div class="arc-cap" aria-live="polite"><span class="n" id="arc-n">02 / 06</span><span class="t" id="arc-t">Creature</span></div>
+        <div class="arc-nav"><button type="button" id="arc-prev" aria-label="Previous stage">←</button><button type="button" id="arc-next" aria-label="Next stage">→</button></div>
+        <div class="arc-prog" aria-hidden="true"><i id="arc-bar"></i></div>
+      </div>
       <div class="arc-track" role="tablist" aria-label="Stages" id="arc-track">
-        <button class="stage" role="tab" data-i="0"><span class="art" role="img" aria-label="A spined red fish in open water"><svg viewBox="0 0 160 120"><path class="wt" d="M6 22q8-4 16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0"/><path class="wt" d="M6 108q8-4 16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0" opacity=".5"/><g class="bob"><path class="bd" d="M40 66L16 48L22 66L16 84Z"/><path class="sp" d="M58 51L62 36L68 50Z M72 48L78 32L84 48Z M88 50L93 38L98 53Z"/><path class="bd" d="M36 66C50 42 98 42 118 62C104 84 54 90 36 66Z"/><path class="dks" d="M62 52q4 12 0 26M78 50q4 13 0 28M94 53q3 10 0 21"/><path class="dk" d="M72 74q10 14 22 6q-10-3-22-6Z"/><path d="M108 68q6 2 10-4" stroke="#f3ede0" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle class="ey" cx="106" cy="58" r="3.6"/><circle class="pu" cx="107" cy="58" r="1.6"/></g><circle class="wt" cx="128" cy="46" r="2.2"/><circle class="wt" cx="136" cy="36" r="3.2"/><circle class="wt" cx="131" cy="25" r="1.6"/></svg></span><span class="n">01</span><span class="t">Cell</span><span class="s">tide pool</span></button>
-        <button class="stage here" role="tab" data-i="1"><span class="art" role="img" aria-label="The red creature on all fours, spines along its back"><svg viewBox="0 0 160 120"><path class="gr" d="M4 104H156"/><path class="gr" d="M20 104l2-6l2 6M128 104l2-7l2 7M140 104l1-5l2 5" fill="none"/><g class="bob"><path class="bd" d="M56 68C40 70 26 78 12 90C30 86 44 82 58 80Z"/><path class="dk" d="M60 78L52 102H62L70 82Z"/><path class="dk" d="M90 78L92 102H101L99 78Z"/><path class="sp" d="M56 64L59 50L65 62Z M68 60L73 45L78 59Z M81 59L86 45L90 59Z M93 61L98 50L101 62Z"/><ellipse class="bd" cx="78" cy="71" rx="26" ry="13"/><path class="bd" d="M96 62L110 52L118 62L104 78Z"/><path class="bd" d="M104 54C112 44 128 46 136 56C130 62 116 66 106 64Z"/><path d="M110 62q12 2 24-5" stroke="#f3ede0" stroke-width="1.8" fill="none" stroke-linecap="round"/><path class="sp" d="M112 49L118 34L120 50Z"/><path class="dks" d="M66 61q-3 10 1 21M80 59q-3 12 1 24M93 62q-2 8 1 16"/><circle class="ey" cx="124" cy="52" r="2.8"/><circle class="pu" cx="125" cy="52" r="1.2"/></g></svg></span><span class="n">02</span><span class="t">Creature</span><span class="s">the island</span></button>
-        <button class="stage" role="tab" data-i="2"><span class="art" role="img" aria-label="Upright, holding a stone-tipped spear by a campfire"><svg viewBox="0 0 160 120"><path class="gr" d="M4 104H156"/><path class="tool" d="M122 104L142 98M122 98L142 104"/><path class="fl2 flick" d="M132 100C122 92 128 82 132 74C136 84 142 90 132 100Z"/><path class="fl flick" d="M132 100C127 95 130 89 132 84C134 90 137 95 132 100Z"/><path class="tool" d="M104 104L112 20"/><path class="stone" d="M112 10L107 25H117Z"/><path class="bd" d="M62 88C46 94 30 100 14 102C30 94 46 86 64 80Z"/><path class="dk" d="M64 84L58 103H67L72 88Z"/><path class="dk" d="M78 84L80 103H89L87 84Z"/><path class="sp" d="M60 50L48 44L60 58Z M57 64L44 62L58 72Z M58 78L46 80L61 84Z"/><ellipse class="bd" cx="72" cy="66" rx="14" ry="21" transform="rotate(-8 72 66)"/><path class="dks" d="M62 56q8 3 16 0M60 68q9 3 18 0M62 80q7 2 14 0"/><path class="bd" d="M66 52L76 42L88 46L80 58Z"/><path class="bd" d="M74 46C78 34 94 32 102 40C98 46 86 50 76 50Z"/><path class="sp" d="M82 36L86 22L90 36Z"/><path d="M80 47q10 1 20-5" stroke="#f3ede0" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle class="ey" cx="92" cy="39" r="2.6"/><circle class="pu" cx="93" cy="39" r="1.1"/><path d="M78 62L108 60" stroke="#c9432f" stroke-width="5" stroke-linecap="round"/><circle class="dk" cx="108" cy="60" r="3"/></svg></span><span class="n">03</span><span class="t">Band</span><span class="s">hunter-gatherers</span></button>
-        <button class="stage" role="tab" data-i="3"><span class="art" role="img" aria-label="Crowned and cloaked, holding a banner, a tower behind"><svg viewBox="0 0 160 120"><path class="gr" d="M4 104H156"/><path class="bg" d="M12 104V44h5v-6h5v6h4v-6h5v6h5V104Z"/><rect x="20" y="58" width="6" height="10" rx="3" fill="#f3c58f" opacity=".7"/><path class="tool" d="M108 104V18"/><path class="ban" d="M108 20H134L128 29L134 38H108Z"/><path class="sp" d="M115 34L119 24L122 34Z"/><path class="bd" d="M62 88C46 94 30 100 34 102C30 94 46 86 64 80Z"/><path class="dk" d="M64 84L58 103H67L72 88Z"/><path class="dk" d="M78 84L80 103H89L87 84Z"/><path class="cl" d="M64 46L46 102H94L84 48Z"/><path class="sp" d="M60 50L48 44L60 58Z M57 64L44 62L58 72Z M58 78L46 80L61 84Z"/><ellipse class="bd" cx="72" cy="66" rx="14" ry="21" transform="rotate(-8 72 66)"/><path class="dks" d="M62 56q8 3 16 0M60 68q9 3 18 0M62 80q7 2 14 0"/><path class="bd" d="M66 52L76 42L88 46L80 58Z"/><path class="bd" d="M74 46C78 34 94 32 102 40C98 46 86 50 76 50Z"/><path class="sp" d="M90 36L95 24L97 37Z"/><path class="gold" d="M74 35L75 26L79 31L82 23L86 31L90 27L89 37Z"/><path d="M80 47q10 1 20-5" stroke="#f3ede0" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle class="ey" cx="92" cy="39" r="2.6"/><circle class="pu" cx="93" cy="39" r="1.1"/><path d="M78 62L108 60" stroke="#c9432f" stroke-width="5" stroke-linecap="round"/><circle class="dk" cx="108" cy="60" r="3"/></svg></span><span class="n">04</span><span class="t">Realm</span><span class="s">fields to empire</span></button>
-        <button class="stage" role="tab" data-i="4"><span class="art" role="img" aria-label="Wearing goggles and holding a hammer in front of a smoking factory"><svg viewBox="0 0 160 120"><path class="gr" d="M4 104H156"/><path class="bg" d="M112 104V72L124 64V72L136 64V72L148 64V104Z"/><rect class="bg" x="138" y="36" width="8" height="30"/><rect x="118" y="82" width="5" height="6" fill="#f3c58f" opacity=".7"/><rect x="130" y="82" width="5" height="6" fill="#f3c58f" opacity=".7"/><circle class="sm rise" cx="142" cy="30" r="5"/><circle class="sm rise" cx="148" cy="20" r="6" style="animation-delay:1s"/><circle class="sm rise" cx="154" cy="10" r="7" style="animation-delay:2s"/><path class="tool" d="M104 84V48"/><rect class="stone" x="96" y="42" width="16" height="7" rx="1.5"/><path class="bd" d="M62 88C46 94 30 100 14 102C30 94 46 86 64 80Z"/><path class="dk" d="M64 84L58 103H67L72 88Z"/><path class="dk" d="M78 84L80 103H89L87 84Z"/><path class="sp" d="M60 50L48 44L60 58Z M57 64L44 62L58 72Z M58 78L46 80L61 84Z"/><ellipse class="bd" cx="72" cy="66" rx="14" ry="21" transform="rotate(-8 72 66)"/><path class="dks" d="M62 56q8 3 16 0M60 68q9 3 18 0M62 80q7 2 14 0"/><path class="bd" d="M66 52L76 42L88 46L80 58Z"/><path class="bd" d="M74 46C78 34 94 32 102 40C98 46 86 50 76 50Z"/><path class="sp" d="M82 36L86 22L90 36Z"/><path d="M80 47q10 1 20-5" stroke="#f3ede0" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M66 50L82 84" stroke="#2d4a6b" stroke-width="4"/><path d="M78 62L104 60" stroke="#c9432f" stroke-width="5" stroke-linecap="round"/><circle class="dk" cx="104" cy="60" r="3"/><path d="M76 40L100 37" stroke="#3a2a1e" stroke-width="3"/><circle cx="92" cy="38" r="4.4" fill="#9cc6e0" stroke="#3a2a1e" stroke-width="2"/></svg></span><span class="n">05</span><span class="t">Industry</span><span class="s">the whole planet</span></button>
-        <button class="stage" role="tab" data-i="5"><span class="art" role="img" aria-label="In a space suit with a glass helmet, on a moon under a ringed planet"><svg viewBox="0 0 160 120"><circle class="star" cx="12" cy="14" r="1.2"/><circle class="star" cx="40" cy="8" r=".8"/><circle class="star" cx="60" cy="22" r="1"/><circle class="star" cx="104" cy="10" r="1.3"/><circle class="star" cx="150" cy="58" r=".9"/><circle class="star" cx="22" cy="46" r=".8"/><circle class="star" cx="150" cy="8" r="1"/><circle class="pl" cx="132" cy="30" r="11" opacity=".85"/><ellipse class="ring" cx="132" cy="30" rx="20" ry="5" transform="rotate(-18 132 30)"/><path class="moon" d="M0 104Q80 94 160 104V120H0Z"/><ellipse cx="128" cy="108" rx="8" ry="2" fill="#1d2214"/><ellipse cx="30" cy="110" rx="5" ry="1.5" fill="#1d2214"/><path class="tool" d="M120 100V64"/><path class="ban" d="M120 64H138V76H120Z"/><path class="sp" d="M126 74L129 66L132 74Z"/><g class="bob"><rect class="suitd" x="50" y="52" width="11" height="28" rx="3"/><path class="suit" d="M62 88C46 94 30 100 14 102C30 94 46 86 64 80Z"/><path class="suitd" d="M64 84L58 103H67L72 88Z"/><path class="suitd" d="M78 84L80 103H89L87 84Z"/><path class="sp" d="M60 50L48 44L60 58Z M57 64L44 62L58 72Z M58 78L46 80L61 84Z"/><ellipse class="suit" cx="72" cy="66" rx="14" ry="21" transform="rotate(-8 72 66)"/><path class="suit" d="M66 52L76 42L88 46L80 58Z"/><path class="bd" d="M74 46C78 34 94 32 102 40C98 46 86 50 76 50Z"/><path class="sp" d="M84 36L88 26L91 37Z"/><path d="M80 47q10 1 20-5" stroke="#f3ede0" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle class="ey" cx="92" cy="39" r="2.6"/><circle class="pu" cx="93" cy="39" r="1.1"/><path d="M80 66L106 62" stroke="#a9b4b8" stroke-width="5" stroke-linecap="round"/><circle class="suitd" cx="107" cy="62" r="3.4"/><circle class="glass" cx="88" cy="40" r="17"/><path d="M77 31a13 13 0 0 1 10-6" stroke="#fff" stroke-width="1.6" fill="none" opacity=".7" stroke-linecap="round"/></g></svg></span><span class="n">06</span><span class="t">Space</span><span class="s">the galaxy</span></button>
+        <button class="stage" role="tab" data-i="0"><span class="art"><img src="img/arc/cell-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">01</span><span class="t">Cell</span><span class="s">tide pool</span></button>
+        <button class="stage here" role="tab" data-i="1"><span class="art"><img src="img/arc/creature-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">02</span><span class="t">Creature</span><span class="s">the island</span></button>
+        <button class="stage" role="tab" data-i="2"><span class="art"><img src="img/arc/band-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">03</span><span class="t">Band</span><span class="s">hunter-gatherers</span></button>
+        <button class="stage" role="tab" data-i="3"><span class="art"><img src="img/arc/realm-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">04</span><span class="t">Realm</span><span class="s">fields to empire</span></button>
+        <button class="stage" role="tab" data-i="4"><span class="art"><img src="img/arc/industry-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">05</span><span class="t">Industry</span><span class="s">the whole planet</span></button>
+        <button class="stage" role="tab" data-i="5"><span class="art"><img src="img/arc/space-thumb.jpg" alt="" loading="lazy" width="360" height="270"></span><span class="n">06</span><span class="t">Space</span><span class="s">the galaxy</span></button>
       </div>
       <div class="arc-panel" id="arc-panel" role="tabpanel" aria-live="polite"></div>
     </div>
@@ -455,20 +460,43 @@ explore 270    edit {genome}   advance</pre>
   ];
   var track = document.getElementById('arc-track'), panel = document.getElementById('arc-panel');
   var tabs = track.querySelectorAll('.stage');
+  var view = document.getElementById('arc-view'), shots = view.querySelectorAll('img');
+  var capN = document.getElementById('arc-n'), capT = document.getElementById('arc-t'), bar = document.getElementById('arc-bar');
+  var cur = 1, DUR = 6000, timer = null, auto = !reduce, inView = false, hover = false;
   function showStage(i, focus){
+    cur = i;
     tabs.forEach(function(el, j){ el.setAttribute('aria-selected', j===i ? 'true' : 'false'); el.tabIndex = j===i ? 0 : -1; });
+    shots.forEach(function(el, j){ el.classList.toggle('on', j===i); });
     if (focus) tabs[i].focus();
     track.style.setProperty('--fill', ((i+1)/6*100) + '%');
     var s = stages[i];
+    capN.textContent = '0' + (i+1) + ' / 06'; capT.textContent = s.t;
     panel.innerHTML = '<div class="fade"><h3>' + s.t + '</h3><p class="fantasy">' + s.f + '</p></div>' +
       '<dl class="fade">' + s.d.map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('') + '</dl>';
+    schedule();
   }
-  tabs.forEach(function(el, i){ el.addEventListener('click', function(){ showStage(i); }); });
+  function schedule(){
+    clearTimeout(timer); bar.classList.remove('run'); void bar.offsetWidth;
+    if (!auto || !inView || hover || document.hidden) return;
+    bar.style.setProperty('--dur', DUR + 'ms'); bar.classList.add('run');
+    timer = setTimeout(function(){ showStage((cur+1)%6); }, DUR);
+  }
+  function manual(i, focus){ auto = false; showStage(i, focus); }
+  tabs.forEach(function(el, i){ el.addEventListener('click', function(){ manual(i); }); });
+  document.getElementById('arc-prev').addEventListener('click', function(){ manual((cur+5)%6); });
+  document.getElementById('arc-next').addEventListener('click', function(){ manual((cur+1)%6); });
   track.addEventListener('keydown', function(e){
-    var cur = [].indexOf.call(tabs, document.activeElement); if (cur < 0) return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); showStage((cur+1)%6, true); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); showStage((cur+5)%6, true); }
+    var k = [].indexOf.call(tabs, document.activeElement); if (k < 0) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); manual((k+1)%6, true); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); manual((k+5)%6, true); }
   });
+  var arcBox = view.parentNode;
+  arcBox.addEventListener('mouseenter', function(){ hover = true; schedule(); });
+  arcBox.addEventListener('mouseleave', function(){ hover = false; schedule(); });
+  document.addEventListener('visibilitychange', schedule);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(en){ inView = en[0].isIntersecting; schedule(); }, { threshold: 0.35 }).observe(view);
+  }
   showStage(1);
 
   /* ledger */
